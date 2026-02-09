@@ -60,7 +60,3 @@ Copy `.env.example` to `.env` and configure:
 | `S3_ACCESS_KEY`        | S3 access key                      |
 | `S3_SECRET_KEY`        | S3 secret key                      |
 | `S3_BUCKET`            | Bucket name for sensor storage     |
-
-## License
-
-MIT
