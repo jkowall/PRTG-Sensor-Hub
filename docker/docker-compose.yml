@@ -1,0 +1,25 @@
+# Compatible with both Docker Compose and Podman Compose
+# Usage:
+#   docker compose -f docker/docker-compose.yml up -d
+#   podman-compose -f docker/docker-compose.yml up -d
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: prtg-hub-postgres
+    environment:
+      POSTGRES_USER: prtg_hub
+      POSTGRES_PASSWORD: prtg_hub_dev
+      POSTGRES_DB: prtg_sensor_hub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prtg_hub -d prtg_sensor_hub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
