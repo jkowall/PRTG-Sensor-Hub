@@ -1,0 +1,28 @@
+#:schema https://raw.githubusercontent.com/cloudflare/wrangler/main/packages/wrangler/config-schema.json
+name = "prtg-sensor-hub-api"
+main = "app/main.py"
+compatibility_date = "2024-03-18"
+compatibility_flags = ["python_workers"]
+
+# D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "prtg-sensor-hub-db"
+database_id = "00000000-0000-0000-0000-000000000000" # Placeholder, user will create
+
+# R2 Bucket Binding
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "prtg-sensor-hub-assets"
+
+[vars]
+# Placeholder for configuration
+API_V1_PREFIX = "/api/v1"
+DEBUG = "false"
+APP_NAME = "PRTG Sensor Hub API (Cloudflare)"
+
+# These should be set via 'wrangler secret put' in production
+# GITHUB_WEBHOOK_SECRET = ""
+# SECRET_KEY = ""
+# GITHUB_CLIENT_ID = ""
+# GITHUB_CLIENT_SECRET = ""

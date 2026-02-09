@@ -2,13 +2,14 @@
 
 import secrets
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 import httpx
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.utils import db_execute, db_commit, db_refresh
 
 from app.core.config import settings
 from app.models import User
@@ -117,14 +118,12 @@ async def get_github_user(access_token: str) -> Optional[dict]:
             return None
 
 
-async def get_or_create_user(db: AsyncSession, github_user: dict) -> User:
+async def get_or_create_user(db: Any, github_user: dict) -> User:
     """Get existing user or create new one from GitHub data."""
     github_id = str(github_user["id"])
     
     # Try to find existing user by GitHub ID
-    result = await db.execute(
-        select(User).where(User.github_id == github_id)
-    )
+    result = await db_execute(db, select(User).where(User.github_id == github_id))
     user = result.scalar_one_or_none()
     
     if user:
@@ -133,7 +132,7 @@ async def get_or_create_user(db: AsyncSession, github_user: dict) -> User:
         user.full_name = github_user.get("name")
         user.avatar_url = github_user.get("avatar_url")
         user.updated_at = datetime.utcnow()
-        await db.commit()
+        await db_commit(db)
         return user
     
     # Create new user
@@ -146,8 +145,8 @@ async def get_or_create_user(db: AsyncSession, github_user: dict) -> User:
         provider="github",
     )
     db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    await db_commit(db)
+    await db_refresh(db, user)
     
     return user
 

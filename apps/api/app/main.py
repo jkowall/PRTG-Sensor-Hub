@@ -20,10 +20,18 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler for startup/shutdown events."""
+    # Detect if running on Cloudflare/SQLite (Sync)
+    from app.db.database import USE_SYNC_DB
+
     # Startup
     logger.info("Starting PRTG Sensor Hub API...")
     
-    # Auto-create database tables
+    if USE_SYNC_DB:
+        logger.info("Running in Sync mode (Cloudflare/SQLite) - skipping auto-table creation")
+        yield
+        return
+
+    # Auto-create database tables (Local Dev Postgres only)
     from app.db import engine, AsyncSessionLocal
     from app.models import Base, User
     from sqlalchemy import select

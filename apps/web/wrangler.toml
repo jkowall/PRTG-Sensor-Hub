@@ -1,0 +1,12 @@
+#:schema https://raw.githubusercontent.com/cloudflare/wrangler/main/packages/wrangler/config-schema.json
+name = "prtg-sensor-hub-web"
+pages_build_output_dir = ".next"
+compatibility_date = "2024-03-18"
+compatibility_flags = ["nextjs_pages"]
+
+[vars]
+NEXT_PUBLIC_API_URL = "https://api.prtg-sensor-hub.example.com/api/v1" # User will update
+# These can be set in the Cloudflare Pages Dashboard
+# GITHUB_ID = ""
+# GITHUB_SECRET = ""
+# NEXTAUTH_SECRET = ""

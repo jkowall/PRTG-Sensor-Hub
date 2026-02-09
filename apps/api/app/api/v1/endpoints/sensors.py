@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db import get_db
+from app.db.utils import db_execute, db_commit, db_refresh
 from app.models import Sensor, Version
 from app.schemas import (
     PaginatedResponse,
@@ -73,7 +74,7 @@ async def list_sensors(
 
     # Get total count
     count_query = select(func.count()).select_from(query.subquery())
-    total_result = await db.execute(count_query)
+    total_result = await db_execute(db, count_query)
     total = total_result.scalar() or 0
 
     # Apply pagination
@@ -81,7 +82,7 @@ async def list_sensors(
     query = query.offset(offset).limit(page_size).order_by(Sensor.total_downloads.desc())
 
     # Execute query
-    result = await db.execute(query)
+    result = await db_execute(db, query)
     sensors = result.scalars().unique().all()
 
     # Calculate total pages
@@ -112,7 +113,7 @@ async def get_sensor(
         .options(selectinload(Sensor.versions))
     )
 
-    result = await db.execute(query)
+    result = await db_execute(db, query)
     sensor = result.scalar_one_or_none()
 
     if not sensor:
@@ -135,7 +136,7 @@ async def download_sensor(
     """
     # Find sensor
     sensor_query = select(Sensor).where(Sensor.slug == slug)
-    result = await db.execute(sensor_query)
+    result = await db_execute(db, sensor_query)
     sensor = result.scalar_one_or_none()
 
     if not sensor:
@@ -150,7 +151,7 @@ async def download_sensor(
         # Get latest version
         version_query = version_query.order_by(Version.created_at.desc())
 
-    result = await db.execute(version_query)
+    result = await db_execute(db, version_query)
     sensor_version = result.scalar_one_or_none()
 
     if not sensor_version:
@@ -177,7 +178,7 @@ async def list_categories(
 ) -> list[str]:
     """List all available sensor categories."""
     query = select(Sensor.category).distinct().order_by(Sensor.category)
-    result = await db.execute(query)
+    result = await db_execute(db, query)
     categories = result.scalars().all()
     return list(categories)
 
@@ -238,7 +239,7 @@ async def create_sensor(
     slug = slugify(data.display_name)
     
     # Check if slug already exists
-    existing = await db.execute(select(Sensor).where(Sensor.slug == slug))
+    existing = await db_execute(db, select(Sensor).where(Sensor.slug == slug))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail=f"Sensor with slug '{slug}' already exists")
     
@@ -254,8 +255,8 @@ async def create_sensor(
     )
     
     db.add(sensor)
-    await db.commit()
-    await db.refresh(sensor)
+    await db_commit(db)
+    await db_refresh(db, sensor)
     
     return SensorCreateResponse(
         id=str(sensor.id),
@@ -277,7 +278,7 @@ async def add_version(
     
     Only the sensor owner or admin can add versions.
     """
-    result = await db.execute(select(Sensor).where(Sensor.slug == slug))
+    result = await db_execute(db, select(Sensor).where(Sensor.slug == slug))
     sensor = result.scalar_one_or_none()
     
     if not sensor:
@@ -288,7 +289,7 @@ async def add_version(
         raise HTTPException(status_code=403, detail="Not authorized to modify this sensor")
     
     # Check if version already exists
-    existing = await db.execute(
+    existing = await db_execute(db, 
         select(Version).where(
             Version.sensor_id == sensor.id,
             Version.version_str == data.version_str,
@@ -310,7 +311,7 @@ async def add_version(
     )
     
     db.add(version)
-    await db.commit()
+    await db_commit(db)
     
     return {"message": f"Version {data.version_str} added successfully"}
 
