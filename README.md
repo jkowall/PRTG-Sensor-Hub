@@ -48,6 +48,27 @@ prtg-sensor-hub/
    - Swagger UI: <http://localhost:8000/docs>
    - ReDoc: <http://localhost:8000/redoc>
 
+## Testing
+
+### Backend
+
+ ```bash
+ # Run API tests
+ pytest apps/api/tests/ -v
+ ```
+
+### Frontend
+
+ ```bash
+ # Run Web tests
+ cd apps/web
+ npm test
+ ```
+
+### CI/CD
+
+ Tests are automatically run via GitHub Actions on every push to `main` and PRs.
+
 ## Environment Variables
 
 Copy `.env.example` to `.env` and configure:
