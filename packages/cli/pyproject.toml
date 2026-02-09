@@ -1,6 +1,6 @@
 [project]
 name = "prtg-sensor-hub-cli"
-version = "1.0.0"
+version = "1.0.1"
 description = "CLI tool for PRTG Sensor Hub"
 requires-python = ">=3.10"
 dependencies = [
