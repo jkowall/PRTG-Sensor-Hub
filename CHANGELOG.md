@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-02-10
+
+### Added
+
+- **Automated GitHub SHA Retrieval**: The certification process now automatically fetches the `merge_commit_sha` from GitHub PRs.
+- **Improved Moderation Workflow**: Removed the manual SHA prompt from the Admin Dashboard for a seamless one-click approval experience.
+
 ## [2.4.0] - 2026-02-10
 
 ### Added
