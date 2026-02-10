@@ -48,15 +48,26 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             try {
                 const prNumber = parseInt(githubPrUrl.split('/').pop() || '');
                 if (!isNaN(prNumber)) {
-                    console.log(`Auto-fetching SHA for PR #${prNumber}...`);
                     const gh = new GitHubService(env.GITHUB_BOT_TOKEN, 'jkowall', 'PRTG-Sensor-Hub-Sensors');
-                    const prDetails = await gh.getPullRequest(prNumber);
+                    let prDetails = await gh.getPullRequest(prNumber);
 
-                    if (prDetails.state === 'closed' && prDetails.merged) {
+                    // If PR is open, attempt to merge it
+                    if (prDetails.state === 'open') {
+                        console.log(`PR #${prNumber} is open. Attempting automatic merge...`);
+                        try {
+                            const mergeResult = await gh.mergePullRequest(prNumber, `Merge PR #${prNumber} from Admin Hub Approval`);
+                            if (mergeResult.merged) {
+                                commitSha = mergeResult.sha;
+                                console.log(`Successfully merged PR #${prNumber}. Merge SHA: ${commitSha}`);
+                            }
+                        } catch (mergeErr) {
+                            console.error(`Failed to automatically merge PR #${prNumber}:`, mergeErr);
+                            // It might be because of conflicts or permissions. 
+                            // We continue without SHA update if merge fails.
+                        }
+                    } else if (prDetails.state === 'closed' && prDetails.merged) {
                         commitSha = prDetails.merge_commit_sha;
                         console.log(`Successfully auto-fetched merge SHA: ${commitSha}`);
-                    } else if (prDetails.state === 'open') {
-                        console.log(`PR #${prNumber} is still open, cannot auto-fetch merge SHA.`);
                     }
                 }
             } catch (ghError) {

@@ -155,6 +155,13 @@ export class GitHubService {
         return this.request(`/pulls/${prNumber}`);
     }
 
+    async mergePullRequest(prNumber: number, commitTitle?: string) {
+        return this.request(`/pulls/${prNumber}/merge`, 'PUT', {
+            commit_title: commitTitle || `Merge PR #${prNumber} from Hub`,
+            merge_method: 'merge'
+        });
+    }
+
     async deleteRef(ref: string) {
         return this.request(`/git/refs/heads/${ref}`, 'DELETE');
     }
