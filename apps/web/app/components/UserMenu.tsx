@@ -6,19 +6,6 @@ import { useState, useRef, useEffect } from 'react';
 
 export function UserMenu() {
     const { user, loading, login, logout } = useAuth();
-
-    if (loading) {
-        return <div style={{ width: '100px' }}></div>;
-    }
-
-    if (!user) {
-        return (
-            <button onClick={login} className="btn btn-primary" style={{ padding: '8px 16px' }}>
-                Login with GitHub
-            </button>
-        );
-    }
-
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -34,6 +21,18 @@ export function UserMenu() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    if (loading) {
+        return <div style={{ width: '100px' }}></div>;
+    }
+
+    if (!user) {
+        return (
+            <button onClick={login} className="btn btn-primary" style={{ padding: '8px 16px' }}>
+                Login with GitHub
+            </button>
+        );
+    }
 
     return (
         <div className="relative" ref={menuRef}>
