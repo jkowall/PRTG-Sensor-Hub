@@ -58,6 +58,7 @@ export default function MySensors() {
             try {
                 const params = new URLSearchParams();
                 params.append('owner_id', user.id);
+                params.append('mine', 'true'); // Key fix: explicitly Request "my sensors" mode
                 params.append('page_size', '100'); // Fetch all for now
 
                 const res = await fetch(`${API_URL}/sensors?${params}`);

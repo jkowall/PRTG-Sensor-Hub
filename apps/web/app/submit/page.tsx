@@ -19,6 +19,7 @@ export default function SubmitSensorPage() {
     const [submissionType, setSubmissionType] = useState<'upload' | 'link'>('upload');
 
     const [formData, setFormData] = useState({
+        display_name: '',
         first_name: '',
         last_name: '',
         work_email: '',
@@ -72,7 +73,7 @@ export default function SubmitSensorPage() {
             }
 
             const data = new FormData();
-            data.append('display_name', `${formData.monitored_system} Sensor (${formData.script_language})`);
+            data.append('display_name', formData.display_name);
             data.append('description', `${formData.description}\n\n**Monitored Statistics:** ${formData.monitored_statistics}`);
             data.append('category', formData.monitored_system);
             data.append('tags', JSON.stringify([formData.script_language].filter(Boolean)));
@@ -162,6 +163,21 @@ export default function SubmitSensorPage() {
             )}
 
             <form onSubmit={handleSubmit}>
+                <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                        Sensor Name<span style={{ color: 'var(--error)' }}>*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="display_name"
+                        value={formData.display_name}
+                        onChange={handleChange}
+                        required
+                        className="search-input"
+                        placeholder="e.g. Docker Container Monitor"
+                    />
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                     <div>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
