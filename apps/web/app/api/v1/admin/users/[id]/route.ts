@@ -32,11 +32,27 @@ export async function PATCH(
         if (!admin || !(admin as any).is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const body = await request.json();
-        const { is_admin } = body;
+        const { is_admin, is_blocked } = body;
 
-        await env.DB.prepare('UPDATE users SET is_admin = ? WHERE id = ?')
-            .bind(is_admin ? 1 : 0, targetUserId)
-            .run();
+        const updates: string[] = [];
+        const bindings: any[] = [];
+
+        if (is_admin !== undefined) {
+            updates.push('is_admin = ?');
+            bindings.push(is_admin ? 1 : 0);
+        }
+
+        if (is_blocked !== undefined) {
+            updates.push('is_blocked = ?');
+            bindings.push(is_blocked ? 1 : 0);
+        }
+
+        if (updates.length > 0) {
+            bindings.push(targetUserId);
+            await env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
+                .bind(...bindings)
+                .run();
+        }
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

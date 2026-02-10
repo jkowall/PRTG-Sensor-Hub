@@ -141,6 +141,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
+        // Check if user is blocked
+        const userCheck = await env.DB.prepare('SELECT is_blocked FROM users WHERE id = ?').bind(payload.sub).first();
+        if ((userCheck as any)?.is_blocked) {
+            return NextResponse.json({ error: 'Your account has been blocked.' }, { status: 403 });
+        }
+
         // Handle Multipart Form Data
         const formData = await request.formData();
         const displayName = formData.get('display_name') as string;

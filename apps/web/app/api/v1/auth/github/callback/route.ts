@@ -88,6 +88,9 @@ export async function GET(request: NextRequest) {
         const emailToSave = primaryEmail || `${githubUser.login}@github.com`;
 
         if (existingUser) {
+            if ((existingUser as any).is_blocked) {
+                return NextResponse.redirect(`${request.nextUrl.origin}/auth?error=blocked`);
+            }
             userId = (existingUser as any).id;
             // Also update email if it changed or was previously dummy
             await env.DB.prepare('UPDATE users SET email = ?, github_username = ?, avatar_url = ?, is_admin = CASE WHEN is_admin = 1 THEN 1 ELSE ? END, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
@@ -95,7 +98,7 @@ export async function GET(request: NextRequest) {
                 .run();
         } else {
             userId = crypto.randomUUID();
-            await env.DB.prepare('INSERT INTO users (id, email, full_name, github_id, github_username, avatar_url, is_admin) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            await env.DB.prepare('INSERT INTO users (id, email, full_name, github_id, github_username, avatar_url, is_admin, is_blocked) VALUES (?, ?, ?, ?, ?, ?, ?, 0)')
                 .bind(userId, emailToSave, githubUser.name, githubUser.id.toString(), githubUser.login, githubUser.avatar_url, isAdmin)
                 .run();
         }

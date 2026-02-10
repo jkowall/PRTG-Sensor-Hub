@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     github_username TEXT,
     avatar_url TEXT,
     is_admin INTEGER DEFAULT 0,
+    is_blocked INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

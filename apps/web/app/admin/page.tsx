@@ -19,6 +19,7 @@ interface User {
     github_username: string | null;
     is_active: boolean;
     is_admin: boolean;
+    is_blocked: boolean;
     created_at: string;
 }
 
@@ -111,6 +112,26 @@ export default function AdminPage() {
             }
         } catch (err) {
             console.error('Failed to update user:', err);
+        }
+    };
+
+    const toggleUserBlock = async (userId: string, isBlocked: boolean) => {
+        if (!confirm(`Are you sure you want to ${isBlocked ? 'BLOCK' : 'UNBLOCK'} this user?`)) return;
+
+        try {
+            const res = await fetch(`${API_URL}/admin/users/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ is_blocked: isBlocked }),
+            });
+            if (res.ok) {
+                fetchUsers();
+            }
+        } catch (err) {
+            console.error('Failed to update user block status:', err);
         }
     };
 
@@ -263,12 +284,13 @@ export default function AdminPage() {
                                 <th style={{ padding: '16px', textAlign: 'left' }}>User</th>
                                 <th style={{ padding: '16px', textAlign: 'left' }}>Email</th>
                                 <th style={{ padding: '16px', textAlign: 'center' }}>Admin</th>
+                                <th style={{ padding: '16px', textAlign: 'center' }}>Status</th>
                                 <th style={{ padding: '16px', textAlign: 'right' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.map(u => (
-                                <tr key={u.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                <tr key={u.id} style={{ borderBottom: '1px solid var(--border-color)', opacity: u.is_blocked ? 0.6 : 1 }}>
                                     <td style={{ padding: '16px' }}>
                                         <strong>{u.github_username || u.full_name || 'Unknown'}</strong>
                                     </td>
@@ -276,15 +298,29 @@ export default function AdminPage() {
                                     <td style={{ padding: '16px', textAlign: 'center' }}>
                                         {u.is_admin ? '✓' : ''}
                                     </td>
+                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                        {u.is_blocked ? <span style={{ color: 'var(--error)', fontWeight: 'bold' }}>BLOCKED</span> : <span style={{ color: 'var(--success)' }}>Active</span>}
+                                    </td>
                                     <td style={{ padding: '16px', textAlign: 'right' }}>
                                         {u.id !== user.id && (
-                                            <button
-                                                onClick={() => toggleUserAdmin(u.id, !u.is_admin)}
-                                                className="btn btn-outline"
-                                                style={{ padding: '4px 12px', fontSize: '0.8rem' }}
-                                            >
-                                                {u.is_admin ? 'Remove Admin' : 'Make Admin'}
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                <button
+                                                    onClick={() => toggleUserBlock(u.id, !u.is_blocked)}
+                                                    className="btn btn-outline"
+                                                    style={{ padding: '4px 12px', fontSize: '0.8rem', color: u.is_blocked ? 'var(--success)' : 'var(--error)', borderColor: u.is_blocked ? 'var(--success)' : 'var(--error)' }}
+                                                >
+                                                    {u.is_blocked ? 'Unblock' : 'Block'}
+                                                </button>
+                                                {!u.is_blocked && (
+                                                    <button
+                                                        onClick={() => toggleUserAdmin(u.id, !u.is_admin)}
+                                                        className="btn btn-outline"
+                                                        style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                                                    >
+                                                        {u.is_admin ? 'Remove Admin' : 'Make Admin'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                     </td>
                                 </tr>
@@ -349,13 +385,13 @@ export default function AdminPage() {
                                                     Certify
                                                 </button>
                                             )}
-                                            {s.status === 'certified' && (
+                                            {(s.status === 'approved' || s.status === 'certified') && (
                                                 <button
-                                                    onClick={() => updateSensorStatus(s.id, 'approved')}
+                                                    onClick={() => updateSensorStatus(s.id, 'pending')}
                                                     className="btn btn-outline"
-                                                    style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                                                    style={{ padding: '4px 12px', fontSize: '0.8rem', color: 'var(--warning)', borderColor: 'var(--warning)' }}
                                                 >
-                                                    Decertify
+                                                    Unapprove
                                                 </button>
                                             )}
                                             <button
