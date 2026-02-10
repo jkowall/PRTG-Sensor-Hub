@@ -34,35 +34,65 @@ export async function DELETE(
         const { id } = await params;
 
         // 1. Get sensor details to handle GitHub cleanup
-        const sensor = await env.DB.prepare('SELECT github_pr_url FROM sensors WHERE id = ?').bind(id).first();
+        const sensor = await env.DB.prepare('SELECT slug, category, github_pr_url FROM sensors WHERE id = ?').bind(id).first();
         if (!sensor) {
             return NextResponse.json({ error: 'Sensor not found' }, { status: 404 });
         }
 
         // 2. Handle GitHub PR closure and branch deletion if applicable
         const prUrl = (sensor as any).github_pr_url;
-        if (prUrl && env.GITHUB_BOT_TOKEN) {
-            try {
-                const prNumber = parseInt(prUrl.split('/').pop() || '');
-                if (!isNaN(prNumber)) {
-                    const gh = new GitHubService(env.GITHUB_BOT_TOKEN, 'jkowall', 'PRTG-Sensor-Hub-Sensors');
+        const slug = (sensor as any).slug;
+        const category = (sensor as any).category;
 
-                    // Get PR details to find the branch name
-                    const prDetails = await gh.getPullRequest(prNumber);
+        if (env.GITHUB_BOT_TOKEN) {
+            const gh = new GitHubService(env.GITHUB_BOT_TOKEN, 'jkowall', 'PRTG-Sensor-Hub-Sensors');
 
-                    if (prDetails.state === 'open') {
-                        // Close PR
-                        await gh.closePullRequest(prNumber);
+            // 2a. Handle Deep Deletion (Clean up merged files)
+            if (slug && category) {
+                try {
+                    const repoPath = `sensors/${category}/${slug}`;
+                    const contents = await gh.getContents(repoPath);
 
-                        // Delete branch if it belongs to our bot/repo (not a fork)
-                        if (prDetails.head.repo.full_name === 'jkowall/PRTG-Sensor-Hub-Sensors') {
-                            const branchName = prDetails.head.ref;
-                            await gh.deleteRef(branchName);
+                    if (Array.isArray(contents)) {
+                        console.log(`Deleting ${contents.length} files from repository for sensor ${slug}...`);
+                        for (const file of contents) {
+                            if (file.type === 'file') {
+                                try {
+                                    await gh.deleteFile(file.path, `Delete sensor: ${slug}`, file.sha);
+                                } catch (delErr) {
+                                    console.error(`Failed to delete file ${file.path}:`, delErr);
+                                }
+                            }
                         }
                     }
+                } catch (ghError) {
+                    // 404 is expected if files haven't been merged or path doesn't exist
+                    console.log(`No files found in repository for ${slug}, skipping deep delete.`);
                 }
-            } catch (ghError) {
-                console.error('Failed to cleanup GitHub during sensor deletion:', ghError);
+            }
+
+            // 2b. Handle PR closure and branch deletion if applicable
+            if (prUrl) {
+                try {
+                    const prNumber = parseInt(prUrl.split('/').pop() || '');
+                    if (!isNaN(prNumber)) {
+                        // Get PR details to find the branch name
+                        const prDetails = await gh.getPullRequest(prNumber);
+
+                        if (prDetails.state === 'open') {
+                            // Close PR
+                            await gh.closePullRequest(prNumber);
+
+                            // Delete branch if it belongs to our bot/repo (not a fork)
+                            if (prDetails.head.repo.full_name === 'jkowall/PRTG-Sensor-Hub-Sensors') {
+                                const branchName = prDetails.head.ref;
+                                await gh.deleteRef(branchName);
+                            }
+                        }
+                    }
+                } catch (ghError) {
+                    console.error('Failed to cleanup GitHub PR/branch during sensor deletion:', ghError);
+                }
             }
         }
 
