@@ -366,47 +366,59 @@ export default function AdminPage() {
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.version_count}</td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.total_downloads}</td>
                                     <td style={{ padding: '16px', textAlign: 'right' }}>
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                            {s.status === 'pending' && (
-                                                <button
-                                                    onClick={() => updateSensorStatus(s.id, 'approved')}
-                                                    className="btn btn-primary"
-                                                    style={{ padding: '4px 12px', fontSize: '0.8rem', background: 'var(--success)' }}
-                                                >
-                                                    Approve
-                                                </button>
-                                            )}
-                                            {s.status !== 'certified' && (
-                                                <button
-                                                    onClick={() => updateSensorStatus(s.id, 'certified')}
-                                                    className="btn btn-primary"
-                                                    style={{ padding: '4px 12px', fontSize: '0.8rem' }}
-                                                >
-                                                    Certify
-                                                </button>
-                                            )}
-                                            {(s.status === 'approved' || s.status === 'certified') && (
-                                                <button
-                                                    onClick={() => updateSensorStatus(s.id, 'pending')}
-                                                    className="btn btn-outline"
-                                                    style={{ padding: '4px 12px', fontSize: '0.8rem', color: 'var(--warning)', borderColor: 'var(--warning)' }}
-                                                >
-                                                    Unapprove
-                                                </button>
-                                            )}
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                            {/* Status Actions */}
+                                            <div style={{ display: 'flex', gap: '4px', marginRight: '8px', paddingRight: '12px', borderRight: '1px solid var(--border-color)' }}>
+                                                {s.status === 'pending' && (
+                                                    <button
+                                                        onClick={() => updateSensorStatus(s.id, 'approved')}
+                                                        className="btn btn-primary"
+                                                        style={{ padding: '6px 10px', fontSize: '0.75rem', background: 'var(--success)' }}
+                                                        title="Approve Sensor"
+                                                    >
+                                                        ✓ Approve
+                                                    </button>
+                                                )}
+                                                {s.status !== 'certified' && (
+                                                    <button
+                                                        onClick={() => updateSensorStatus(s.id, 'certified')}
+                                                        className="btn btn-primary"
+                                                        style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                                        title="Certify Sensor"
+                                                    >
+                                                        ★ Certify
+                                                    </button>
+                                                )}
+                                                {(s.status === 'approved' || s.status === 'certified') && (
+                                                    <button
+                                                        onClick={() => updateSensorStatus(s.id, 'pending')}
+                                                        className="btn btn-outline"
+                                                        style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--warning)', borderColor: 'var(--border-color)' }}
+                                                        title="Unapprove (Revert to Pending)"
+                                                    >
+                                                        ↺ Unapprove
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Edit Action */}
                                             <button
                                                 onClick={() => setEditingSensor(s)}
                                                 className="btn btn-outline"
-                                                style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                                                style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                                title="Edit Details"
                                             >
-                                                Edit
+                                                ✎ Edit
                                             </button>
+
+                                            {/* Danger Action */}
                                             <button
                                                 onClick={() => deleteSensor(s.id)}
                                                 className="btn btn-outline"
-                                                style={{ padding: '4px 12px', fontSize: '0.8rem', color: 'var(--error)', borderColor: 'var(--error)' }}
+                                                style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--error)', borderColor: 'var(--border-color)' }}
+                                                title="Delete Sensor"
                                             >
-                                                Delete
+                                                🗑️
                                             </button>
                                         </div>
                                     </td>
