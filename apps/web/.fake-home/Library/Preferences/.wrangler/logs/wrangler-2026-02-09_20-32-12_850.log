@@ -1,0 +1,654 @@
+
+--- 2026-02-09T20:32:12.937Z debug
+🪵  Writing logs to "/Users/jkowall/PRTG-Sensor-Hub/apps/web/.fake-home/Library/Preferences/.wrangler/logs/wrangler-2026-02-09_20-32-12_850.log"
+---
+
+--- 2026-02-09T20:32:12.937Z debug
+.env file not found at "/Users/jkowall/PRTG-Sensor-Hub/apps/web/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-02-09T20:32:12.937Z debug
+.env file not found at "/Users/jkowall/PRTG-Sensor-Hub/apps/web/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2026-02-09T20:32:12.941Z log
+
+ ⛅️ wrangler 4.63.0
+───────────────────
+---
+
+--- 2026-02-09T20:32:12.943Z debug
+Metrics dispatcher: Posting data {"deviceId":"7426df9c-0bc4-472c-9c08-1d40cc112403","event":"wrangler command started","timestamp":1770669132943,"properties":{"amplitude_session_id":1770669132941,"amplitude_event_id":0,"wranglerVersion":"4.63.0","wranglerMajorVersion":4,"wranglerMinorVersion":63,"wranglerPatchVersion":0,"osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.3.0: Thu Jan 22 21:55:21 PST 2026; root:xnu-12377.80.0.501.1~2/RELEASE_ARM64_T8112","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":["projectName"],"argsCombination":"projectName","agent":null,"sanitizedCommand":"pages deploy","sanitizedArgs":{}}}
+---
+
+--- 2026-02-09T20:32:12.952Z debug
+Configuration file belonging to ⚡️ Pages ⚡️ project detected.
+---
+
+--- 2026-02-09T20:32:12.953Z debug
+Retrieving cached values for account_id and project_name from node_modules/.cache/wrangler
+---
+
+--- 2026-02-09T20:32:12.963Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/9fe896cf9fa5b827ab222f5f9471c44e/pages/projects/prtg-sensor-hub-web
+---
+
+--- 2026-02-09T20:32:12.963Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:12.963Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:12.963Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:12.963Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:14.454Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:14.455Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:14.455Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:14.455Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:14.588Z warn
+▲ [WARNING] Warning: Your working directory is a git repo and has uncommitted changes
+
+  To silence this warning, pass in
+  --commit-dirty=true
+
+
+---
+
+--- 2026-02-09T20:32:14.589Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/9fe896cf9fa5b827ab222f5f9471c44e/pages/projects/prtg-sensor-hub-web
+---
+
+--- 2026-02-09T20:32:14.589Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:14.589Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:14.589Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:14.589Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:15.762Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:15.762Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:15.762Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:15.762Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:15.765Z debug
+Configuration file belonging to ⚡️ Pages ⚡️ project detected.
+---
+
+--- 2026-02-09T20:32:15.802Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/9fe896cf9fa5b827ab222f5f9471c44e/pages/projects/prtg-sensor-hub-web/upload-token
+---
+
+--- 2026-02-09T20:32:15.802Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:15.802Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:15.802Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:15.802Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:17.249Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:17.249Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.249Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.249Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:17.251Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/pages/assets/check-missing
+---
+
+--- 2026-02-09T20:32:17.251Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.251Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.251Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.251Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:17.547Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:17.547Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.547Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.547Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:17.554Z debug
+POST /pages/assets/upload
+---
+
+--- 2026-02-09T20:32:17.555Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/pages/assets/upload
+---
+
+--- 2026-02-09T20:32:17.555Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.555Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.555Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.555Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:17.558Z debug
+POST /pages/assets/upload
+---
+
+--- 2026-02-09T20:32:17.558Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/pages/assets/upload
+---
+
+--- 2026-02-09T20:32:17.558Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.558Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.558Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.558Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:17.560Z debug
+POST /pages/assets/upload
+---
+
+--- 2026-02-09T20:32:17.560Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/pages/assets/upload
+---
+
+--- 2026-02-09T20:32:17.560Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.560Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.560Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.560Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:17.868Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:17.868Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.868Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.868Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:17.869Z debug
+result: { successful_key_count: 5, unsuccessful_keys: [] }
+---
+
+--- 2026-02-09T20:32:17.880Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:17.880Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.880Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.880Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:17.880Z debug
+result: { successful_key_count: 5, unsuccessful_keys: [] }
+---
+
+--- 2026-02-09T20:32:17.901Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:17.901Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.901Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.901Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:17.901Z debug
+result: { successful_key_count: 4, unsuccessful_keys: [] }
+---
+
+--- 2026-02-09T20:32:17.902Z log
+✨ Success! Uploaded 14 files (29 already uploaded) (0.65 sec)
+
+---
+
+--- 2026-02-09T20:32:17.902Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/pages/assets/upsert-hashes
+---
+
+--- 2026-02-09T20:32:17.902Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.902Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.902Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:17.902Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:18.023Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:18.023Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:18.023Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:18.023Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:18.024Z log
+✨ Uploading _headers
+---
+
+--- 2026-02-09T20:32:18.035Z info
+Attaching additional modules:
+---
+
+--- 2026-02-09T20:32:18.043Z log
+┌─────────────────────────────────────────────────────────────────────────┬──────┬─────────────┐
+│ Name                                                                    │ Type │ Size        │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/adaptor.js                                 │ esm  │ 2.29 KiB    │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/cache-api.js                               │ esm  │ 0.43 KiB    │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/kv.js                                      │ esm  │ 0.35 KiB    │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/auth/github/callback.func.js    │ esm  │ 27.37 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/auth/github.func.js             │ esm  │ 25.88 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/auth/me.func.js                 │ esm  │ 26.34 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/categories/list.func.js         │ esm  │ 25.93 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/sensors/[slug]/download.func.js │ esm  │ 26.95 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/sensors/[slug]/versions.func.js │ esm  │ 27.46 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/sensors/[slug].func.js          │ esm  │ 26.18 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/sensors.func.js                 │ esm  │ 27.88 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/auth/callback.func.js                  │ esm  │ 32.84 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/my-sensors.func.js                     │ esm  │ 34.47 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/sensors/[slug].func.js                 │ esm  │ 36.70 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/submit.func.js                         │ esm  │ 37.28 KiB   │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/manifest/88a389dd6c068190adb2efc795e4063c.js     │ esm  │ 0.37 KiB    │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/07b8572e83976e5755d1d2b220349752.js      │ esm  │ 105.78 KiB  │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/769.js                                   │ esm  │ 0.14 KiB    │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/9216.js                                  │ esm  │ 1.09 KiB    │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/953c1eeaea19742d14174d1df97aa583.js      │ esm  │ 120.50 KiB  │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/dcd3ef06a1e555d40c086c6ea38be140.js      │ esm  │ 499.80 KiB  │
+├─────────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ Total (21 modules)                                                      │      │ 1086.03 KiB │
+└─────────────────────────────────────────────────────────────────────────┴──────┴─────────────┘
+---
+
+--- 2026-02-09T20:32:18.084Z log
+✨ Compiled Worker successfully
+---
+
+--- 2026-02-09T20:32:18.084Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/cache/adaptor.js
+---
+
+--- 2026-02-09T20:32:18.085Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/cache/cache-api.js
+---
+
+--- 2026-02-09T20:32:18.086Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/cache/kv.js
+---
+
+--- 2026-02-09T20:32:18.086Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/auth/github/callback.func.js
+---
+
+--- 2026-02-09T20:32:18.087Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/auth/github.func.js
+---
+
+--- 2026-02-09T20:32:18.087Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/auth/me.func.js
+---
+
+--- 2026-02-09T20:32:18.087Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/categories/list.func.js
+---
+
+--- 2026-02-09T20:32:18.087Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/sensors/[slug]/download.func.js
+---
+
+--- 2026-02-09T20:32:18.088Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/sensors/[slug]/versions.func.js
+---
+
+--- 2026-02-09T20:32:18.088Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/sensors/[slug].func.js
+---
+
+--- 2026-02-09T20:32:18.088Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/api/v1/sensors.func.js
+---
+
+--- 2026-02-09T20:32:18.089Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/auth/callback.func.js
+---
+
+--- 2026-02-09T20:32:18.089Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/my-sensors.func.js
+---
+
+--- 2026-02-09T20:32:18.089Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/sensors/[slug].func.js
+---
+
+--- 2026-02-09T20:32:18.089Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/functions/submit.func.js
+---
+
+--- 2026-02-09T20:32:18.090Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/manifest/88a389dd6c068190adb2efc795e4063c.js
+---
+
+--- 2026-02-09T20:32:18.090Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/webpack/07b8572e83976e5755d1d2b220349752.js
+---
+
+--- 2026-02-09T20:32:18.090Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/webpack/769.js
+---
+
+--- 2026-02-09T20:32:18.090Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/webpack/9216.js
+---
+
+--- 2026-02-09T20:32:18.091Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/webpack/953c1eeaea19742d14174d1df97aa583.js
+---
+
+--- 2026-02-09T20:32:18.091Z debug
+Writing additional module to output /Users/jkowall/PRTG-Sensor-Hub/apps/web/.wrangler/tmp/pages-wz0Nuh/__next-on-pages-dist__/webpack/dcd3ef06a1e555d40c086c6ea38be140.js
+---
+
+--- 2026-02-09T20:32:18.095Z log
+✨ Uploading Worker bundle
+---
+
+--- 2026-02-09T20:32:18.095Z log
+✨ Uploading _routes.json
+---
+
+--- 2026-02-09T20:32:18.096Z debug
+-- START CF API REQUEST: POST https://api.cloudflare.com/client/v4/accounts/9fe896cf9fa5b827ab222f5f9471c44e/pages/projects/prtg-sensor-hub-web/deployments
+---
+
+--- 2026-02-09T20:32:18.096Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:18.096Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:18.096Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:18.096Z debug
+BODY: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:18.096Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:22.534Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:22.535Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:22.535Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:22.535Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:22.536Z debug
+Saving to cache: {"account_id":"9fe896cf9fa5b827ab222f5f9471c44e","project_name":"prtg-sensor-hub-web"}
+---
+
+--- 2026-02-09T20:32:22.538Z log
+🌎 Deploying...
+---
+
+--- 2026-02-09T20:32:23.540Z debug
+attempt #1: Attempting to fetch status for deployment with id "7eccdaa1-01c8-41b4-91f8-f4d824513fda" ...
+---
+
+--- 2026-02-09T20:32:23.541Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/9fe896cf9fa5b827ab222f5f9471c44e/pages/projects/prtg-sensor-hub-web/deployments/7eccdaa1-01c8-41b4-91f8-f4d824513fda
+---
+
+--- 2026-02-09T20:32:23.541Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:23.541Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:23.541Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:23.541Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:24.967Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:24.968Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:24.968Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:24.968Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:26.971Z debug
+attempt #2: Attempting to fetch status for deployment with id "7eccdaa1-01c8-41b4-91f8-f4d824513fda" ...
+---
+
+--- 2026-02-09T20:32:26.971Z debug
+-- START CF API REQUEST: GET https://api.cloudflare.com/client/v4/accounts/9fe896cf9fa5b827ab222f5f9471c44e/pages/projects/prtg-sensor-hub-web/deployments/7eccdaa1-01c8-41b4-91f8-f4d824513fda
+---
+
+--- 2026-02-09T20:32:26.971Z debug
+QUERY STRING: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:26.971Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:26.971Z debug
+INIT: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:26.971Z debug
+-- END CF API REQUEST
+---
+
+--- 2026-02-09T20:32:28.533Z debug
+-- START CF API RESPONSE: OK 200
+---
+
+--- 2026-02-09T20:32:28.533Z debug
+HEADERS: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:28.533Z debug
+RESPONSE: omitted; set WRANGLER_LOG_SANITIZE=false to include sanitized data
+---
+
+--- 2026-02-09T20:32:28.533Z debug
+-- END CF API RESPONSE
+---
+
+--- 2026-02-09T20:32:28.535Z log
+✨ Deployment complete! Take a peek over at https://7eccdaa1.prtg-sensor-hub-web.pages.dev
+---
+
+--- 2026-02-09T20:32:28.539Z debug
+Metrics dispatcher: Posting data {"deviceId":"7426df9c-0bc4-472c-9c08-1d40cc112403","event":"create pages deployment","timestamp":1770669148539,"properties":{"category":"Workers","wranglerVersion":"4.63.0","wranglerMajorVersion":4,"wranglerMinorVersion":63,"wranglerPatchVersion":0,"os":"darwin:arm64","agent":null}}
+---
+
+--- 2026-02-09T20:32:28.546Z debug
+Metrics dispatcher: Posting data {"deviceId":"7426df9c-0bc4-472c-9c08-1d40cc112403","event":"wrangler command completed","timestamp":1770669148546,"properties":{"amplitude_session_id":1770669132941,"amplitude_event_id":1,"wranglerVersion":"4.63.0","wranglerMajorVersion":4,"wranglerMinorVersion":63,"wranglerPatchVersion":0,"osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.3.0: Thu Jan 22 21:55:21 PST 2026; root:xnu-12377.80.0.501.1~2/RELEASE_ARM64_T8112","nodeVersion":24,"packageManager":"npm","isFirstUsage":false,"configFileType":"none","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":true,"hasAssets":false,"argsUsed":["projectName"],"argsCombination":"projectName","agent":null,"sanitizedCommand":"pages deploy","sanitizedArgs":{},"durationMs":15607}}
+---

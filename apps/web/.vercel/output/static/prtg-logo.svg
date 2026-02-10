@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" aria-label="Paessler PRTG Logo">
+  <!-- Text Group -->
+  <g transform="translate(10, 35)">
+    <!-- PAESSLER -->
+    <text x="0" y="0" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#050F34" letter-spacing="1">PAESSLER</text>
+    <!-- PRTG -->
+    <text x="0" y="45" font-family="Arial, sans-serif" font-weight="900" font-size="52" fill="#050F34" letter-spacing="0">PRTG</text>
+  </g>
+
+  <!-- Gauge Icon Group -->
+  <g transform="translate(210, 50)">
+    <!-- Gauge Background / Track (optional, or just segments) -->
+    
+    <!-- Left Segment (Cyan/Blue) - starts at 180 deg (left), goes up -->
+    <path d="M-40,0 A40,40 0 0,1 -10,-38.7" fill="none" stroke="#00B4F0" stroke-width="12" stroke-linecap="butt" />
+    
+    <!-- Middle/Right Segment (Pink) -->
+    <path d="M-5,-39.5 A40,40 0 0,1 40,0" fill="none" stroke="#E6007E" stroke-width="12" stroke-linecap="butt" />
+
+    <!-- Dark Segment (Deep Cove/Black) - maybe the start or end? 
+         Looking at the user's image, it looks like: Blue on left, Pink on right. 
+         Let's stick to Blue/Pink for now as those are the distinctive ones. 
+    -->
+
+    <!-- Needle -->
+    <path d="M0,0 L-25,-15" stroke="#050F34" stroke-width="4" stroke-linecap="round" />
+    <circle cx="0" cy="0" r="4" fill="#050F34" />
+  </g>
+</svg>

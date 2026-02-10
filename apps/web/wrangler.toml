@@ -1,12 +1,13 @@
 #:schema https://raw.githubusercontent.com/cloudflare/wrangler/main/packages/wrangler/config-schema.json
 name = "prtg-sensor-hub-web"
-pages_build_output_dir = ".next"
-compatibility_date = "2024-03-18"
-compatibility_flags = ["nextjs_pages"]
+pages_build_output_dir = ".vercel/output/static"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
-NEXT_PUBLIC_API_URL = "https://api.prtg-sensor-hub.example.com/api/v1" # User will update
-# These can be set in the Cloudflare Pages Dashboard
-# GITHUB_ID = ""
-# GITHUB_SECRET = ""
-# NEXTAUTH_SECRET = ""
+NEXT_PUBLIC_API_URL = "/api/v1" # Local proxy within same domain
+
+[[d1_databases]]
+binding = "DB"
+database_name = "prtg-sensor-hub-db"
+database_id = "d94ba178-0584-4b78-8677-46dcbd2c7a40"

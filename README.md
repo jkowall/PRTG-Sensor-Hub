@@ -1,83 +1,74 @@
-# PRTG Sensor Hub 2.0
+# PRTG Sensor Hub
 
-A centralized registry platform for managing, distributing, and discovering PRTG custom sensors.
+A centralized registry platform for managing, distributing, and discovering custom PRTG sensors. This project is built as a unified Next.js 15 application designed to run on the Cloudflare Edge runtime with D1 database integration.
 
 ## Project Structure
 
 ```text
 prtg-sensor-hub/
 ├── apps/
-│   ├── api/          # Backend (FastAPI + SQLAlchemy)
-│   └── web/          # Frontend (Next.js 14)
-├── packages/
-│   └── cli/          # CLI Tool (prtg-cli)
-├── docker/           # Infrastructure (Postgres, MinIO)
-└── .github/
-    └── workflows/    # CI/CD
+│   └── web/          # Unified Next.js 15 App (API + Frontend)
+├── .github/
+│   └── workflows/    # CI/CD Deployment
+└── .gemini/          # Agent Artifacts
 ```
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker/Podman with Compose
-- Python 3.11+
 - Node.js 20+
+- npm (latest)
+- Cloudflare Wrangler CLI (`npm install -g wrangler`)
 
-### Development Setup
+### Local Development
 
-1. **Start infrastructure services**
-
-   ```bash
-   # Using Docker
-   docker compose -f docker/docker-compose.yml up -d
-
-   # Using Podman
-   podman-compose -f docker/docker-compose.yml up -d
-   ```
-
-2. **Run the API**
+1. **Install Dependencies**
 
    ```bash
-   cd apps/api
-   pip install -e .
-   uvicorn app.main:app --reload
+   cd apps/web
+   npm install
    ```
 
-3. **Access the API documentation**
-   - Swagger UI: <http://localhost:8000/docs>
-   - ReDoc: <http://localhost:8000/redoc>
+2. **Configure Environment**
+   Create `apps/web/.env.local` based on `.env.example`:
 
-## Testing
+   ```env
+   GITHUB_ID=your_id
+   GITHUB_SECRET=your_secret
+   NEXTAUTH_SECRET=random_string
+   ```
 
-### Backend
+3. **Run Dev Server**
 
- ```bash
- # Run API tests
- pytest apps/api/tests/ -v
- ```
+   ```bash
+   npm run dev
+   ```
 
-### Frontend
+## Deployment
 
- ```bash
- # Run Web tests
- cd apps/web
- npm test
- ```
+This application is deployed to **Cloudflare Pages**.
 
-### CI/CD
+### Build & Deploy
 
- Tests are automatically run via GitHub Actions on every push to `main` and PRs.
+```bash
+cd apps/web
+npm run build
+npm run pages:build
+npx wrangler pages deploy .vercel/output/static --project-name prtg-sensor-hub-web
+```
 
-## Environment Variables
+## Features
 
-Copy `.env.example` to `.env` and configure:
+- **Safe Markdown**: Custom regex-based renderer for sensor descriptions (Performance-optimized).
+- **Sensor Status System**: Built-in moderation workflow (`Pending` -> `Approved` -> `Certified`).
+- **Certified Sensors**: Official badges and verification for trusted sensor creators.
+- **Admin Dashboard**: Comprehensive management of users, sensors, and versions.
 
-| Variable               | Description                        |
-| ---------------------- | ---------------------------------- |
-| `DATABASE_URL`         | PostgreSQL connection string       |
-| `GITHUB_WEBHOOK_SECRET`| Secret for GitHub webhook          |
-| `S3_ENDPOINT`          | MinIO/S3 endpoint URL              |
-| `S3_ACCESS_KEY`        | S3 access key                      |
-| `S3_SECRET_KEY`        | S3 secret key                      |
-| `S3_BUCKET`            | Bucket name for sensor storage     |
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Runtime**: Cloudflare Edge Runtime
+- **Database**: Cloudflare D1 (SQLite)
+- **Styling**: Vanilla CSS with modern aesthetics
+- **Auth**: GitHub OAuth 2.0

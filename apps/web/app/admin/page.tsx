@@ -27,6 +27,9 @@ interface Sensor {
     slug: string;
     display_name: string;
     category: string;
+    is_certified: boolean;
+    status: 'pending' | 'approved' | 'certified';
+    github_pr_url?: string;
     total_downloads: number;
     version_count: number;
     created_at: string;
@@ -105,6 +108,27 @@ export default function AdminPage() {
             }
         } catch (err) {
             console.error('Failed to update user:', err);
+        }
+    };
+
+    const updateSensorStatus = async (sensorId: string, status: string) => {
+        try {
+            const res = await fetch(`${API_URL}/admin/sensors/${sensorId}/certify`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    certified: status === 'certified',
+                    status: status
+                })
+            });
+            if (res.ok) {
+                fetchSensors();
+            }
+        } catch (err) {
+            console.error('Failed to update sensor status:', err);
         }
     };
 
@@ -250,7 +274,7 @@ export default function AdminPage() {
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
                                 <th style={{ padding: '16px', textAlign: 'left' }}>Sensor</th>
-                                <th style={{ padding: '16px', textAlign: 'left' }}>Category</th>
+                                <th style={{ padding: '16px', textAlign: 'left' }}>Status</th>
                                 <th style={{ padding: '16px', textAlign: 'center' }}>Versions</th>
                                 <th style={{ padding: '16px', textAlign: 'center' }}>Downloads</th>
                                 <th style={{ padding: '16px', textAlign: 'right' }}>Actions</th>
@@ -260,21 +284,61 @@ export default function AdminPage() {
                             {sensors.map(s => (
                                 <tr key={s.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                     <td style={{ padding: '16px' }}>
-                                        <a href={`/sensors/${s.slug}`}><strong>{s.display_name}</strong></a>
+                                        <div style={{ fontWeight: '600' }}>{s.display_name}</div>
+                                        {s.github_pr_url && (
+                                            <a href={s.github_pr_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>
+                                                View PR ↗
+                                            </a>
+                                        )}
                                     </td>
                                     <td style={{ padding: '16px' }}>
-                                        <span className="sensor-category">{s.category}</span>
+                                        {s.status === 'certified' ? (
+                                            <span className="badge badge-certified">Certified</span>
+                                        ) : s.status === 'approved' ? (
+                                            <span className="badge badge-approved">Approved</span>
+                                        ) : (
+                                            <span className="badge badge-pending">Pending</span>
+                                        )}
                                     </td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.version_count}</td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.total_downloads}</td>
                                     <td style={{ padding: '16px', textAlign: 'right' }}>
-                                        <button
-                                            onClick={() => deleteSensor(s.id)}
-                                            className="btn btn-outline"
-                                            style={{ padding: '4px 12px', fontSize: '0.8rem', color: 'var(--error)', borderColor: 'var(--error)' }}
-                                        >
-                                            Delete
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                            {s.status === 'pending' && (
+                                                <button
+                                                    onClick={() => updateSensorStatus(s.id, 'approved')}
+                                                    className="btn btn-primary"
+                                                    style={{ padding: '4px 12px', fontSize: '0.8rem', background: 'var(--success)' }}
+                                                >
+                                                    Approve
+                                                </button>
+                                            )}
+                                            {s.status !== 'certified' && (
+                                                <button
+                                                    onClick={() => updateSensorStatus(s.id, 'certified')}
+                                                    className="btn btn-primary"
+                                                    style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                                                >
+                                                    Certify
+                                                </button>
+                                            )}
+                                            {s.status === 'certified' && (
+                                                <button
+                                                    onClick={() => updateSensorStatus(s.id, 'approved')}
+                                                    className="btn btn-outline"
+                                                    style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                                                >
+                                                    Decertify
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => deleteSensor(s.id)}
+                                                className="btn btn-outline"
+                                                style={{ padding: '4px 12px', fontSize: '0.8rem', color: 'var(--error)', borderColor: 'var(--error)' }}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

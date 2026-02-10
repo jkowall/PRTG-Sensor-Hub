@@ -1,0 +1,15 @@
+[2026-02-09T20:02:37.220Z] [debug] Notifying parent we're ready
+[2026-02-09T20:02:37.246Z] [debug] Received message from parent: {
+  cacheFile: '/Users/jkowall/PRTG-Sensor-Hub/apps/web/.fake-home/Library/Caches/com.vercel.cli/package-updates/vercel-latest.json',
+  distTag: 'latest',
+  name: 'vercel',
+  updateCheckInterval: 86400000
+}
+[2026-02-09T20:02:37.246Z] [debug] Disconnecting from parent
+[2026-02-09T20:02:37.249Z] [debug] Checking lock file: /Users/jkowall/PRTG-Sensor-Hub/apps/web/.fake-home/Library/Caches/com.vercel.cli/package-updates/vercel-latest.lock
+[2026-02-09T20:02:37.250Z] [debug] Initializing lock file with pid 42196
+[2026-02-09T20:02:37.259Z] [debug] Fetching https://registry.npmjs.org/-/package/vercel/dist-tags
+[2026-02-09T20:02:38.252Z] [debug] Found dist tag "latest" with version "50.13.2"
+[2026-02-09T20:02:38.252Z] [debug] Writing cache file: /Users/jkowall/PRTG-Sensor-Hub/apps/web/.fake-home/Library/Caches/com.vercel.cli/package-updates/vercel-latest.json
+[2026-02-09T20:02:38.262Z] [debug] Releasing lock file: /Users/jkowall/PRTG-Sensor-Hub/apps/web/.fake-home/Library/Caches/com.vercel.cli/package-updates/vercel-latest.lock
+[2026-02-09T20:02:38.263Z] [debug] Worker finished successfully!

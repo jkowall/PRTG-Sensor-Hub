@@ -17,6 +17,7 @@ interface AuthContextType {
     loading: boolean;
     login: () => void;
     logout: () => void;
+    completeLogin: (token: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,6 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.location.href = `${API_URL}/auth/github`;
     };
 
+    const completeLogin = (authToken: string) => {
+        localStorage.setItem('auth_token', authToken);
+        setToken(authToken);
+        fetchUser(authToken);
+    };
+
     const logout = () => {
         localStorage.removeItem('auth_token');
         setUser(null);
@@ -73,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, token, loading, login, logout, completeLogin }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,8 +1,12 @@
 'use client';
 
+
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { formatDescription } from '../../lib/utils';
 
 // Types
 interface Sensor {
@@ -15,6 +19,7 @@ interface Sensor {
     avg_rating: number;
     tags: string[];
     is_verified: boolean;
+    status: 'pending' | 'approved' | 'certified';
 }
 
 interface PaginatedResponse {
@@ -93,13 +98,13 @@ export default function MySensors() {
                         Manage the sensors you have submitted to the registry.
                     </p>
                 </div>
-                <a
+                <Link
                     href="/submit"
                     className="button primary"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                 >
                     <span>+</span> Submit New Sensor
-                </a>
+                </Link>
             </div>
 
             {error && (
@@ -125,14 +130,22 @@ export default function MySensors() {
                         <div key={sensor.id} className="sensor-card" style={{ position: 'relative' }}>
                             <div className="sensor-card-header">
                                 <h3 className="sensor-name">
-                                    <a href={`/sensors/${sensor.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                                    <Link href={`/sensors/${sensor.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                                         {sensor.display_name}
-                                    </a>
+                                    </Link>
                                 </h3>
-                                <span className="sensor-category">{sensor.category}</span>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                    <span className="sensor-category">{sensor.category}</span>
+                                    {sensor.status === 'pending' && (
+                                        <span className="badge badge-pending">Pending</span>
+                                    )}
+                                    {sensor.status === 'certified' && (
+                                        <span className="badge badge-certified">Certified</span>
+                                    )}
+                                </div>
                             </div>
 
-                            <p className="sensor-description">{sensor.description}</p>
+                            <p className="sensor-description">{formatDescription(sensor.description)}</p>
 
                             <div className="sensor-meta">
                                 <span>
@@ -151,13 +164,13 @@ export default function MySensors() {
                             </div>
 
                             <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                                <a
+                                <Link
                                     href={`/submit?edit=${sensor.slug}`}
                                     className="button secondary"
                                     style={{ fontSize: '0.85rem', padding: '6px 12px', width: '100%', textAlign: 'center' }}
                                 >
                                     Add Version
-                                </a>
+                                </Link>
                                 {/* Delete button could go here */}
                             </div>
                         </div>
@@ -176,7 +189,7 @@ export default function MySensors() {
                     <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
                         You haven&apos;t submitted any sensors yet. Contribute your first sensor to the community!
                     </p>
-                    <a href="/submit" className="button primary">Submit a Sensor</a>
+                    <Link href="/submit" className="button primary">Submit a Sensor</Link>
                 </div>
             )}
         </div>

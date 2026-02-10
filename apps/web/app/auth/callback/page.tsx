@@ -1,11 +1,16 @@
 'use client';
 
+export const runtime = 'edge';
+
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+
+import { useAuth } from '../../context/AuthContext';
 
 function AuthCallbackContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { completeLogin } = useAuth();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [message, setMessage] = useState('Completing authentication...');
 
@@ -20,20 +25,28 @@ function AuthCallbackContent() {
         }
 
         if (token) {
-            // Store token in localStorage
-            localStorage.setItem('auth_token', token);
+            // Update context and storage
+            completeLogin(token);
             setStatus('success');
             setMessage('Authentication successful! Redirecting...');
 
             // Redirect to home after short delay
             setTimeout(() => {
                 router.push('/');
-            }, 1500);
+            }, 1000);
         } else {
+            // Check if we are incorrectly rendering without params
+            // If so, do nothing or show error
+            const currentToken = localStorage.getItem('auth_token');
+            if (currentToken) {
+                router.push('/');
+                return;
+            }
+
             setStatus('error');
             setMessage('No authentication token received');
         }
-    }, [searchParams, router]);
+    }, [searchParams, router, completeLogin]);
 
     return (
         <div className="container" style={{

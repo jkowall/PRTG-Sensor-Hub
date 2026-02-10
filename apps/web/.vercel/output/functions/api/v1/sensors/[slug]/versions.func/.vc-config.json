@@ -1,0 +1,18 @@
+{
+  "runtime": "edge",
+  "name": "api/v1/sensors/[slug]/versions",
+  "deploymentTarget": "v8-worker",
+  "entrypoint": "index.js",
+  "assets": [],
+  "framework": {
+    "slug": "nextjs",
+    "version": "15.0.0"
+  },
+  "environment": {
+    "__NEXT_BUILD_ID": "jlIcW8GyKI56g4gNwvM0B",
+    "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "iDCPHrlJDO94EZduijd1vRUI3F79ASEgbZkTFj8wGwI=",
+    "__NEXT_PREVIEW_MODE_ID": "a72eea2947837468e4a4c88e3f9c807b",
+    "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "1c2720991511beea060d9e2f57aba9bc61132019bdb1db7a84690ec477334e96",
+    "__NEXT_PREVIEW_MODE_SIGNING_KEY": "712bec0c4541beb1f209139a5586947c46770d07205564a511e16902cb5a63ce"
+  }
+}

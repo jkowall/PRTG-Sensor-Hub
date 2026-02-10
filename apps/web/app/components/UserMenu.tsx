@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 
 export function UserMenu() {
     const { user, loading, login, logout } = useAuth();
@@ -20,11 +21,11 @@ export function UserMenu() {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {user.is_admin && (
-                <a href="/admin" className="nav-link" style={{ color: 'var(--accent-primary)' }}>
+                <Link href="/admin" className="nav-link" style={{ color: 'var(--accent-primary)' }}>
                     Admin
-                </a>
+                </Link>
             )}
-            <a href="/my-sensors" className="nav-link">My Sensors</a>
+            <Link href="/my-sensors" className="nav-link">My Sensors</Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {user.avatar_url && (
                     // eslint-disable-next-line @next/next/no-img-element

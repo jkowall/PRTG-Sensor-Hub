@@ -1,10 +1,14 @@
 'use client';
 
+export const runtime = 'edge';
+
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
+const LANGUAGES = ['PowerShell', 'Python', 'JavaScript', 'Batch', 'Shell', 'Other'];
 const CATEGORIES = ['Docker', 'Kubernetes', 'Cloud', 'Security', 'Database', 'Network', 'Hardware', 'Application', 'Other'];
 
 export default function SubmitSensorPage() {
@@ -12,21 +16,29 @@ export default function SubmitSensorPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [submissionType, setSubmissionType] = useState<'upload' | 'link'>('upload');
 
     const [formData, setFormData] = useState({
-        display_name: '',
-        description: '',
-        category: 'Other',
-        tags: '',
+        first_name: '',
+        last_name: '',
+        work_email: '',
         repository_url: '',
-        version_str: '1.0.0',
-        min_prtg_version: '23.1.82',
-        changelog: 'Initial release',
-        commit_sha: '',
+        monitored_system: 'Other', // Maps to Category
+        script_language: 'PowerShell',
+        monitored_statistics: '',
+        description: '',
     });
+
+    const [file, setFile] = useState<File | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -35,52 +47,43 @@ export default function SubmitSensorPage() {
         setError(null);
 
         try {
+            if (submissionType === 'upload' && !file) {
+                throw new Error('Please select a script file to upload.');
+            }
+            if (submissionType === 'link' && !formData.repository_url) {
+                throw new Error('Please provide a repository URL.');
+            }
+
+            const data = new FormData();
+            data.append('display_name', `${formData.monitored_system} Sensor (${formData.script_language})`);
+            data.append('description', `${formData.description}\n\n**Monitored Statistics:** ${formData.monitored_statistics}`);
+            data.append('category', formData.monitored_system);
+            data.append('tags', JSON.stringify([formData.script_language].filter(Boolean)));
+            data.append('script_language', formData.script_language);
+
+            if (submissionType === 'upload' && file) {
+                data.append('file', file);
+            } else {
+                data.append('repository_url', formData.repository_url);
+            }
+
             // Create sensor
             const sensorRes = await fetch(`${API_URL}/sensors`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
+                    // Content-Type is set automatically for FormData
                 },
-                body: JSON.stringify({
-                    display_name: formData.display_name,
-                    description: formData.description,
-                    category: formData.category,
-                    tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-                    repository_url: formData.repository_url || null,
-                }),
+                body: data,
             });
 
             if (!sensorRes.ok) {
                 const err = await sensorRes.json();
-                throw new Error(err.detail || 'Failed to create sensor');
-            }
-
-            const sensor = await sensorRes.json();
-
-            // Add initial version
-            const versionRes = await fetch(`${API_URL}/sensors/${sensor.slug}/versions`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    version_str: formData.version_str,
-                    min_prtg_version: formData.min_prtg_version,
-                    changelog: formData.changelog,
-                    github_url: formData.repository_url || `https://github.com/prtg-sensors/${sensor.slug}`,
-                    commit_sha: formData.commit_sha || 'main',
-                }),
-            });
-
-            if (!versionRes.ok) {
-                const err = await versionRes.json();
-                throw new Error(err.detail || 'Failed to add version');
+                throw new Error(err.detail || err.error || 'Failed to submit sensor');
             }
 
             setSuccess(true);
-        } catch (err) {
+        } catch (err: any) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setLoading(false);
@@ -90,9 +93,9 @@ export default function SubmitSensorPage() {
     if (!user) {
         return (
             <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
-                <h1>Submit a Sensor</h1>
+                <h1>Submit your script</h1>
                 <p style={{ color: 'var(--text-muted)', marginTop: '16px', marginBottom: '24px' }}>
-                    Please login with GitHub to submit your sensor.
+                    Please login with GitHub to submit your script.
                 </p>
                 <button onClick={login} className="btn btn-primary">
                     Login with GitHub
@@ -105,20 +108,27 @@ export default function SubmitSensorPage() {
         return (
             <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
                 <div style={{ fontSize: '4rem', marginBottom: '24px' }}>🎉</div>
-                <h1>Sensor Submitted!</h1>
+                <h1>Script Submitted!</h1>
                 <p style={{ color: 'var(--text-muted)', marginTop: '16px', marginBottom: '24px' }}>
-                    Your sensor has been added to the registry.
+                    Your script has been added to the registry.
                 </p>
-                <a href="/" className="btn btn-primary">Back to Home</a>
+                <Link href="/" className="btn btn-primary">Back to Home</Link>
             </div>
         );
     }
 
     return (
         <div className="container" style={{ padding: '40px 24px', maxWidth: '700px' }}>
-            <h1 style={{ marginBottom: '8px' }}>Submit a Sensor</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-                Share your custom PRTG sensor with the community.
+            <h1 style={{ marginBottom: '16px' }}>Submit your script</h1>
+
+            <p style={{ marginBottom: '16px' }}>
+                Do you have a PRTG related script you want to contribute? Perfect!
+                Please make it available on Github and share it with us.
+            </p>
+
+            <p style={{ marginBottom: '32px' }}>
+                <strong>Important:</strong> Please remember to add a corresponding license to the repository. If you&apos;re unsure
+                which one to use, have a look at <a href="https://www.choosealicense.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)' }}>www.choosealicense.com</a>.
             </p>
 
             {error && (
@@ -135,45 +145,117 @@ export default function SubmitSensorPage() {
             )}
 
             <form onSubmit={handleSubmit}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                            First name<span style={{ color: 'var(--error)' }}>*</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="first_name"
+                            value={formData.first_name}
+                            onChange={handleChange}
+                            required
+                            className="search-input"
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                            Last name<span style={{ color: 'var(--error)' }}>*</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="last_name"
+                            value={formData.last_name}
+                            onChange={handleChange}
+                            required
+                            className="search-input"
+                        />
+                    </div>
+                </div>
+
                 <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Sensor Name *
+                        Work email<span style={{ color: 'var(--error)' }}>*</span>
                     </label>
                     <input
-                        type="text"
-                        name="display_name"
-                        value={formData.display_name}
+                        type="email"
+                        name="work_email"
+                        value={formData.work_email}
                         onChange={handleChange}
                         required
                         className="search-input"
-                        placeholder="e.g., Docker Container Stats"
                     />
                 </div>
 
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ marginBottom: '24px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Description
+                        Submission Type
                     </label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        rows={4}
-                        className="search-input"
-                        style={{ resize: 'vertical' }}
-                        placeholder="Describe what your sensor monitors..."
-                    />
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="submissionType"
+                                checked={submissionType === 'upload'}
+                                onChange={() => setSubmissionType('upload')}
+                            />
+                            Upload Script (Official)
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="submissionType"
+                                checked={submissionType === 'link'}
+                                onChange={() => setSubmissionType('link')}
+                            />
+                            Link External Repository
+                        </label>
+                    </div>
                 </div>
+
+                {submissionType === 'upload' ? (
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                            Script File (.ps1, .py, .js, .bat, .sh)<span style={{ color: 'var(--error)' }}>*</span>
+                        </label>
+                        <input
+                            type="file"
+                            onChange={handleFileChange}
+                            required
+                            className="search-input"
+                            accept=".ps1,.py,.js,.bat,.sh,.txt"
+                            style={{ padding: '8px' }}
+                        />
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            Your script will be uploaded via a Pull Request for review.
+                        </p>
+                    </div>
+                ) : (
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                            Repository URL<span style={{ color: 'var(--error)' }}>*</span>
+                        </label>
+                        <input
+                            type="url"
+                            name="repository_url"
+                            value={formData.repository_url}
+                            onChange={handleChange}
+                            required
+                            className="search-input"
+                            placeholder="https://github.com/username/repo"
+                        />
+                    </div>
+                )}
 
                 <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Category *
+                        Monitored System
                     </label>
                     <select
-                        name="category"
-                        value={formData.category}
+                        name="monitored_system"
+                        value={formData.monitored_system}
                         onChange={handleChange}
-                        required
                         className="search-input"
                     >
                         {CATEGORIES.map(cat => (
@@ -184,103 +266,59 @@ export default function SubmitSensorPage() {
 
                 <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Tags (comma-separated)
+                        Script Language
                     </label>
-                    <input
-                        type="text"
-                        name="tags"
-                        value={formData.tags}
+                    <select
+                        name="script_language"
+                        value={formData.script_language}
                         onChange={handleChange}
                         className="search-input"
-                        placeholder="docker, containers, devops"
-                    />
+                    >
+                        {LANGUAGES.map(lang => (
+                            <option key={lang} value={lang}>{lang}</option>
+                        ))}
+                    </select>
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        GitHub Repository URL
-                    </label>
-                    <input
-                        type="url"
-                        name="repository_url"
-                        value={formData.repository_url}
-                        onChange={handleChange}
-                        className="search-input"
-                        placeholder="https://github.com/you/your-sensor"
-                    />
-                </div>
-
-                <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '32px 0' }} />
-
-                <h3 style={{ marginBottom: '16px' }}>Initial Version</h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                            Version *
-                        </label>
-                        <input
-                            type="text"
-                            name="version_str"
-                            value={formData.version_str}
-                            onChange={handleChange}
-                            required
-                            className="search-input"
-                            placeholder="1.0.0"
-                        />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                            Min PRTG Version
-                        </label>
-                        <input
-                            type="text"
-                            name="min_prtg_version"
-                            value={formData.min_prtg_version}
-                            onChange={handleChange}
-                            className="search-input"
-                            placeholder="23.1.82"
-                        />
-                    </div>
-                </div>
-
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Commit SHA or Branch
+                        Monitored Statistics
                     </label>
                     <input
                         type="text"
-                        name="commit_sha"
-                        value={formData.commit_sha}
+                        name="monitored_statistics"
+                        value={formData.monitored_statistics}
                         onChange={handleChange}
                         className="search-input"
-                        placeholder="main or abc123..."
                     />
                 </div>
 
                 <div style={{ marginBottom: '32px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Changelog
+                        Description
                     </label>
                     <textarea
-                        name="changelog"
-                        value={formData.changelog}
+                        name="description"
+                        value={formData.description}
                         onChange={handleChange}
-                        rows={3}
+                        rows={4}
                         className="search-input"
                         style={{ resize: 'vertical' }}
-                        placeholder="- Initial release"
                     />
                 </div>
 
                 <button
                     type="submit"
                     className="btn btn-primary"
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', marginBottom: '32px' }}
                     disabled={loading}
                 >
-                    {loading ? 'Submitting...' : 'Submit Sensor'}
+                    {loading ? 'Submitting...' : 'Submit'}
                 </button>
+
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                    We process your data in accordance with our <a href="https://www.paessler.com/privacy-policy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)' }}>privacy policy</a>.
+                </p>
             </form>
         </div>
     );

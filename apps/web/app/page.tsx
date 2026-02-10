@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { formatDescription } from '../lib/utils';
 
 // Types
 interface Sensor {
@@ -12,6 +14,8 @@ interface Sensor {
     total_downloads: number;
     avg_rating: number;
     tags: string[];
+    is_certified: boolean;
+    status: 'pending' | 'approved' | 'certified';
 }
 
 interface PaginatedResponse {
@@ -50,15 +54,17 @@ export default function Home() {
                 const res = await fetch(`${API_URL}/sensors?${params}`);
 
                 if (!res.ok) {
-                    throw new Error(`API error: ${res.status}`);
+                    const errorData = await res.json().catch(() => ({}));
+                    const msg = errorData.error || res.statusText || 'Internal Server Error';
+                    throw new Error(`API error ${res.status}: ${msg}`);
                 }
 
                 const data: PaginatedResponse = await res.json();
                 setSensors(data.items);
                 setTotal(data.total);
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Failed to fetch sensors:', err);
-                setError('Failed to load sensors. Is the API running?');
+                setError(err.message || 'Failed to load sensors');
                 setSensors([]);
             } finally {
                 setLoading(false);
@@ -127,9 +133,6 @@ export default function Home() {
                             color: 'var(--error)'
                         }}>
                             {error}
-                            <p style={{ fontSize: '0.9rem', marginTop: '8px', color: 'var(--text-muted)' }}>
-                                Make sure the API is running: <code>scripts/start.sh</code>
-                            </p>
                         </div>
                     )}
 
@@ -140,7 +143,7 @@ export default function Home() {
                     ) : (
                         <div className="sensor-grid">
                             {sensors.map(sensor => (
-                                <a
+                                <Link
                                     key={sensor.id}
                                     href={`/sensors/${sensor.slug}`}
                                     style={{ textDecoration: 'none' }}
@@ -148,10 +151,32 @@ export default function Home() {
                                     <div className="sensor-card">
                                         <div className="sensor-card-header">
                                             <h3 className="sensor-name">{sensor.display_name}</h3>
-                                            <span className="sensor-category">{sensor.category}</span>
+                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                    <span className="sensor-category">{sensor.category}</span>
+                                                    {sensor.status === 'pending' && (
+                                                        <span className="badge badge-pending">Pending</span>
+                                                    )}
+                                                    {sensor.status === 'certified' && (
+                                                        <span className="badge badge-certified">Certified</span>
+                                                    )}
+                                                </div>
+                                                {sensor.is_certified && (
+                                                    <span style={{
+                                                        background: 'var(--success)',
+                                                        color: 'white',
+                                                        padding: '2px 6px',
+                                                        borderRadius: '4px',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        ✓ Certified
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <p className="sensor-description">{sensor.description}</p>
+                                        <p className="sensor-description">{formatDescription(sensor.description)}</p>
 
                                         <div className="sensor-meta">
                                             <span>
@@ -168,7 +193,7 @@ export default function Home() {
                                             ))}
                                         </div>
                                     </div>
-                                </a>
+                                </Link>
                             ))}
                         </div>
                     )}

@@ -1,7 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+export const runtime = 'edge';
+
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { formatDescription } from '../../../lib/utils';
 
 // API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
@@ -24,6 +28,8 @@ interface SensorDetail {
     display_name: string;
     description: string;
     category: string;
+    is_certified: boolean;
+    status: 'pending' | 'approved' | 'certified';
     tags: string[];
     repository_url: string | null;
     total_downloads: number;
@@ -33,9 +39,9 @@ interface SensorDetail {
     versions: Version[];
 }
 
-export default function SensorDetailPage() {
-    const params = useParams();
-    const slug = params.slug as string;
+export default function SensorDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug: slugParam } = React.use(params);
+    const slug = slugParam;
 
     const [sensor, setSensor] = useState<SensorDetail | null>(null);
     const [loading, setLoading] = useState(true);
@@ -92,9 +98,9 @@ export default function SensorDetailPage() {
                     {error === 'Sensor not found' ? 'Sensor Not Found' : 'Error Loading Sensor'}
                 </h1>
                 <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>{error}</p>
-                <a href="/" className="btn btn-primary" style={{ display: 'inline-flex' }}>
+                <Link href="/" className="btn btn-primary" style={{ display: 'inline-flex' }}>
                     ← Back to Hub
-                </a>
+                </Link>
             </div>
         );
     }
@@ -105,7 +111,7 @@ export default function SensorDetailPage() {
         <div className="container" style={{ padding: '40px 24px' }}>
             {/* Breadcrumb */}
             <nav style={{ marginBottom: '24px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                <a href="/">Home</a> / <a href={`/?category=${sensor.category}`}>{sensor.category}</a> / {sensor.display_name}
+                <Link href="/">Home</Link> / <Link href={`/?category=${sensor.category}`}>{sensor.category}</Link> / {sensor.display_name}
             </nav>
 
             {/* Header */}
@@ -120,6 +126,19 @@ export default function SensorDetailPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
                         <h1 style={{ fontSize: '2.5rem', fontWeight: '700' }}>{sensor.display_name}</h1>
                         <span className="sensor-category">{sensor.category}</span>
+                        {sensor.is_certified && (
+                            <span className="badge badge-certified" style={{ padding: '4px 12px', fontSize: '0.9rem' }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Certified
+                            </span>
+                        )}
+                        {sensor.status === 'pending' && (
+                            <span className="badge badge-pending" style={{ padding: '4px 12px', fontSize: '0.9rem' }}>
+                                Pending Review
+                            </span>
+                        )}
                         {currentVersion?.verified && (
                             <span style={{
                                 background: 'var(--success)',
@@ -189,13 +208,22 @@ export default function SensorDetailPage() {
                                 )}
                             </div>
 
-                            <a
-                                href={`${API_URL}/sensors/${sensor.slug}/download?version=${selectedVersion}`}
-                                className="btn btn-primary"
-                                style={{ width: '100%', marginBottom: '12px' }}
+                            <button
+                                onClick={() => {
+                                    if (sensor.status === 'pending') return;
+                                    window.location.href = `${API_URL}/sensors/${sensor.slug}/download?version=${selectedVersion}`;
+                                }}
+                                disabled={sensor.status === 'pending'}
+                                className={`btn btn-primary ${sensor.status === 'pending' ? 'btn-disabled' : ''}`}
+                                style={{ width: '100%', marginBottom: '12px', opacity: sensor.status === 'pending' ? 0.5 : 1, cursor: sensor.status === 'pending' ? 'not-allowed' : 'pointer' }}
                             >
-                                ⬇️ Download
-                            </a>
+                                {sensor.status === 'pending' ? '🔒 Review Pending' : '⬇️ Download'}
+                            </button>
+                            {sensor.status === 'pending' && (
+                                <p style={{ fontSize: '0.75rem', color: 'var(--warning)', textAlign: 'center', marginBottom: '12px' }}>
+                                    Downloads will be enabled after review.
+                                </p>
+                            )}
                         </>
                     ) : (
                         <p style={{ color: 'var(--text-muted)' }}>No versions available</p>
@@ -225,7 +253,7 @@ export default function SensorDetailPage() {
                     lineHeight: '1.7',
                     color: 'var(--text-secondary)'
                 }}>
-                    {sensor.description || 'No description available.'}
+                    {formatDescription(sensor.description) || 'No description available.'}
                 </div>
             </section>
 
