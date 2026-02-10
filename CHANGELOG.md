@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.0] - 2026-02-09
 
-### Added
+### v2.2.0 Added
 
 - **Unified Architecture**: Consolidated the entire stack into a single Next.js 15 application.
 - **Edge Runtime Support**: Ported all API and Page routes to use Cloudflare Edge Runtime.
@@ -31,13 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Improved UI Aesthetics**: Added theme-aware logo filters for better visibility in dark mode.
 - **Versioning in Footer**: Added project version and developer links to the footer.
 
-### Changed
+### v2.2.0 Changed
 
 - **Next.js Upgrade**: Upgraded to Next.js 15 for better bundling and Edge support.
 - **Migration logic**: Moved from `process.env` to `getRequestContext().env` for reliable Cloudflare binding access.
 - **Directory Cleanup**: Removed legacy Python API, Docker, and CLI artifacts.
 
-### Fixed
+### v2.2.0 Fixed
 
 - **Deployment Errors**: Resolved 404 and 500 errors on Cloudflare Pages.
 - **Logo Visibility**: Fixed logo blending into the background in dark mode.
@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.1.0] - 2026-02-09
 
-### Added
+### v2.1.0 Added
 
 - **Cloudflare Integration**: Support for deploying the stack to Cloudflare Workers, Pages, D1, and R2.
 - **Hybrid Database Layer**: Re-architected `apps/api` to support both Async (PostgreSQL) and Sync (Cloudflare D1 / Local SQLite) engines.
@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2026-02-09
 
-### Added
+### Added Features
 
 - Initial release of PRTG Sensor Hub.
 - Hybrid audit tool for network device discovery and PRTG comparison.
