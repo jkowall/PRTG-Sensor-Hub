@@ -154,4 +154,8 @@ export class GitHubService {
     async getPullRequest(prNumber: number) {
         return this.request(`/pulls/${prNumber}`);
     }
+
+    async deleteRef(ref: string) {
+        return this.request(`/git/refs/heads/${ref}`, 'DELETE');
+    }
 }
