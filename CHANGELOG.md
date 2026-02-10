@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-02-10
+
+### Added
+
+- **Admin Sensor Editing**: Implemented a new secure `PATCH` API for updating sensor metadata.
+- **Premium UI Redesign**: Redesigned the Admin Edit Modal with glassmorphism effects and PRTG branding.
+- **Deep Sensor Deletion**: Enhanced deletion to include automatic GitHub PR closure and repository file cleanup.
+- **Public Visibility Controls**: Unapproved sensors are now automatically hidden from public search and listings.
+
+### Changed
+
+- **Unified Architecture**: Successfully consolidated all logic into the Next.js stack and removed legacy Python `apps/api`.
+- **Project Structure**: Cleaned up redundant directories (`apps/api`, `packages/`) for a leaner codebase.
+
+### Fixed
+
+- **CI/CD Reliability**: Resolved dependency conflicts and stabilized the Cloudflare deployment pipeline.
+- **Moderation Workflow**: Fixed visibility logic to correctly handle admin and owner viewing permissions.
+
 ## [2.3.0] - 2026-02-10
 
 ### Added
