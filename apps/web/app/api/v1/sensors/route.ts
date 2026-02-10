@@ -30,16 +30,45 @@ export async function GET(request: NextRequest) {
     // Check if we are requesting "my sensors" (authenticated)
     const authHeader = request.headers.get('Authorization');
     let authenticatedUser = null;
+    let isAdmin = false;
+    const secret = env.NEXTAUTH_SECRET || 'fallback-secret';
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        const secret = (env as any).NEXTAUTH_SECRET || 'fallback-secret';
-        authenticatedUser = await verifyJWT(token, secret);
+        try {
+            authenticatedUser = await verifyJWT(token, secret);
+            if (authenticatedUser && authenticatedUser.sub) {
+                const user = await env.DB.prepare('SELECT is_admin FROM users WHERE id = ?').bind(authenticatedUser.sub).first();
+                isAdmin = !!(user as any)?.is_admin;
+            }
+        } catch (e) {
+            console.error('JWT Verification failed:', e);
+        }
     }
 
     let query = 'SELECT * FROM sensors';
     let countQuery = 'SELECT COUNT(*) as count FROM sensors';
     const params: any[] = [];
     const whereClauses: string[] = [];
+
+    // Visibility Logic
+    if (!isAdmin) {
+        if (authenticatedUser && searchParams.has('mine')) {
+            // "My Sensors" view - show everything for the owner
+            whereClauses.push('owner_id = ?');
+            params.push(authenticatedUser.sub);
+        } else {
+            // Public view - show only approved/certified
+            whereClauses.push("(status = 'approved' OR status = 'certified')");
+        }
+    } else if (owner_id) {
+        // Explicit owner filter (often used for public profiles)
+        whereClauses.push('owner_id = ?');
+        params.push(owner_id);
+
+        // If it's a public view of another user's profile from an admin, still filter?
+        // Let's allow admins to see everything if they provide owner_id but don't force it.
+    }
 
     if (category) {
         whereClauses.push('category = ?');
@@ -49,15 +78,6 @@ export async function GET(request: NextRequest) {
     if (search) {
         whereClauses.push('(display_name LIKE ? OR description LIKE ?)');
         params.push(`%${search}%`, `%${search}%`);
-    }
-
-    if (owner_id) {
-        whereClauses.push('owner_id = ?');
-        params.push(owner_id);
-    } else if (authenticatedUser && searchParams.has('mine')) {
-        // Convenience for "my sensors" page
-        whereClauses.push('owner_id = ?');
-        params.push(authenticatedUser.sub);
     }
 
     if (whereClauses.length > 0) {

@@ -27,6 +27,8 @@ interface Sensor {
     slug: string;
     display_name: string;
     category: string;
+    description: string;
+    tags: string[];
     is_certified: boolean;
     status: 'pending' | 'approved' | 'certified';
     github_pr_url?: string;
@@ -40,6 +42,7 @@ export default function AdminPage() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [users, setUsers] = useState<User[]>([]);
     const [sensors, setSensors] = useState<Sensor[]>([]);
+    const [editingSensor, setEditingSensor] = useState<any | null>(null);
     const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'sensors'>('stats');
     const [error, setError] = useState<string | null>(null);
 
@@ -152,6 +155,29 @@ export default function AdminPage() {
             }
         } catch (err) {
             console.error('Failed to delete sensor:', err);
+        }
+    };
+
+    const updateSensorDetails = async (sensorId: string, updates: any) => {
+        try {
+            const res = await fetch(`${API_URL}/admin/sensors/${sensorId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updates),
+            });
+            if (res.ok) {
+                fetchSensors();
+                setEditingSensor(null);
+            } else {
+                const data = await res.json();
+                setError(data.error || 'Failed to update sensor');
+            }
+        } catch (err) {
+            console.error('Failed to update sensor details:', err);
+            setError('An error occurred while updating sensor');
         }
     };
 
@@ -338,6 +364,13 @@ export default function AdminPage() {
                                                 </button>
                                             )}
                                             <button
+                                                onClick={() => setEditingSensor(s)}
+                                                className="btn btn-outline"
+                                                style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
                                                 onClick={() => deleteSensor(s.id)}
                                                 className="btn btn-outline"
                                                 style={{ padding: '4px 12px', fontSize: '0.8rem', color: 'var(--error)', borderColor: 'var(--error)' }}
@@ -357,6 +390,75 @@ export default function AdminPage() {
                             )}
                         </tbody>
                     </table>
+                </div>
+            )}
+            {/* Edit Sensor Modal */}
+            {editingSensor && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000, padding: '20px'
+                }}>
+                    <div className="sensor-card" style={{ maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h2 style={{ marginBottom: '24px' }}>Edit Sensor Details</h2>
+
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Display Name</label>
+                            <input
+                                type="text"
+                                className="input"
+                                value={editingSensor.display_name}
+                                onChange={(e) => setEditingSensor({ ...editingSensor, display_name: e.target.value })}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Description</label>
+                            <textarea
+                                className="input"
+                                style={{ minHeight: '120px' }}
+                                value={editingSensor.description}
+                                onChange={(e) => setEditingSensor({ ...editingSensor, description: e.target.value })}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Category</label>
+                            <select
+                                className="input"
+                                value={editingSensor.category}
+                                onChange={(e) => setEditingSensor({ ...editingSensor, category: e.target.value })}
+                            >
+                                <option value="network">Network</option>
+                                <option value="cloud">Cloud</option>
+                                <option value="iot">IoT</option>
+                                <option value="storage">Storage</option>
+                                <option value="database">Database</option>
+                            </select>
+                        </div>
+
+                        <div style={{ marginBottom: '24px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Tags (comma separated)</label>
+                            <input
+                                type="text"
+                                className="input"
+                                value={Array.isArray(editingSensor.tags) ? editingSensor.tags.join(', ') : editingSensor.tags}
+                                onChange={(e) => setEditingSensor({ ...editingSensor, tags: e.target.value.split(',').map((t: string) => t.trim()) })}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button className="btn btn-outline" onClick={() => setEditingSensor(null)}>Cancel</button>
+                            <button className="btn btn-primary" onClick={() => updateSensorDetails(editingSensor.id, {
+                                display_name: editingSensor.display_name,
+                                description: editingSensor.description,
+                                category: editingSensor.category,
+                                tags: editingSensor.tags
+                            })}>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -108,3 +108,68 @@ export async function DELETE(
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const context = getRequestContext();
+    if (!context || !context.env) {
+        return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
+    }
+    const env = context.env as unknown as { DB: D1Database; NEXTAUTH_SECRET: string };
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const secret = env.NEXTAUTH_SECRET || 'fallback-secret';
+
+    try {
+        const payload = await verifyJWT(token, secret);
+        if (!payload || !payload.sub) return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+
+        const admin = await env.DB.prepare('SELECT is_admin FROM users WHERE id = ?').bind(payload.sub).first();
+        if (!admin || !(admin as any).is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+        const { id } = await params;
+        const body = await request.json();
+        const { display_name, description, category, tags } = body;
+
+        const updates: string[] = [];
+        const bindings: any[] = [];
+
+        if (display_name !== undefined) {
+            updates.push('display_name = ?');
+            bindings.push(display_name);
+        }
+        if (description !== undefined) {
+            updates.push('description = ?');
+            bindings.push(description);
+        }
+        if (category !== undefined) {
+            updates.push('category = ?');
+            bindings.push(category);
+        }
+        if (tags !== undefined) {
+            updates.push('tags = ?');
+            bindings.push(typeof tags === 'string' ? tags : JSON.stringify(tags));
+        }
+
+        if (updates.length === 0) {
+            return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+        }
+
+        bindings.push(id);
+        const query = `UPDATE sensors SET ${updates.join(', ')} WHERE id = ?`;
+
+        await env.DB.prepare(query).bind(...bindings).run();
+
+        return NextResponse.json({ success: true, message: 'Sensor details updated successfully' });
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
