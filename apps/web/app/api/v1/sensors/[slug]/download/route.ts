@@ -43,6 +43,10 @@ export async function GET(
             return NextResponse.json({ error: `Version '${versionStr || 'latest'}' not found` }, { status: 404 });
         }
 
+        if (version.commit_sha === 'pending') {
+            return NextResponse.json({ error: 'This version is still pending verification and cannot be downloaded yet' }, { status: 403 });
+        }
+
         // 3. Increment download counts (D1 batch for atomicity alternative)
         await env.DB.batch([
             env.DB.prepare('UPDATE sensors SET total_downloads = total_downloads + 1 WHERE id = ?').bind(sensor.id),

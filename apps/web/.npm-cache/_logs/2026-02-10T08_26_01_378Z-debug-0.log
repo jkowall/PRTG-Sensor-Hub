@@ -8,8 +8,8 @@
 7 silly config load:file:/Users/jkowall/.nvm/versions/node/v24.13.0/etc/npmrc
 8 verbose title npm install
 9 verbose argv "install" "--no-audit" "--unsafe-perm"
-10 verbose logfile logs-max:10 dir:/Users/jkowall/PRTG-Sensor-Hub/apps/web/.npm-cache/_logs/2026-02-10T08_12_34_269Z-
-11 verbose logfile /Users/jkowall/PRTG-Sensor-Hub/apps/web/.npm-cache/_logs/2026-02-10T08_12_34_269Z-debug-0.log
+10 verbose logfile logs-max:10 dir:/Users/jkowall/PRTG-Sensor-Hub/apps/web/.npm-cache/_logs/2026-02-10T08_26_01_378Z-
+11 verbose logfile /Users/jkowall/PRTG-Sensor-Hub/apps/web/.npm-cache/_logs/2026-02-10T08_26_01_378Z-debug-0.log
 12 silly logfile start cleaning logs, removing 1 files
 13 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
 14 silly logfile done cleaning log files

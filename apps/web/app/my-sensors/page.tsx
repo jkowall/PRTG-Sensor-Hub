@@ -142,6 +142,9 @@ export default function MySensors() {
                                     {sensor.status === 'certified' && (
                                         <span className="badge badge-certified">Certified</span>
                                     )}
+                                    {sensor.status === 'approved' && (
+                                        <span className="badge badge-approved">Approved</span>
+                                    )}
                                 </div>
                             </div>
 

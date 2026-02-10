@@ -139,6 +139,11 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                 Pending Review
                             </span>
                         )}
+                        {sensor.status === 'approved' && (
+                            <span className="badge badge-approved" style={{ padding: '4px 12px', fontSize: '0.9rem' }}>
+                                Approved
+                            </span>
+                        )}
                         {currentVersion?.verified && (
                             <span style={{
                                 background: 'var(--success)',
