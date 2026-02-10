@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { formatDescription } from '../lib/utils';
+import { formatDescription } from '@/lib/utils';
 
 // Types
 interface Sensor {

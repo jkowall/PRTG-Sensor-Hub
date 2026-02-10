@@ -5,7 +5,7 @@ export const runtime = 'edge';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { formatDescription } from '../../../lib/utils';
+import { formatDescription } from '@/lib/utils';
 
 // API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
