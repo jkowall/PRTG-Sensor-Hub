@@ -2,7 +2,7 @@
 
 export const runtime = 'edge';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
 
@@ -28,6 +28,22 @@ export default function SubmitSensorPage() {
         monitored_statistics: '',
         description: '',
     });
+
+    // Pre-populate data from GitHub user
+    useEffect(() => {
+        if (user) {
+            const names = user.full_name ? user.full_name.split(' ') : ['', ''];
+            const firstName = names[0] || '';
+            const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
+
+            setFormData(prev => ({
+                ...prev,
+                first_name: prev.first_name || firstName,
+                last_name: prev.last_name || lastName,
+                work_email: prev.work_email || user.email || '',
+            }));
+        }
+    }, [user]);
 
     const [file, setFile] = useState<File | null>(null);
 
