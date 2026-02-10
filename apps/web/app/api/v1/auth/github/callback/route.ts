@@ -51,26 +51,29 @@ export async function GET(request: NextRequest) {
         });
         const githubUser = await userRes.json() as any;
 
-        // 2b. If email is missing (private), fetch from /user/emails
+        // 2b. Always try to fetch primary verified email to be sure
         let primaryEmail = githubUser.email;
-        if (!primaryEmail) {
-            try {
-                const emailsRes = await fetch('https://api.github.com/user/emails', {
-                    headers: {
-                        'Authorization': `token ${tokenData.access_token}`,
-                        'User-Agent': 'PRTG-Sensor-Hub',
-                    },
-                });
-                const emails = await emailsRes.json() as any[];
-                if (Array.isArray(emails)) {
-                    const primary = emails.find(e => e.primary && e.verified);
-                    if (primary) {
-                        primaryEmail = primary.email;
-                    }
+        console.log('GitHub User:', { login: githubUser.login, email: githubUser.email, name: githubUser.name });
+
+        try {
+            const emailsRes = await fetch('https://api.github.com/user/emails', {
+                headers: {
+                    'Authorization': `token ${tokenData.access_token}`,
+                    'User-Agent': 'PRTG-Sensor-Hub',
+                },
+            });
+            const emails = await emailsRes.json() as any[];
+            console.log('Emails response:', emails);
+
+            if (Array.isArray(emails)) {
+                const primary = emails.find(e => e.primary && e.verified);
+                if (primary) {
+                    primaryEmail = primary.email;
+                    console.log('Found primary verified email:', primaryEmail);
                 }
-            } catch (emailErr) {
-                console.error('Failed to fetch user emails:', emailErr);
             }
+        } catch (emailErr) {
+            console.error('Failed to fetch user emails, falling back to public profile:', emailErr);
         }
 
         // 3. Upsert user in D1
