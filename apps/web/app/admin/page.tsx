@@ -112,6 +112,11 @@ export default function AdminPage() {
     };
 
     const updateSensorStatus = async (sensorId: string, status: string) => {
+        let commitSha = null;
+        if (status === 'approved' || status === 'certified') {
+            commitSha = prompt('Enter the GitHub Merge Commit SHA (optional, to verify version and enable downloads):');
+        }
+
         try {
             const res = await fetch(`${API_URL}/admin/sensors/${sensorId}/certify`, {
                 method: 'POST',
@@ -121,7 +126,8 @@ export default function AdminPage() {
                 },
                 body: JSON.stringify({
                     certified: status === 'certified',
-                    status: status
+                    status: status,
+                    commit_sha: commitSha
                 })
             });
             if (res.ok) {

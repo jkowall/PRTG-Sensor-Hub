@@ -150,4 +150,8 @@ export class GitHubService {
             console.error('Error closing PR:', error);
         }
     }
+
+    async getPullRequest(prNumber: number) {
+        return this.request(`/pulls/${prNumber}`);
+    }
 }
