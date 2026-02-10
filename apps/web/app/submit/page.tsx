@@ -32,6 +32,7 @@ export default function SubmitSensorPage() {
     // Pre-populate data from GitHub user
     useEffect(() => {
         if (user) {
+            console.log('Pre-populating form with user data:', user); // Debugging
             const names = user.full_name ? user.full_name.split(' ') : ['', ''];
             const firstName = names[0] || '';
             const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
@@ -109,9 +110,9 @@ export default function SubmitSensorPage() {
     if (!user) {
         return (
             <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
-                <h1>Submit your script</h1>
+                <h1>Submit your sensor</h1>
                 <p style={{ color: 'var(--text-muted)', marginTop: '16px', marginBottom: '24px' }}>
-                    Please login with GitHub to submit your script.
+                    Please login with GitHub to submit your sensor.
                 </p>
                 <button onClick={login} className="btn btn-primary">
                     Login with GitHub
@@ -124,9 +125,9 @@ export default function SubmitSensorPage() {
         return (
             <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
                 <div style={{ fontSize: '4rem', marginBottom: '24px' }}>🎉</div>
-                <h1>Script Submitted!</h1>
+                <h1>Sensor Submitted!</h1>
                 <p style={{ color: 'var(--text-muted)', marginTop: '16px', marginBottom: '24px' }}>
-                    Your script has been added to the registry.
+                    Your sensor has been added to the registry.
                 </p>
                 <Link href="/" className="btn btn-primary">Back to Home</Link>
             </div>
@@ -135,10 +136,10 @@ export default function SubmitSensorPage() {
 
     return (
         <div className="container" style={{ padding: '40px 24px', maxWidth: '700px' }}>
-            <h1 style={{ marginBottom: '16px' }}>Submit your script</h1>
+            <h1 style={{ marginBottom: '16px' }}>Submit your sensor</h1>
 
             <p style={{ marginBottom: '16px' }}>
-                Do you have a PRTG related script you want to contribute? Perfect!
+                Do you have a PRTG related sensor you want to contribute? Perfect!
                 Please make it available on Github and share it with us.
             </p>
 

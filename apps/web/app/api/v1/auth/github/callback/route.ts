@@ -51,6 +51,28 @@ export async function GET(request: NextRequest) {
         });
         const githubUser = await userRes.json() as any;
 
+        // 2b. If email is missing (private), fetch from /user/emails
+        let primaryEmail = githubUser.email;
+        if (!primaryEmail) {
+            try {
+                const emailsRes = await fetch('https://api.github.com/user/emails', {
+                    headers: {
+                        'Authorization': `token ${tokenData.access_token}`,
+                        'User-Agent': 'PRTG-Sensor-Hub',
+                    },
+                });
+                const emails = await emailsRes.json() as any[];
+                if (Array.isArray(emails)) {
+                    const primary = emails.find(e => e.primary && e.verified);
+                    if (primary) {
+                        primaryEmail = primary.email;
+                    }
+                }
+            } catch (emailErr) {
+                console.error('Failed to fetch user emails:', emailErr);
+            }
+        }
+
         // 3. Upsert user in D1
         const existingUser = await env.DB.prepare('SELECT id FROM users WHERE github_id = ?').bind(githubUser.id.toString()).first();
         let userId;
@@ -59,15 +81,19 @@ export async function GET(request: NextRequest) {
         const devAdmin = (env as any).DEV_ADMIN_USERNAME;
         const isAdmin = devAdmin && githubUser.login === devAdmin ? 1 : 0;
 
+        // Use the primary email we found, or fallback to the dummy address
+        const emailToSave = primaryEmail || `${githubUser.login}@github.com`;
+
         if (existingUser) {
             userId = (existingUser as any).id;
-            await env.DB.prepare('UPDATE users SET github_username = ?, avatar_url = ?, is_admin = CASE WHEN is_admin = 1 THEN 1 ELSE ? END, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-                .bind(githubUser.login, githubUser.avatar_url, isAdmin, userId)
+            // Also update email if it changed or was previously dummy
+            await env.DB.prepare('UPDATE users SET email = ?, github_username = ?, avatar_url = ?, is_admin = CASE WHEN is_admin = 1 THEN 1 ELSE ? END, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+                .bind(emailToSave, githubUser.login, githubUser.avatar_url, isAdmin, userId)
                 .run();
         } else {
             userId = crypto.randomUUID();
             await env.DB.prepare('INSERT INTO users (id, email, full_name, github_id, github_username, avatar_url, is_admin) VALUES (?, ?, ?, ?, ?, ?, ?)')
-                .bind(userId, githubUser.email || `${githubUser.login}@github.com`, githubUser.name, githubUser.id.toString(), githubUser.login, githubUser.avatar_url, isAdmin)
+                .bind(userId, emailToSave, githubUser.name, githubUser.id.toString(), githubUser.login, githubUser.avatar_url, isAdmin)
                 .run();
         }
 
