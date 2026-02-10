@@ -42,7 +42,7 @@
       ],
       "dest": "/index.rsc",
       "headers": {
-        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch"
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
       },
       "continue": true,
       "override": true
@@ -58,7 +58,7 @@
       ],
       "dest": "/$1.rsc",
       "headers": {
-        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch"
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
       },
       "continue": true,
       "override": true
@@ -124,6 +124,14 @@
       "status": 404
     },
     {
+      "src": "^/api/v1/admin/sensors/(?<nxtPid>[^/]+?)(?:\\.rsc)(?:/)?$",
+      "dest": "/api/v1/admin/sensors/[id].rsc?nxtPid=$nxtPid"
+    },
+    {
+      "src": "^/api/v1/admin/sensors/(?<nxtPid>[^/]+?)(?:/)?$",
+      "dest": "/api/v1/admin/sensors/[id]?nxtPid=$nxtPid"
+    },
+    {
       "src": "^/api/v1/admin/sensors/(?<nxtPid>[^/]+?)/certify(?:\\.rsc)(?:/)?$",
       "dest": "/api/v1/admin/sensors/[id]/certify.rsc?nxtPid=$nxtPid"
     },
@@ -175,7 +183,7 @@
       "handle": "hit"
     },
     {
-      "src": "/_next/static/(?:[^/]+/pages|pages|chunks|runtime|css|image|media|tLDAfMfDTGTTQGciGlIhj)/.+",
+      "src": "/_next/static/(?:[^/]+/pages|pages|chunks|runtime|css|image|media|1DG1wlmwqJtjnNESimVSY)/.+",
       "headers": {
         "cache-control": "public,max-age=31536000,immutable"
       },
@@ -271,7 +279,7 @@
     }
   },
   "framework": {
-    "version": "15.0.0"
+    "version": "15.5.2"
   },
   "crons": []
 }
