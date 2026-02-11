@@ -70,9 +70,32 @@ export async function GET(request: NextRequest) {
         // Let's allow admins to see everything if they provide owner_id but don't force it.
     }
 
-    if (category) {
+    if (category && category !== 'All') {
         whereClauses.push('category = ?');
         params.push(category);
+    }
+
+    // Support for multiple tags (comma separated)
+    const tagsParam = searchParams.get('tags');
+    if (tagsParam) {
+        const tags = tagsParam.split(',').filter(t => t.trim().length > 0);
+        if (tags.length > 0) {
+            // Logic: Sensor must have ALL selected tags (AND)
+            // Or should it be OR? Faceted search usually implies AND between different facets (Category AND Tag)
+            // regarding multiple tags, typically it's OR (Python OR PowerShell) or AND (Python AND 3.11)?
+            // User requested "Faceted search is preferred".
+            // Let's implement OR within tags for now as it's more common for "Languages" (e.g. show me Python OR PowerShell sensors)
+            // But wait, existing plan didn't specify. Let's assume OR for now as it's flexible.
+            // ACTUALLY: common faceted search is "Refine by" -> AND.
+            // If I select "Python" and "PowerShell", do I want sensors that are BOTH? Or either?
+            // Usually "Languages" is single select or OR. "Features" might be AND.
+            // Let's go with OR for tags for now, as sensors usually have 1 language.
+
+            // To implement OR: EXISTS (SELECT 1 FROM json_each(tags) WHERE value IN (?, ?))
+            const placeholders = tags.map(() => '?').join(',');
+            whereClauses.push(`EXISTS (SELECT 1 FROM json_each(sensors.tags) WHERE value IN (${placeholders}))`);
+            params.push(...tags);
+        }
     }
 
     if (search) {

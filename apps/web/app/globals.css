@@ -461,4 +461,120 @@ a:hover {
     background: #3B82F622;
     color: #3B82F6;
     border: 1px solid #3B82F644;
+}/* Faceted Search Layout */
+.page-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 32px;
+    align-items: start;
+    padding-bottom: 60px;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Filters Sidebar */
+.filters-sidebar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    position: sticky;
+    top: 20px;
+}
+
+.filter-group {
+    margin-bottom: 24px;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.filter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.filter-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.filter-btn:hover {
+    background: var(--hover-bg);
+}
+
+.filter-btn.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.filter-btn.active .count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.filter-btn .count {
+    background: var(--hover-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Checkbox Style for Tags */
+.checkbox-item {
+    margin-bottom: 8px;
+}
+
+.checkbox-item label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 4px 0;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 10px;
+    accent-color: var(--accent-primary);
+    width: 16px;
+    height: 16px;
+}
+
+.checkbox-item .count {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* Search Container Update */
+.search-container {
+    max-width: 100%;
+    margin-bottom: 0; /* Let grid handle gap */
 }
