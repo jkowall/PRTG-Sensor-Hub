@@ -60,6 +60,9 @@ npx wrangler pages deploy .vercel/output/static --project-name prtg-sensor-hub-w
 
 ## Features
 
+- **Advanced Search & Filtering**: Find sensors by name, description, category, or tags.
+- **Sensor Submission System**: Streamlined process with multi-file support and automated GitHub Pull Request generation.
+- **Interactive Version History**: Access changelogs, minimum PRTG versions, and download specific versions.
 - **Safe Markdown**: Custom regex-based renderer for sensor descriptions (Performance-optimized).
 - **Sensor Status System**: Built-in moderation workflow (`Pending` -> `Approved` -> `Certified`).
 - **Certified Sensors**: Official badges and verification for trusted sensor creators.
