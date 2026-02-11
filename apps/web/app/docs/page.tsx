@@ -42,13 +42,7 @@ export default function DocsPage() {
                 </div>
             </section>
 
-            <section>
-                <h2 style={{ fontSize: '1.8rem', marginBottom: '16px' }}>Architecture</h2>
-                <p style={{ lineHeight: '1.6' }}>
-                    Built with Next.js 15 and deployed on Cloudflare Pages using D1 for database storage.
-                    The entire application runs at the edge for maximum performance and stability.
-                </p>
-            </section>
+
         </div>
     );
 }

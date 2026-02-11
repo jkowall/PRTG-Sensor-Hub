@@ -58,6 +58,27 @@ npm run pages:build
 npx wrangler pages deploy .vercel/output/static --project-name prtg-sensor-hub-web
 ```
 
+## GitHub Integration & Workflows
+
+### Sensor Submission Workflow
+
+1. **User Action**: Users submit sensors via the "Submit Sensor" form, providing files and metadata.
+2. **API Automation**:
+   - The API validates the submission.
+   - It automatically creates a new branch (e.g., `submit/sensor-name`) in the repository.
+   - Files are committed directly via the GitHub API.
+   - A **Pull Request** is automatically opened against `main` for community review.
+3. **Outcome**: The sensor appears as "Pending" until a maintainer merges the PR.
+
+### CI/CD Pipelines
+
+- **Continuous Integration (CI)**:
+  - Triggers on Pull Requests and Pushes to `main`.
+  - Runs `npm run lint` and `npm test` to ensure code quality.
+- **Continuous Deployment (CD)**:
+  - Triggers on Pushes to `main`.
+  - Automatically builds and deploys the application to **Cloudflare Pages**.
+
 ## Features
 
 - **Advanced Search & Filtering**: Find sensors by name, description, category, or tags.
