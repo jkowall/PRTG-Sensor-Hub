@@ -1,13 +1,13 @@
 # PRTG Sensor Hub
 
-A centralized registry platform for managing, distributing, and discovering custom PRTG sensors. This project is built as a unified Next.js 15 application designed to run on the Cloudflare Edge runtime with D1 database integration.
+A centralized registry platform for managing, distributing, and discovering custom PRTG sensors. This project is built as a unified Next.js 16 application designed to run on the Cloudflare Edge runtime with D1 database integration.
 
 ## Project Structure
 
 ```text
 prtg-sensor-hub/
 ├── apps/
-│   └── web/          # Unified Next.js 15 App (API + Frontend)
+│   └── web/          # Unified Next.js 16 App (API + Frontend)
 ├── .github/
 │   └── workflows/    # CI/CD Deployment
 └── .gemini/          # Agent Artifacts
@@ -92,7 +92,7 @@ npx wrangler pages deploy .vercel/output/static --project-name prtg-sensor-hub-w
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Runtime**: Cloudflare Edge Runtime
 - **Database**: Cloudflare D1 (SQLite)
 - **Styling**: Vanilla CSS with modern aesthetics

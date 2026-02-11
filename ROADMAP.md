@@ -6,9 +6,9 @@ This document outlines the development roadmap for the PRTG Sensor Hub project. 
 
 To become the de-facto standard registry for discovering, sharing, and managing custom PRTG sensors, fostering a vibrant community of network monitoring professionals.
 
-## Current Status (v2.5.0)
+## Current Status (v2.5.1)
 
-- **Core Platform**: Next.js 15 app running on Cloudflare Pages & Workers.
+- **Core Platform**: Next.js 16 app running on Cloudflare Pages & Workers.
 - **Database**: Cloudflare D1 (SQLite) with hybrid async/sync architecture.
 - **Features**: GitHub Auth, Sensor Submission/Approval Workflow, Versioning, Admin Dashboard.
 - **UI**: Modern Glassmorphism design with PRTG branding.
