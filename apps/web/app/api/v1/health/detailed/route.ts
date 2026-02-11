@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 
 export async function GET() {
     try {
-        const context = getRequestContext();
+        const context = await getCloudflareContext();
         const env = context?.env as any;
 
         const report: any = {

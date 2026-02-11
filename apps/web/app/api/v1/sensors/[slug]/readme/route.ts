@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { D1Database } from '@/lib/db';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { GitHubService } from '@/lib/github';
 
 
@@ -9,7 +9,7 @@ export async function GET(
     { params }: { params: Promise<{ slug: string }> }
 ) {
     const { slug } = await params;
-    const context = getRequestContext();
+    const context = await getCloudflareContext();
     if (!context || !context.env) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }

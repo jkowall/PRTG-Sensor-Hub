@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { D1Database } from '@/lib/db';
 import { verifyJWT } from '@/lib/jwt';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 
 function slugify(text: string) {
@@ -13,7 +13,7 @@ function slugify(text: string) {
 }
 
 export async function GET(request: NextRequest) {
-    const context = getRequestContext();
+    const context = await getCloudflareContext();
     if (!context || !context.env) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
 import { GitHubService } from '@/lib/github';
 
 export async function POST(request: NextRequest) {
-    const context = getRequestContext();
+    const context = await getCloudflareContext();
     if (!context || !context.env) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }
