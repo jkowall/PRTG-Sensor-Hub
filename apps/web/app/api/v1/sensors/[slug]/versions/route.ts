@@ -3,7 +3,6 @@ import { verifyJWT } from '@/lib/jwt';
 import { D1Database } from '@/lib/db';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
-export const runtime = 'edge';
 
 export async function POST(
     request: NextRequest,

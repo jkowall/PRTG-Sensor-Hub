@@ -1,6 +1,6 @@
 # Agent Guidelines
 
-This project uses a unified Next.js 15 stack on Cloudflare.
+This project uses a unified Next.js 16 stack on Cloudflare.
 
 ## ⚠️ Mandatory Pre-Commit Checklist
 

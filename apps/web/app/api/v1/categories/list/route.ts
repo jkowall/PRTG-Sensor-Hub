@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { D1Database } from '@/lib/db';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
-export const runtime = 'edge';
 
 export async function GET() {
     const context = getRequestContext();

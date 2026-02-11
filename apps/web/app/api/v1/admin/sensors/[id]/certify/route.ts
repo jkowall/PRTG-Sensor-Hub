@@ -4,7 +4,6 @@ import { D1Database } from '@/lib/db';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { GitHubService } from '@/lib/github';
 
-export const runtime = 'edge';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const context = getRequestContext();

@@ -3,7 +3,6 @@ import { D1Database } from '@/lib/db';
 import { verifyJWT } from '@/lib/jwt';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
-export const runtime = 'edge';
 
 function slugify(text: string) {
     return text
