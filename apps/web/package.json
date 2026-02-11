@@ -7,7 +7,7 @@
         "dev": "next dev --port 3000",
         "pages:build": "npx -y @opennextjs/cloudflare build",
         "start": "next start",
-        "lint": "next lint",
+        "lint": "eslint .",
         "test": "jest",
         "test:watch": "jest --watch",
         "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
