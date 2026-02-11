@@ -7,6 +7,8 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatDescription } from '@/lib/utils';
 
+import ReactMarkdown from 'react-markdown';
+
 // API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
@@ -26,7 +28,7 @@ interface SensorDetail {
     id: string;
     slug: string;
     display_name: string;
-    description: string;
+    description: string; // Short description
     category: string;
     is_certified: boolean;
     status: 'pending' | 'approved' | 'certified';
@@ -44,6 +46,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
     const slug = slugParam;
 
     const [sensor, setSensor] = useState<SensorDetail | null>(null);
+    const [readme, setReadme] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedVersion, setSelectedVersion] = useState<string>('');
@@ -56,6 +59,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
             setError(null);
 
             try {
+                // Fetch Sensor Details
                 const res = await fetch(`${API_URL}/sensors/${slug}`);
 
                 if (!res.ok) {
@@ -70,6 +74,20 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                 if (data.versions.length > 0) {
                     setSelectedVersion(data.versions[0].version_str);
                 }
+
+                // Fetch README
+                try {
+                    const readmeRes = await fetch(`${API_URL}/sensors/${slug}/readme`);
+                    if (readmeRes.ok) {
+                        const readmeData = await readmeRes.json();
+                        if (readmeData.content) {
+                            setReadme(readmeData.content);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch README:', e);
+                }
+
             } catch (err) {
                 console.error('Failed to fetch sensor:', err);
                 setError(err instanceof Error ? err.message : 'Failed to load sensor');
@@ -222,7 +240,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                 className={`btn btn-primary ${sensor.status === 'pending' ? 'btn-disabled' : ''}`}
                                 style={{ width: '100%', marginBottom: '12px', opacity: sensor.status === 'pending' ? 0.5 : 1, cursor: sensor.status === 'pending' ? 'not-allowed' : 'pointer' }}
                             >
-                                {sensor.status === 'pending' ? '🔒 Review Pending' : '⬇️ Download'}
+                                {sensor.status === 'pending' ? '🔒 Review Pending' : '⬇️ Download Source (Zip)'}
                             </button>
                             {sensor.status === 'pending' && (
                                 <p style={{ fontSize: '0.75rem', color: 'var(--warning)', textAlign: 'center', marginBottom: '12px' }}>
@@ -234,31 +252,66 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                         <p style={{ color: 'var(--text-muted)' }}>No versions available</p>
                     )}
 
-                    {sensor.repository_url && (
-                        <a
-                            href={sensor.repository_url}
-                            target="_blank"
-                            className="btn btn-outline"
-                            style={{ width: '100%' }}
-                        >
-                            View on GitHub
-                        </a>
-                    )}
+                    <a
+                        href={sensor.repository_url || `https://github.com/jkowall/PRTG-Sensor-Hub-Sensors/tree/main/sensors/${sensor.category}/${sensor.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline"
+                        style={{ width: '100%' }}
+                    >
+                        View on GitHub
+                    </a>
                 </div>
             </div>
 
-            {/* Description */}
+            {/* Description / README */}
             <section style={{ marginBottom: '40px' }}>
                 <h2 style={{ fontSize: '1.5rem', marginBottom: '16px' }}>About</h2>
                 <div style={{
                     background: 'var(--bg-card)',
-                    padding: '24px',
+                    padding: '32px',
                     borderRadius: 'var(--border-radius)',
-                    whiteSpace: 'pre-wrap',
+                    color: 'var(--text-secondary)',
                     lineHeight: '1.7',
-                    color: 'var(--text-secondary)'
-                }}>
-                    {formatDescription(sensor.description) || 'No description available.'}
+                    overflowWrap: 'break-word',
+                }} className="markdown-content">
+                    {readme ? (
+                        <ReactMarkdown
+                            components={{
+                                h1: ({ node, ...props }) => <h3 style={{ fontSize: '1.4rem', marginTop: '24px', marginBottom: '16px', color: 'var(--text-primary)' }} {...props} />,
+                                h2: ({ node, ...props }) => <h4 style={{ fontSize: '1.2rem', marginTop: '20px', marginBottom: '12px', color: 'var(--text-primary)' }} {...props} />,
+                                h3: ({ node, ...props }) => <h5 style={{ fontSize: '1.1rem', marginTop: '16px', marginBottom: '8px', color: 'var(--text-primary)' }} {...props} />,
+                                p: ({ node, ...props }) => <p style={{ marginBottom: '16px' }} {...props} />,
+                                ul: ({ node, ...props }) => <ul style={{ marginBottom: '16px', paddingLeft: '24px' }} {...props} />,
+                                ol: ({ node, ...props }) => <ol style={{ marginBottom: '16px', paddingLeft: '24px' }} {...props} />,
+                                li: ({ node, ...props }) => <li style={{ marginBottom: '4px' }} {...props} />,
+                                code: ({ node, className, children, ...props }: any) => {
+                                    const match = /language-(\w+)/.exec(className || '');
+                                    const isInline = !match && !String(children).includes('\n');
+                                    return isInline ? (
+                                        <code style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.9em' }} {...props}>
+                                            {children}
+                                        </code>
+                                    ) : (
+                                        <div style={{ background: '#1e1e1e', padding: '16px', borderRadius: '8px', overflowX: 'auto', marginBottom: '16px' }}>
+                                            <code style={{ fontFamily: 'monospace', color: '#e6e6e6' }} {...props}>
+                                                {children}
+                                            </code>
+                                        </div>
+                                    );
+                                },
+                                a: ({ node, ...props }) => <a style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }} {...props} target="_blank" rel="noopener noreferrer" />,
+                                img: ({ node, ...props }) => <img style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '16px', marginBottom: '16px' }} {...props} alt={props.alt || ''} />,
+                                blockquote: ({ node, ...props }) => <blockquote style={{ borderLeft: '4px solid var(--accent-secondary)', paddingLeft: '16px', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '16px' }} {...props} />,
+                            }}
+                        >
+                            {readme}
+                        </ReactMarkdown>
+                    ) : (
+                        <div style={{ whiteSpace: 'pre-wrap' }}>
+                            {formatDescription(sensor.description) || 'No description available.'}
+                        </div>
+                    )}
                 </div>
             </section>
 

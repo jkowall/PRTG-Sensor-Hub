@@ -154,16 +154,17 @@ export async function POST(request: NextRequest) {
         const category = formData.get('category') as string;
         const tags = formData.get('tags') as string; // JSON string
         const scriptLanguage = formData.get('script_language') as string;
-        const file = formData.get('file') as File;
 
+        // Handle multiple files
+        const files = formData.getAll('file') as File[];
         const repositoryUrl = formData.get('repository_url') as string;
 
         if (!displayName || !category) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        if (!file && !repositoryUrl) {
-            return NextResponse.json({ error: 'Either a file or repository URL is required' }, { status: 400 });
+        if ((!files || files.length === 0) && !repositoryUrl) {
+            return NextResponse.json({ error: 'Either file(s) or repository URL is required' }, { status: 400 });
         }
 
         const slug = slugify(displayName);
@@ -177,25 +178,30 @@ export async function POST(request: NextRequest) {
         let prUrl = '';
         const sensorId = crypto.randomUUID();
 
-        // GitHub Integration (only if file is provided)
-        if (file) {
+        // GitHub Integration (only if files are provided)
+        if (files && files.length > 0) {
             if (!env.GITHUB_BOT_TOKEN) {
                 return NextResponse.json({ error: 'Server misconfigured: Missing GITHUB_BOT_TOKEN' }, { status: 500 });
             }
 
             const gh = new GitHubService(env.GITHUB_BOT_TOKEN, 'jkowall', 'PRTG-Sensor-Hub-Sensors');
-            const fileBuffer = await file.arrayBuffer();
-            const fileContent = Buffer.from(fileBuffer).toString('base64');
-            const safeFileName = `${slug}.${scriptLanguage === 'PowerShell' ? 'ps1' : scriptLanguage === 'Python' ? 'py' : scriptLanguage === 'JavaScript' ? 'js' : scriptLanguage === 'Batch' ? 'bat' : scriptLanguage === 'Shell' ? 'sh' : 'txt'}`;
             const branchName = `submit/${slug}-${Date.now()}`;
 
+            const gitHubFiles = await Promise.all(files.map(async (file) => {
+                const fileBuffer = await file.arrayBuffer();
+                const fileContent = Buffer.from(fileBuffer).toString('base64');
+                // Use original filename but sanitize it slightly to prevent directory traversal
+                const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                return {
+                    path: `sensors/${category}/${slug}/${safeFileName}`,
+                    content: fileContent,
+                    encoding: 'base64' as const
+                };
+            }));
+
             try {
-                const pr = await gh.createPrForFile(
-                    {
-                        path: `sensors/${category}/${slug}/${safeFileName}`,
-                        content: fileContent,
-                        encoding: 'base64'
-                    },
+                const pr = await gh.createPrForFiles(
+                    gitHubFiles,
                     branchName,
                     `Add sensor: ${displayName}`,
                     `New Sensor Submission: ${displayName}`,
@@ -223,7 +229,7 @@ export async function POST(request: NextRequest) {
             console.error('Database Error during submission:', dbError);
 
             // ROLLBACK: Close the PR if it was created
-            if (file && prUrl && env.GITHUB_BOT_TOKEN) {
+            if (files.length > 0 && prUrl && env.GITHUB_BOT_TOKEN) {
                 try {
                     // Extract PR number from URL (https://github.com/owner/repo/pull/123)
                     const prNumber = parseInt(prUrl.split('/').pop() || '');

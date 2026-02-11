@@ -47,15 +47,15 @@ export default function SubmitSensorPage() {
         }
     }, [user]);
 
-    const [file, setFile] = useState<File | null>(null);
+    const [files, setFiles] = useState<FileList | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
+        if (e.target.files && e.target.files.length > 0) {
+            setFiles(e.target.files);
         }
     };
 
@@ -65,8 +65,8 @@ export default function SubmitSensorPage() {
         setError(null);
 
         try {
-            if (submissionType === 'upload' && !file) {
-                throw new Error('Please select a script file to upload.');
+            if (submissionType === 'upload' && (!files || files.length === 0)) {
+                throw new Error('Please select at least one file to upload.');
             }
             if (submissionType === 'link' && !formData.repository_url) {
                 throw new Error('Please provide a repository URL.');
@@ -79,8 +79,10 @@ export default function SubmitSensorPage() {
             data.append('tags', JSON.stringify([formData.script_language].filter(Boolean)));
             data.append('script_language', formData.script_language);
 
-            if (submissionType === 'upload' && file) {
-                data.append('file', file);
+            if (submissionType === 'upload' && files) {
+                for (let i = 0; i < files.length; i++) {
+                    data.append('file', files[i]);
+                }
             } else {
                 data.append('repository_url', formData.repository_url);
             }
@@ -141,7 +143,7 @@ export default function SubmitSensorPage() {
 
             <p style={{ marginBottom: '16px' }}>
                 Do you have a PRTG related sensor you want to contribute? Perfect!
-                Please make it available on Github and share it with us.
+                Please upload your files or link to your GitHub repository.
             </p>
 
             <p style={{ marginBottom: '32px' }}>
@@ -233,7 +235,7 @@ export default function SubmitSensorPage() {
                                 checked={submissionType === 'upload'}
                                 onChange={() => setSubmissionType('upload')}
                             />
-                            Upload Script (Official)
+                            Upload Files (Official)
                         </label>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                             <input
@@ -250,19 +252,26 @@ export default function SubmitSensorPage() {
                 {submissionType === 'upload' ? (
                     <div style={{ marginBottom: '20px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                            Script File (.ps1, .py, .js, .bat, .sh)<span style={{ color: 'var(--error)' }}>*</span>
+                            Select Files (Scripts, Icons, etc.)<span style={{ color: 'var(--error)' }}>*</span>
                         </label>
                         <input
                             type="file"
                             onChange={handleFileChange}
                             required
+                            multiple
                             className="search-input"
-                            accept=".ps1,.py,.js,.bat,.sh,.txt"
                             style={{ padding: '8px' }}
                         />
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                            Your script will be uploaded via a Pull Request for review.
-                        </p>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            <p>You can select multiple files. They will be bundled into a Pull Request.</p>
+                            {files && files.length > 0 && (
+                                <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
+                                    {Array.from(files).map((f, i) => (
+                                        <li key={i}>{f.name} ({Math.round(f.size / 1024)} KB)</li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <div style={{ marginBottom: '20px' }}>

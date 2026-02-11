@@ -81,8 +81,8 @@ export class GitHubService {
         });
     }
 
-    async createPrForFile(
-        file: GitHubFile,
+    async createPrForFiles(
+        files: GitHubFile[],
         branchName: string,
         commitMessage: string,
         prTitle: string,
@@ -94,17 +94,21 @@ export class GitHubService {
 
         console.log('Latest Commit SHA:', latestCommitSha);
 
-        // 2. Create Blob for the file
-        const blob = await this.createBlob(file.content, file.encoding || 'utf-8');
-        console.log('Blob created:', blob.sha);
+        // 2. Create Blobs for all files and prepare tree items
+        const treeItems = await Promise.all(files.map(async (file) => {
+            const blob = await this.createBlob(file.content, file.encoding || 'utf-8');
+            return {
+                path: file.path,
+                mode: '100644', // file (blob)
+                type: 'blob',
+                sha: blob.sha
+            };
+        }));
+
+        console.log('Blobs created for files:', files.map(f => f.path));
 
         // 3. Create Tree
-        const tree = await this.createTree(latestCommitSha, [{
-            path: file.path,
-            mode: '100644', // file (blob)
-            type: 'blob',
-            sha: blob.sha
-        }]);
+        const tree = await this.createTree(latestCommitSha, treeItems);
         console.log('Tree created:', tree.sha);
 
         // 4. Create Commit
@@ -120,6 +124,17 @@ export class GitHubService {
         console.log('PR created:', pr.html_url);
 
         return pr;
+    }
+
+    // Deprecated: Use createPrForFiles instead
+    async createPrForFile(
+        file: GitHubFile,
+        branchName: string,
+        commitMessage: string,
+        prTitle: string,
+        prBody: string
+    ) {
+        return this.createPrForFiles([file], branchName, commitMessage, prTitle, prBody);
     }
 
     async closePullRequest(prNumber: number) {
