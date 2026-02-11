@@ -64,6 +64,7 @@ npx wrangler pages deploy .vercel/output/static --project-name prtg-sensor-hub-w
 - **Sensor Status System**: Built-in moderation workflow (`Pending` -> `Approved` -> `Certified`).
 - **Certified Sensors**: Official badges and verification for trusted sensor creators.
 - **Admin Dashboard**: Comprehensive management of users, sensors, and versions.
+- **Roadmap**: View our [development plans](ROADMAP.md).
 
 ## Tech Stack
 
