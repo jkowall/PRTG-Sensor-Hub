@@ -142,7 +142,7 @@ export default function SubmitSensorPage() {
 
             <p style={{ marginBottom: '16px' }}>
                 Do you have a PRTG related sensor you want to contribute? Perfect!
-                Please upload your files or link to your GitHub repository.
+                Please upload your files or import them directly from your GitHub repository.
             </p>
 
             <p style={{ marginBottom: '32px' }}>
@@ -243,7 +243,8 @@ export default function SubmitSensorPage() {
                                 checked={submissionType === 'link'}
                                 onChange={() => setSubmissionType('link')}
                             />
-                            Link External Repository
+                            Import from GitHub
+                            <span style={{ fontSize: '0.7em', color: 'var(--text-muted)', marginLeft: '4px' }}>(Beta)</span>
                         </label>
                     </div>
                 </div>
@@ -285,7 +286,12 @@ export default function SubmitSensorPage() {
                             required
                             className="search-input"
                             placeholder="https://github.com/username/repo"
+                            style={{ marginBottom: '8px' }}
                         />
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            <p>We will import files (scripts, images, README) from this repository and create a Pull Request in the Hub.</p>
+                            <p>This creates a <strong>snapshot</strong> of your sensor. Future updates will require a new import.</p>
+                        </div>
                     </div>
                 )}
 

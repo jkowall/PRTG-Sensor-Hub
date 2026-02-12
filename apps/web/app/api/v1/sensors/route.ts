@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-import { GitHubService } from '@/lib/github';
+import { GitHubService, GitHubFile } from '@/lib/github';
 
 export async function POST(request: NextRequest) {
     const context = await getCloudflareContext();
@@ -200,16 +200,12 @@ export async function POST(request: NextRequest) {
         let prUrl = '';
         const sensorId = crypto.randomUUID();
 
-        // GitHub Integration (only if files are provided)
+        // GitHub Integration
+        let gitHubFiles: GitHubFile[] = [];
+
+        // Scenario A: File Upload
         if (files && files.length > 0) {
-            if (!env.GITHUB_BOT_TOKEN) {
-                return NextResponse.json({ error: 'Server misconfigured: Missing GITHUB_BOT_TOKEN' }, { status: 500 });
-            }
-
-            const gh = new GitHubService(env.GITHUB_BOT_TOKEN, 'jkowall', 'PRTG-Sensor-Hub-Sensors');
-            const branchName = `submit/${slug}-${Date.now()}`;
-
-            const gitHubFiles = await Promise.all(files.map(async (file) => {
+            gitHubFiles = await Promise.all(files.map(async (file) => {
                 const fileBuffer = await file.arrayBuffer();
                 const fileContent = Buffer.from(fileBuffer).toString('base64');
                 // Use original filename but sanitize it slightly to prevent directory traversal
@@ -220,6 +216,89 @@ export async function POST(request: NextRequest) {
                     encoding: 'base64' as const
                 };
             }));
+        }
+        // Scenario B: Import from GitHub
+        else if (repositoryUrl) {
+            if (!env.GITHUB_BOT_TOKEN) {
+                return NextResponse.json({ error: 'Server misconfigured: Missing GITHUB_BOT_TOKEN' }, { status: 500 });
+            }
+
+            try {
+                // Parse GitHub URL
+                const urlParts = new URL(repositoryUrl);
+                const pathSegments = urlParts.pathname.split('/').filter(Boolean);
+                if (urlParts.hostname !== 'github.com' || pathSegments.length < 2) {
+                    throw new Error('Invalid GitHub URL');
+                }
+                const [sourceOwner, sourceRepo] = pathSegments;
+
+                // 1. Fetch Repository Info (to get default branch)
+                const sourceGh = new GitHubService(env.GITHUB_BOT_TOKEN, sourceOwner, sourceRepo);
+                const repoInfo = await sourceGh.getRepo();
+                const defaultBranch = repoInfo.default_branch || 'main';
+
+                // 2. Fetch Tree (Recursive)
+                // We use the default branch SHA to get the tree
+                const branchRef = await sourceGh.getRef(`heads/${defaultBranch}`);
+                const treeSha = branchRef.object.sha;
+                const treeData = await sourceGh.getTree(treeSha, true);
+
+                if (!treeData.tree || !Array.isArray(treeData.tree)) {
+                    throw new Error('Failed to fetch repository tree');
+                }
+
+                // 3. Filter Relevant Files
+                const relevantExtensions = ['.ps1', '.py', '.js', '.sh', '.bat', '.md', '.png', '.jpg', '.jpeg', '.svg', '.json'];
+                const filesToImport = treeData.tree.filter((item: any) => {
+                    if (item.type !== 'blob') return false;
+                    const validExt = relevantExtensions.some(ext => item.path.toLowerCase().endsWith(ext));
+                    // Prioritize README.md specifically (case insensitive check usually handled by ext but let's be safe)
+                    const isReadme = item.path.toLowerCase() === 'readme.md';
+                    return validExt || isReadme;
+                });
+
+                // Limit number of files to prevent abuse? Let's say max 50 files for now.
+                if (filesToImport.length > 50) {
+                    throw new Error('Repository contains too many files (max 50 for import).');
+                }
+
+                // 4. Fetch Blobs
+                console.log(`Importing ${filesToImport.length} files from ${sourceOwner}/${sourceRepo}...`);
+
+                gitHubFiles = await Promise.all(filesToImport.map(async (item: any) => {
+                    const blob = await sourceGh.getBlob(item.sha);
+                    return {
+                        path: `sensors/${category}/${slug}/${item.path}`, // Preserve directory structure relative to import
+                        content: blob.content,
+                        encoding: 'base64' as const
+                    };
+                }));
+
+            } catch (importError: any) {
+                console.error('GitHub Import Failed:', importError);
+                return NextResponse.json({ error: `GitHub Import Failed: ${importError.message}` }, { status: 400 });
+            }
+        }
+
+        // Logic: Generate README if missing
+        const hasReadme = gitHubFiles.some(f => f.path.toLowerCase().endsWith('readme.md'));
+        if (!hasReadme && gitHubFiles.length > 0) {
+            const readmeContent = Buffer.from(`# ${displayName}\n\n${description}`).toString('base64');
+            gitHubFiles.push({
+                path: `sensors/${category}/${slug}/README.md`,
+                content: readmeContent,
+                encoding: 'base64'
+            });
+        }
+
+        // Create PR if we have files
+        if (gitHubFiles.length > 0) {
+            if (!env.GITHUB_BOT_TOKEN) {
+                return NextResponse.json({ error: 'Server misconfigured: Missing GITHUB_BOT_TOKEN' }, { status: 500 });
+            }
+
+            const gh = new GitHubService(env.GITHUB_BOT_TOKEN, 'jkowall', 'PRTG-Sensor-Hub-Sensors');
+            const branchName = `submit/${slug}-${Date.now()}`;
 
             try {
                 const pr = await gh.createPrForFiles(
@@ -227,7 +306,7 @@ export async function POST(request: NextRequest) {
                     branchName,
                     `Add sensor: ${displayName}`,
                     `New Sensor Submission: ${displayName}`,
-                    `Submission for **${displayName}** by user ${payload.sub}.\n\n${description}`
+                    `Submission for **${displayName}** by user ${payload.sub}.\n\nResults imported from ${repositoryUrl || 'upload'}.\n\n${description}`
                 );
                 prUrl = pr.html_url;
             } catch (ghError: any) {
@@ -251,7 +330,7 @@ export async function POST(request: NextRequest) {
             console.error('Database Error during submission:', dbError);
 
             // ROLLBACK: Close the PR if it was created
-            if (files.length > 0 && prUrl && env.GITHUB_BOT_TOKEN) {
+            if (gitHubFiles.length > 0 && prUrl && env.GITHUB_BOT_TOKEN) {
                 try {
                     // Extract PR number from URL (https://github.com/owner/repo/pull/123)
                     const prNumber = parseInt(prUrl.split('/').pop() || '');

@@ -42,6 +42,10 @@ export class GitHubService {
         return response.json();
     }
 
+    async getRepo() {
+        return this.request('');
+    }
+
     async getRef(ref: string) {
         return this.request(`/git/ref/${ref}`);
     }
@@ -55,6 +59,14 @@ export class GitHubService {
             base_tree: baseTreeSha,
             tree
         });
+    }
+
+    async getBlob(sha: string) {
+        return this.request(`/git/blobs/${sha}`);
+    }
+
+    async getTree(sha: string, recursive = false) {
+        return this.request(`/git/trees/${sha}${recursive ? '?recursive=1' : ''}`);
     }
 
     async createCommit(message: string, treeSha: string, parentSha: string) {
