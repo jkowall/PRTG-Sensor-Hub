@@ -13,7 +13,6 @@ node_modules
 .wrangler
 .dev.vars
 .prod.vars
-.prod.vars
 
 # Formatting
 .DS_Store
