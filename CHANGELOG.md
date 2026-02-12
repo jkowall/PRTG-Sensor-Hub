@@ -5,12 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-02-13
+
+### Added
+
+- **Single File Import**: Implemented support for importing individual files from GitHub by pasting the file blob URL.
+- **Branch-Aware Imports**: Enhanced import logic to support complex branch names (e.g., `feature/branch-name`).
+- **Secrets Persistence**: Fixed an issue where Cloudflare secrets were reset on deployment by explicitly syncing GitHub Secrets.
+
 ## [2.6.0] - 2026-02-12
 
 ### Added
 
 - **GitHub Repository Import**: Implemented a new "Import from GitHub" workflow that fetches files from external repositories and creates a comprehensive Pull Request.
-- **Single File Import**: Added support for importing individual files from GitHub by pasting the file blob URL.
 - **Automatic README Generation**: Users submitting repositories without a README will now have one automatically generated.
 
 ### Changed
