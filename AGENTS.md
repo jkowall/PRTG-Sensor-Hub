@@ -23,7 +23,7 @@ This project uses a unified Next.js 16 stack on Cloudflare.
 ### Versioning
 
 - **Source of Truth**: The version in `package.json` is the single source of truth.
-- **Display**: The application footer automatically reads from `package.json`. When releasing, bump `package.json` and update `CHANGELOG.md`.
+- **Display**: The application footer automatically reads from `package.json`. When releasing, bump `package.json`, **run `npm install` to update `package-lock.json`**, and update `CHANGELOG.md`.
 
 ### Local Development
 
