@@ -22,4 +22,12 @@ This project uses a unified Next.js 16 stack on Cloudflare.
 
 ### Versioning
 
-- This project follows SemVer. Update `package.json` in `apps/web` for releases.
+- **Source of Truth**: The version in `package.json` is the single source of truth.
+- **Display**: The application footer automatically reads from `package.json`. When releasing, bump `package.json` and update `CHANGELOG.md`.
+
+### Local Development
+
+- **Database**: The project uses Cloudflare D1.
+  - To seed the local database: `npx wrangler d1 execute DB --local --file=schema.sql`
+  - If `wrangler` fails with permissions, you can manually apply `schema.sql` to the `.sqlite` file in `.wrangler/state/v3/d1/`.
+- **Pre-Commit**: Follow the checklist above.

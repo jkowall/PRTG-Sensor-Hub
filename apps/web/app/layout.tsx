@@ -6,6 +6,7 @@ import { UserMenu } from './components/UserMenu';
 import { ThemeToggle } from './components/ThemeToggle';
 import Link from 'next/link';
 import Image from 'next/image';
+import pkg from '../package.json';
 
 export const metadata: Metadata = {
     title: 'PRTG Sensor Hub',
@@ -52,7 +53,7 @@ export default function RootLayout({
 
                         <footer className="footer">
                             <div className="container">
-                                <p>PRTG Sensor Hub v1.0.1 — Open source sensor registry for PRTG Network Monitor</p>
+                                <p>PRTG Sensor Hub v{pkg.version} — Open source sensor registry for PRTG Network Monitor</p>
                                 <p style={{ fontSize: '0.85rem', marginTop: '8px' }}>
                                     Created by <a href="https://github.com/jkowall" target="_blank" rel="noopener noreferrer">jkowall</a> |
                                     View on <a href="https://github.com/jkowall/PRTG-Sensor-Hub" target="_blank" rel="noopener noreferrer">GitHub</a>
