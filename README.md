@@ -31,15 +31,28 @@ prtg-sensor-hub/
    ```
 
 2. **Configure Environment**
-   Create `apps/web/.env.local` based on `.env.example`:
 
-   ```env
-   GITHUB_ID=your_id
-   GITHUB_SECRET=your_secret
-   NEXTAUTH_SECRET=random_string
+   Instead of standard `.env` files, this project uses `.dev.vars` for Cloudflare compatibility. Create `apps/web/.dev.vars`:
+
+   - **GitHub OAuth** (`GITHUB_ID`, `GITHUB_SECRET`):
+     1. [Register a new OAuth Application](https://github.com/settings/developers) on GitHub.
+     2. Set Homepage URL to `http://localhost:3000`.
+     3. Set Authorization callback URL to `http://localhost:3000/api/v1/auth/github/callback`.
+   - **GitHub Bot Token** (`GITHUB_BOT_TOKEN`):
+     1. [Generate a Personal Access Token (classic)](https://github.com/settings/tokens).
+     2. Select the `repo` scope. This is required for creating PRs during sensor submission.
+   - **NextAuth Secret** (`NEXTAUTH_SECRET`):
+     1. Generate a secure random string (e.g., `openssl rand -base64 32`).
+
+3. **Database Setup**
+
+   Seed your local D1 database:
+
+   ```bash
+   npx wrangler d1 execute DB --local --file=schema.sql
    ```
 
-3. **Run Dev Server**
+4. **Run Dev Server**
 
    ```bash
    npm run dev
@@ -47,15 +60,14 @@ prtg-sensor-hub/
 
 ## Deployment
 
-This application is deployed to **Cloudflare Pages**.
+This application is deployed as a **Cloudflare Worker with Assets** using OpenNext.
 
 ### Build & Deploy
 
 ```bash
 cd apps/web
-npm run build
 npm run pages:build
-npx wrangler pages deploy .vercel/output/static --project-name prtg-sensor-hub-web
+npx wrangler deploy
 ```
 
 ## GitHub Integration & Workflows
