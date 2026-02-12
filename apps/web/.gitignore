@@ -12,6 +12,8 @@ node_modules
 # Wrangler / Cloudflare
 .wrangler
 .dev.vars
+.prod.vars
+.prod.vars
 
 # Formatting
 .DS_Store

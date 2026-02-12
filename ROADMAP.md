@@ -27,6 +27,11 @@ To become the de-facto standard registry for discovering, sharing, and managing 
   - Create `CONTRIBUTING.md` with clear guidelines for new contributors.
   - Add API documentation (OpenAPI/Swagger) for the backend routes.
   - Enhance `README.md` with architecture diagrams.
+- [ ] **Security & Code Quality**
+  - Integrate GitHub CodeQL for automated vulnerability scanning (TypeScript, Python, PowerShell).
+  - Implement secret scanning and dependency vulnerability alerts.
+  - Setup automated code coverage reports with Codecov.
+  - Add multi-language quality checks (linters) for community contributions.
 - [ ] **Performance**
   - Optimize image delivery (Next.js Image component with Cloudflare Polish).
   - Achieve 100/100 Lighthouse scores for Performance and Accessibility.
@@ -37,6 +42,7 @@ To become the de-facto standard registry for discovering, sharing, and managing 
 
 - [ ] **AI Sensor Builder Integration**
   - Integrate with the upcoming AI Sensor Builder for Python sensors.
+  - **Dataset Curation**: Use community-contributed sensors as training data to improve the AI's understanding of PRTG-specific logic and patterns.
   - Allow users to generate and publish sensors directly from the AI tool to the Hub.
   - Standardize Python sensor templates for AI generation.
 - [ ] **Social Features**
