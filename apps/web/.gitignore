@@ -1,5 +1,6 @@
 # OpenNext
 .open-next
+.open-next-tmp*
 
 # Next.js
 .next
@@ -16,3 +17,7 @@ node_modules
 
 # Formatting
 .DS_Store
+
+# Testing
+.jest-cache
+.tmp

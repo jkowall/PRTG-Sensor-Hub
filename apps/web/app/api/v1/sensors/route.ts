@@ -227,52 +227,137 @@ export async function POST(request: NextRequest) {
                 // Parse GitHub URL
                 const urlParts = new URL(repositoryUrl);
                 const pathSegments = urlParts.pathname.split('/').filter(Boolean);
+
                 if (urlParts.hostname !== 'github.com' || pathSegments.length < 2) {
                     throw new Error('Invalid GitHub URL');
                 }
+
                 const [sourceOwner, sourceRepo] = pathSegments;
-
-                // 1. Fetch Repository Info (to get default branch)
                 const sourceGh = new GitHubService(env.GITHUB_BOT_TOKEN, sourceOwner, sourceRepo);
-                const repoInfo = await sourceGh.getRepo();
-                const defaultBranch = repoInfo.default_branch || 'main';
 
-                // 2. Fetch Tree (Recursive)
-                // We use the default branch SHA to get the tree
-                const branchRef = await sourceGh.getRef(`heads/${defaultBranch}`);
-                const treeSha = branchRef.object.sha;
-                const treeData = await sourceGh.getTree(treeSha, true);
+                // Check for Single File Import (Blob URL)
+                // Format: /owner/repo/blob/branch/path/to/file
+                const isBlob = pathSegments[2] === 'blob';
 
-                if (!treeData.tree || !Array.isArray(treeData.tree)) {
-                    throw new Error('Failed to fetch repository tree');
-                }
+                if (isBlob && pathSegments.length >= 5) {
+                    // Extract branch and file path
+                    // Since branch names can contain slashes (e.g. feature/foo), and there is no delimiter in the URL,
+                    // we have to guess. Most branches do not have slashes, but some do.
+                    // Strategy: Try assuming branch is 1 segment. If 404, try 2 segments.
 
-                // 3. Filter Relevant Files
-                const relevantExtensions = ['.ps1', '.py', '.js', '.sh', '.bat', '.md', '.png', '.jpg', '.jpeg', '.svg', '.json'];
-                const filesToImport = treeData.tree.filter((item: any) => {
-                    if (item.type !== 'blob') return false;
-                    const validExt = relevantExtensions.some(ext => item.path.toLowerCase().endsWith(ext));
-                    // Prioritize README.md specifically (case insensitive check usually handled by ext but let's be safe)
-                    const isReadme = item.path.toLowerCase() === 'readme.md';
-                    return validExt || isReadme;
-                });
+                    const segments = pathSegments.slice(3); // [branch, ...fileParts] (e.g. ['main', 'README.md'] or ['feature', 'test', 'README.md'])
 
-                // Limit number of files to prevent abuse? Let's say max 50 files for now.
-                if (filesToImport.length > 50) {
-                    throw new Error('Repository contains too many files (max 50 for import).');
-                }
-
-                // 4. Fetch Blobs
-                console.log(`Importing ${filesToImport.length} files from ${sourceOwner}/${sourceRepo}...`);
-
-                gitHubFiles = await Promise.all(filesToImport.map(async (item: any) => {
-                    const blob = await sourceGh.getBlob(item.sha);
-                    return {
-                        path: `sensors/${category}/${slug}/${item.path}`, // Preserve directory structure relative to import
-                        content: blob.content,
-                        encoding: 'base64' as const
+                    const tryFetch = async (branchParts: string[], fileParts: string[]) => {
+                        const branch = branchParts.join('/');
+                        const filePath = fileParts.join('/');
+                        try {
+                            const data = await sourceGh.getContents(filePath, branch);
+                            // If it's a directory, getContents returns array. We want a file.
+                            if (Array.isArray(data)) return null;
+                            return { branch, filePath, data };
+                        } catch (e) {
+                            return null;
+                        }
                     };
-                }));
+
+                    let result = await tryFetch([segments[0]], segments.slice(1));
+
+                    // If failed and we have enough segments, try 2-segment branch
+                    if (!result && segments.length > 2) {
+                        result = await tryFetch(segments.slice(0, 2), segments.slice(2));
+                    }
+
+                    // If still failed, try 3? Rare but possible. Let's stick to 2 for now to avoid too many requests.
+
+                    if (!result) {
+                        throw new Error(`Failed to resolve file path. Please check if the branch name or file path is correct.`);
+                    }
+
+                    const { branch, filePath, data: fileData } = result;
+
+                    console.log(`Importing single file: ${filePath} from ${sourceOwner}/${sourceRepo} on branch ${branch}`);
+
+                    gitHubFiles.push({
+                        path: `sensors/${category}/${slug}/${fileData.name}`,
+                        content: fileData.content,
+                        encoding: 'base64'
+                    });
+
+                    // 2. Try to fetch README.md from the same directory
+                    // We need to look in the parent directory of the file
+                    const parentDir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
+
+                    // We can't easily guess the README name case (README.md, readme.md, etc.) without listing the dir
+                    // But we can try the most common one. 
+                    // Or better: List the parent dir contents and find a readme.
+
+                    try {
+                        // If file is at root, parentDir is empty string.
+                        // List contents of parent dir
+                        const dirContents = await sourceGh.getContents(parentDir, branch);
+
+                        if (Array.isArray(dirContents)) {
+                            const readme = dirContents.find((f: any) => f.name.toLowerCase() === 'readme.md');
+                            if (readme) {
+                                const readmeData = await sourceGh.getContents(readme.path, branch);
+                                if (readmeData && readmeData.content) {
+                                    gitHubFiles.push({
+                                        path: `sensors/${category}/${slug}/README.md`,
+                                        content: readmeData.content,
+                                        encoding: 'base64'
+                                    });
+                                }
+                            }
+                        }
+                    } catch (readmeError) {
+                        console.warn('Failed to fetch sibling README or list directory:', readmeError);
+                        // Non-critical, continue
+                    }
+
+                } else {
+                    // Scenario B.2: Full Repo Import (Existing Logic)
+
+                    // 1. Fetch Repository Info (to get default branch)
+                    const repoInfo = await sourceGh.getRepo();
+                    const defaultBranch = repoInfo.default_branch || 'main';
+
+                    // 2. Fetch Tree (Recursive)
+                    // We use the default branch SHA to get the tree
+                    const branchRef = await sourceGh.getRef(`heads/${defaultBranch}`);
+                    const treeSha = branchRef.object.sha;
+                    const treeData = await sourceGh.getTree(treeSha, true);
+
+                    if (!treeData.tree || !Array.isArray(treeData.tree)) {
+                        throw new Error('Failed to fetch repository tree');
+                    }
+
+                    // 3. Filter Relevant Files
+                    const relevantExtensions = ['.ps1', '.py', '.js', '.sh', '.bat', '.md', '.png', '.jpg', '.jpeg', '.svg', '.json'];
+                    const filesToImport = treeData.tree.filter((item: any) => {
+                        if (item.type !== 'blob') return false;
+                        const validExt = relevantExtensions.some(ext => item.path.toLowerCase().endsWith(ext));
+                        // Prioritize README.md specifically (case insensitive check usually handled by ext but let's be safe)
+                        const isReadme = item.path.toLowerCase() === 'readme.md';
+                        return validExt || isReadme;
+                    });
+
+                    // Limit number of files to prevent abuse? Let's say max 50 files for now.
+                    if (filesToImport.length > 50) {
+                        throw new Error('Repository contains too many files (max 50 for import).');
+                    }
+
+                    // 4. Fetch Blobs
+                    console.log(`Importing ${filesToImport.length} files from ${sourceOwner}/${sourceRepo}...`);
+
+                    gitHubFiles = await Promise.all(filesToImport.map(async (item: any) => {
+                        const blob = await sourceGh.getBlob(item.sha);
+                        return {
+                            path: `sensors/${category}/${slug}/${item.path}`, // Preserve directory structure relative to import
+                            content: blob.content,
+                            encoding: 'base64' as const
+                        };
+                    }));
+                }
 
             } catch (importError: any) {
                 console.error('GitHub Import Failed:', importError);

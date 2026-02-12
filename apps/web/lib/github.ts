@@ -193,8 +193,9 @@ export class GitHubService {
         return this.request(`/git/refs/heads/${ref}`, 'DELETE');
     }
 
-    async getContents(path: string) {
-        return this.request(`/contents/${path}`);
+    async getContents(path: string, ref?: string) {
+        const query = ref ? `?ref=${ref}` : '';
+        return this.request(`/contents/${path}${query}`);
     }
 
     async deleteFile(path: string, message: string, sha: string) {
