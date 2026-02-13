@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -80 120 120" aria-label="PRTG Sensor Hub Icon">
+  <!-- Gauge Icon Group -->
+  <!-- Left Segment (Cyan/Blue) -->
+  <path d="M-40,0 A40,40 0 0,1 -10,-38.7" fill="none" stroke="#00B4F0" stroke-width="12" stroke-linecap="butt" />
+  
+  <!-- Middle/Right Segment (Pink) -->
+  <path d="M-5,-39.5 A40,40 0 0,1 40,0" fill="none" stroke="#E6007E" stroke-width="12" stroke-linecap="butt" />
+
+  <!-- Needle -->
+  <path d="M0,0 L-25,-15" stroke="#050F34" stroke-width="4" stroke-linecap="round" />
+  <circle cx="0" cy="0" r="4" fill="#050F34" />
+</svg>
