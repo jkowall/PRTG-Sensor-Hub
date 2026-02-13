@@ -12,6 +12,7 @@ node_modules
 
 # Wrangler / Cloudflare
 .wrangler
+.wrangler_home
 .dev.vars
 .prod.vars
 

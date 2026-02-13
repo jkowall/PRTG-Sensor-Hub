@@ -4,7 +4,17 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 
 export async function GET(request: NextRequest) {
-    const context = await getCloudflareContext();
+    let context;
+    try {
+        context = await getCloudflareContext();
+    } catch (e: any) {
+        console.error('getCloudflareContext failed:', e);
+        return NextResponse.json({
+            error: 'Failed to initialize Cloudflare context. Make sure you are running in a supported environment.',
+            details: e.message
+        }, { status: 500 });
+    }
+
     if (!context || !context.env) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }

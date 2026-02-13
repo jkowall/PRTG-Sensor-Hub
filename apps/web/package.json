@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "build": "next build",
-        "dev": "next dev --port 3000",
+        "dev": "XDG_CONFIG_HOME=$(pwd)/.wrangler_home/config XDG_DATA_HOME=$(pwd)/.wrangler_home/data next dev --port 3000",
         "pages:build": "npx -y @opennextjs/cloudflare build",
         "start": "next start",
         "lint": "eslint .",

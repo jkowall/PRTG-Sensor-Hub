@@ -40,6 +40,9 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [total, setTotal] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 20; // Default page size
 
     // Fetch stats on mount
     useEffect(() => {
@@ -68,7 +71,8 @@ export default function Home() {
                 if (searchQuery) params.append('search', searchQuery);
                 if (selectedCategory !== 'All') params.append('category', selectedCategory);
                 if (selectedTags.length > 0) params.append('tags', selectedTags.join(','));
-                params.append('page_size', '50');
+                params.append('page', currentPage.toString());
+                params.append('page_size', pageSize.toString());
 
                 const res = await fetch(`${API_URL}/sensors?${params}`);
 
@@ -81,6 +85,7 @@ export default function Home() {
                 const data: PaginatedResponse = await res.json();
                 setSensors(data.items);
                 setTotal(data.total);
+                setTotalPages(data.total_pages);
             } catch (err: any) {
                 console.error('Failed to fetch sensors:', err);
                 setError(err.message || 'Failed to load sensors');
@@ -93,6 +98,11 @@ export default function Home() {
         // Debounce search
         const timer = setTimeout(fetchSensors, 300);
         return () => clearTimeout(timer);
+    }, [searchQuery, selectedCategory, selectedTags, currentPage]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
     }, [searchQuery, selectedCategory, selectedTags]);
 
     const handleTagToggle = (tag: string) => {
@@ -260,6 +270,47 @@ export default function Home() {
                                         </div>
                                     </Link>
                                 ))}
+                            </div>
+                        )}
+
+                        {totalPages > 1 && (
+                            <div className="pagination">
+                                <button
+                                    className="pagination-btn"
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    title="Previous Page"
+                                >
+                                    ←
+                                </button>
+
+                                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                    .filter(p => {
+                                        // Show first, last, and pages around current
+                                        return p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1;
+                                    })
+                                    .map((p, i, arr) => (
+                                        <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
+                                            {i > 0 && arr[i - 1] !== p - 1 && (
+                                                <span className="pagination-info" style={{ margin: '0 8px' }}>...</span>
+                                            )}
+                                            <button
+                                                className={`pagination-btn ${currentPage === p ? 'active' : ''}`}
+                                                onClick={() => setCurrentPage(p)}
+                                            >
+                                                {p}
+                                            </button>
+                                        </div>
+                                    ))}
+
+                                <button
+                                    className="pagination-btn"
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    title="Next Page"
+                                >
+                                    →
+                                </button>
                             </div>
                         )}
 
