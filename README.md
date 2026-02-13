@@ -36,8 +36,8 @@ prtg-sensor-hub/
 
    - **GitHub OAuth** (`GITHUB_ID`, `GITHUB_SECRET`):
      1. [Register a new OAuth Application](https://github.com/settings/developers) on GitHub.
-     2. Set Homepage URL to `http://localhost:3000`.
-     3. Set Authorization callback URL to `http://localhost:3000/api/v1/auth/github/callback`.
+     2. Set Homepage URL to `https://prtg-sensor-hub-web.jkowall.workers.dev/`.
+     3. Set Authorization callback URL to `https://prtg-sensor-hub-web.jkowall.workers.dev/api/v1/auth/github/callback`.
    - **GitHub Bot Token** (`GITHUB_BOT_TOKEN`):
      1. [Generate a Personal Access Token (classic)](https://github.com/settings/tokens).
      2. Select the `repo` scope. This is required for creating PRs during sensor submission.

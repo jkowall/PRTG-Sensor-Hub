@@ -46,22 +46,27 @@ export default function Home() {
 
     // Fetch stats on mount
     useEffect(() => {
+        const controller = new AbortController();
         async function fetchStats() {
             try {
-                const res = await fetch(`${API_URL}/stats`);
+                const res = await fetch(`${API_URL}/stats`, { signal: controller.signal });
                 if (res.ok) {
                     const data = await res.json();
                     setStats(data);
                 }
-            } catch (e) {
-                console.error('Failed to fetch stats', e);
+            } catch (e: any) {
+                if (e.name !== 'AbortError') {
+                    console.error('Failed to fetch stats', e);
+                }
             }
         }
         fetchStats();
+        return () => controller.abort();
     }, []);
 
     // Fetch sensors from API
     useEffect(() => {
+        const controller = new AbortController();
         async function fetchSensors() {
             setLoading(true);
             setError(null);
@@ -74,7 +79,7 @@ export default function Home() {
                 params.append('page', currentPage.toString());
                 params.append('page_size', pageSize.toString());
 
-                const res = await fetch(`${API_URL}/sensors?${params}`);
+                const res = await fetch(`${API_URL}/sensors?${params}`, { signal: controller.signal });
 
                 if (!res.ok) {
                     const errorData = await res.json().catch(() => ({}));
@@ -87,17 +92,24 @@ export default function Home() {
                 setTotal(data.total);
                 setTotalPages(data.total_pages);
             } catch (err: any) {
-                console.error('Failed to fetch sensors:', err);
-                setError(err.message || 'Failed to load sensors');
-                setSensors([]);
+                if (err.name !== 'AbortError') {
+                    console.error('Failed to fetch sensors:', err);
+                    setError(err.message || 'Failed to load sensors');
+                    setSensors([]);
+                }
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         }
 
         // Debounce search
         const timer = setTimeout(fetchSensors, 300);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
     }, [searchQuery, selectedCategory, selectedTags, currentPage]);
 
     // Reset to page 1 when filters change
