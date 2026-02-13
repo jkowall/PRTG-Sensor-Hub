@@ -1,7 +1,9 @@
 import React from 'react';
-
+import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
 
 export default function DocsPage() {
+    const { user } = useAuth();
     return (
         <div className="container" style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
             <h1 style={{ fontSize: '2.5rem', marginBottom: '24px', color: 'var(--accent-primary)' }}>Documentation</h1>
@@ -41,6 +43,18 @@ export default function DocsPage() {
                 </div>
             </section>
 
+
+            {user?.is_admin && (
+                <section style={{ marginBottom: '40px', padding: '20px', border: '1px solid var(--accent-primary)', borderRadius: '8px', backgroundColor: 'rgba(0, 122, 255, 0.05)' }}>
+                    <h2 style={{ fontSize: '1.8rem', marginBottom: '16px', color: 'var(--accent-primary)' }}>Administrator Zone</h2>
+                    <p style={{ marginBottom: '16px' }}>
+                        Access restricted documentation for platform management, sensor moderation, and advanced workflows.
+                    </p>
+                    <Link href="/docs/admin" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: 'var(--accent-primary)', color: 'white', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                        View Admin Documentation
+                    </Link>
+                </section>
+            )}
 
         </div>
     );
