@@ -61,6 +61,24 @@ export default function AdminDocsPage() {
             </section>
 
             <section style={{ marginBottom: '50px' }}>
+                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-secondary)', display: 'inline-block' }}>Code Review on GitHub</h2>
+                <p style={{ marginBottom: '15px', lineHeight: '1.6' }}>
+                    The Sensor Hub is deeply integrated with GitHub. All submissions automatically create a Pull Request (PR) in the backend repository.
+                    As an admin, your primary code review workflow happens on GitHub:
+                </p>
+                <ul style={{ paddingLeft: '20px', marginBottom: '20px', lineHeight: '1.6' }}>
+                    <li><strong>Transparency:</strong> All changes are visible to the public. Users can see exactly what code is running.</li>
+                    <li><strong>Collaboration:</strong> You can comment on specific lines of code, request changes, and discuss improvements directly in the PR.</li>
+                    <li><strong>Audit Trail:</strong> The full history of every sensor and its verified versions is preserved in the git log.</li>
+                </ul>
+                <div style={{ padding: '15px', backgroundColor: 'var(--bg-secondary)', borderRadius: '6px' }}>
+                    <a href="https://github.com/jkowall/PRTG-Sensor-Hub/pulls" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ marginRight: '8px' }}>🔍</span> Review Open Pull Requests on GitHub
+                    </a>
+                </div>
+            </section>
+
+            <section style={{ marginBottom: '50px' }}>
                 <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-secondary)', display: 'inline-block' }}>Moderation Workflow</h2>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>

@@ -13,9 +13,19 @@ export default function DocsPage() {
             <section style={{ marginBottom: '40px' }}>
                 <h2 style={{ fontSize: '1.8rem', marginBottom: '16px' }}>Project Overview</h2>
                 <p style={{ lineHeight: '1.6', marginBottom: '16px' }}>
-                    PRTG Sensor Hub is a centralized registry platform for managing, distributing, and discovering custom PRTG sensors.
-                    It allows developers to share their custom monitoring solutions and users to easily find and deploy them.
+                    The PRTG Sensor Hub is a community-driven platform for sharing and discovering custom sensors for PRTG Network Monitor.
+                    It simplifies the process of finding, verifying, and deploying scripts to enhance your monitoring infrastructure.
                 </p>
+                <div style={{ padding: '20px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', borderLeft: '4px solid var(--accent-primary)', marginTop: '20px' }}>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '10px', color: 'var(--accent-primary)' }}>Open Source & Transparent</h3>
+                    <p style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
+                        All sensors and platform code are hosted publicly on GitHub. This ensures complete transparency and allows the community to audit, improve, and verify every script before it reaches your environment.
+                        <br /><br />
+                        <a href="https://github.com/jkowall/PRTG-Sensor-Hub" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'underline', fontWeight: 'bold' }}>
+                            View the Repository on GitHub &rarr;
+                        </a>
+                    </p>
+                </div>
             </section>
 
             <section style={{ marginBottom: '40px' }}>
