@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Administrator Documentation**: Added a protected documentation section for admins covering advanced workflows and platform management.
+- **Documentation**: Updated `README.md` with detailed production secrets setup and deployment instructions.
 
 ## [2.7.0] - 2026-02-13
 

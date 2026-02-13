@@ -58,6 +58,19 @@ prtg-sensor-hub/
    npm run dev
    ```
 
+5. **Production Secrets**
+
+    For production deployment (GitHub Actions), you must set the following **GitHub Repository Secrets**:
+
+    | Secret Name | Description |
+    | :--- | :--- |
+    | `CLOUDFLARE_API_TOKEN` | Token with workers/pages edit permissions. |
+    | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare Account ID. |
+    | `GH_CLIENT_ID` | GitHub OAuth Client ID for production. |
+    | `GH_CLIENT_SECRET` | GitHub OAuth Client Secret for production. |
+    | `GH_BOT_TOKEN` | GitHub PAT for the bot account (needs `repo` scope). |
+    | `NEXTAUTH_SECRET` | 32+ char random string for session encryption. |
+
 ## Deployment
 
 This application is deployed as a **Cloudflare Worker with Assets** using OpenNext.
