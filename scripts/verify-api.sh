@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Base URL - change if running on a different port
-API_URL="http://localhost:3000/api/v1"
+API_URL="https://prtg-sensor-hub-web.jkowall.workers.dev/api/v1"
 
 echo "Testing Stats Endpoint..."
 curl -s "$API_URL/stats" | jq .

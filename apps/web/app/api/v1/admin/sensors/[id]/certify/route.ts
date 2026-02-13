@@ -75,7 +75,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             }
         }
 
-        await env.DB.prepare('UPDATE sensors SET is_certified = ?, status = ? WHERE id = ?').bind(isCertified, status, id).run();
+        await env.DB.prepare('UPDATE sensors SET is_certified = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(isCertified, status, id).run();
 
         // If commit_sha is available (provided or auto-fetched), update any pending versions for this sensor
         if (commitSha) {

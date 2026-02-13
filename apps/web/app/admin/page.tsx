@@ -36,6 +36,7 @@ interface Sensor {
     total_downloads: number;
     version_count: number;
     created_at: string;
+    updated_at: string;
 }
 
 export default function AdminPage() {
@@ -46,6 +47,11 @@ export default function AdminPage() {
     const [editingSensor, setEditingSensor] = useState<any | null>(null);
     const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'sensors'>('stats');
     const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortCol, setSortCol] = useState('created_at');
+    const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
+    const [categoryFilter, setCategoryFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
 
     useEffect(() => {
         if (token && user?.is_admin) {
@@ -54,7 +60,7 @@ export default function AdminPage() {
             fetchSensors();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, user]);
+    }, [token, user, searchQuery, sortCol, sortOrder, categoryFilter, statusFilter]);
 
     const fetchStats = async () => {
         try {
@@ -85,7 +91,14 @@ export default function AdminPage() {
 
     const fetchSensors = async () => {
         try {
-            const res = await fetch(`${API_URL}/admin/sensors`, {
+            const params = new URLSearchParams();
+            if (searchQuery) params.append('search', searchQuery);
+            if (sortCol) params.append('sort', sortCol);
+            if (sortOrder) params.append('order', sortOrder);
+            if (categoryFilter) params.append('category', categoryFilter);
+            if (statusFilter) params.append('status', statusFilter);
+
+            const res = await fetch(`${API_URL}/admin/sensors?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (res.ok) {
@@ -94,6 +107,15 @@ export default function AdminPage() {
             }
         } catch (err) {
             console.error('Failed to fetch sensors:', err);
+        }
+    };
+
+    const handleSort = (col: string) => {
+        if (sortCol === col) {
+            setSortOrder(sortOrder === 'DESC' ? 'ASC' : 'DESC');
+        } else {
+            setSortCol(col);
+            setSortOrder('DESC');
         }
     };
 
@@ -333,13 +355,81 @@ export default function AdminPage() {
             {/* Sensors Tab */}
             {activeTab === 'sensors' && (
                 <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflow: 'hidden' }}>
+                    <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                            <input
+                                type="text"
+                                placeholder="Search sensors..."
+                                className="search-input"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ width: '100%', padding: '10px 16px' }}
+                            />
+                        </div>
+                        <select
+                            className="search-input"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            style={{ width: 'auto', padding: '10px 16px' }}
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="certified">Certified</option>
+                        </select>
+                        <select
+                            className="search-input"
+                            value={categoryFilter}
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            style={{ width: 'auto', padding: '10px 16px' }}
+                        >
+                            <option value="">All Categories</option>
+                            <option value="network">Network</option>
+                            <option value="cloud">Cloud</option>
+                            <option value="iot">IoT</option>
+                            <option value="storage">Storage</option>
+                            <option value="database">Database</option>
+                        </select>
+                    </div>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                <th style={{ padding: '16px', textAlign: 'left' }}>Sensor</th>
-                                <th style={{ padding: '16px', textAlign: 'left' }}>Status</th>
-                                <th style={{ padding: '16px', textAlign: 'center' }}>Versions</th>
-                                <th style={{ padding: '16px', textAlign: 'center' }}>Downloads</th>
+                                <th
+                                    onClick={() => handleSort('display_name')}
+                                    style={{ padding: '16px', textAlign: 'left', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                    Sensor {sortCol === 'display_name' && (sortOrder === 'DESC' ? '↓' : '↑')}
+                                </th>
+                                <th
+                                    onClick={() => handleSort('status')}
+                                    style={{ padding: '16px', textAlign: 'left', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                    Status {sortCol === 'status' && (sortOrder === 'DESC' ? '↓' : '↑')}
+                                </th>
+                                <th
+                                    onClick={() => handleSort('version_count')}
+                                    style={{ padding: '16px', textAlign: 'center', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                    Versions {sortCol === 'version_count' && (sortOrder === 'DESC' ? '↓' : '↑')}
+                                </th>
+                                <th
+                                    onClick={() => handleSort('total_downloads')}
+                                    style={{ padding: '16px', textAlign: 'center', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                    Downloads {sortCol === 'total_downloads' && (sortOrder === 'DESC' ? '↓' : '↑')}
+                                </th>
+                                <th
+                                    onClick={() => handleSort('created_at')}
+                                    style={{ padding: '16px', textAlign: 'left', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                    Created {sortCol === 'created_at' && (sortOrder === 'DESC' ? '↓' : '↑')}
+                                </th>
+                                <th
+                                    onClick={() => handleSort('updated_at')}
+                                    style={{ padding: '16px', textAlign: 'left', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                    Updated {sortCol === 'updated_at' && (sortOrder === 'DESC' ? '↓' : '↑')}
+                                </th>
                                 <th style={{ padding: '16px', textAlign: 'right' }}>Actions</th>
                             </tr>
                         </thead>
@@ -365,6 +455,12 @@ export default function AdminPage() {
                                     </td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.version_count}</td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.total_downloads}</td>
+                                    <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        {new Date(s.created_at).toLocaleDateString()}
+                                    </td>
+                                    <td style={{ padding: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        {new Date(s.updated_at || s.created_at).toLocaleDateString()}
+                                    </td>
                                     <td style={{ padding: '16px', textAlign: 'right' }}>
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
                                             {/* Status Actions */}
@@ -426,8 +522,8 @@ export default function AdminPage() {
                             ))}
                             {sensors.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        No sensors yet
+                                    <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        No sensors found
                                     </td>
                                 </tr>
                             )}

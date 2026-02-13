@@ -162,7 +162,7 @@ export async function PATCH(
         }
 
         bindings.push(id);
-        const query = `UPDATE sensors SET ${updates.join(', ')} WHERE id = ?`;
+        const query = `UPDATE sensors SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
 
         await env.DB.prepare(query).bind(...bindings).run();
 
