@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-02-13
+
+### Added
+
+- **Paessler Sensor Hub Migration**: Imported 537 sensors from the legacy hub across all categories.
+- **Improved Platform Stability**: Fixed a critical crash on the sensors list page caused by missing rating metadata.
+- **Developer Convenience**: Added root-level proxy scripts for `dev`, `build`, and `start`.
+
 ## [2.7.3] - 2026-02-13
 
 ### Documentation

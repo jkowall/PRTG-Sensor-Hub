@@ -125,7 +125,8 @@ export async function GET(request: NextRequest) {
             tags: r.tags ? JSON.parse(r.tags) : [],
             is_certified: Boolean(r.is_certified),
             is_verified: Boolean(r.is_certified), // Backwards compatibility for frontend
-            status: r.status || 'approved' // Default for legacy data
+            status: r.status || 'approved', // Default for legacy data
+            avg_rating: r.avg_rating || 0
         }));
 
         return NextResponse.json({

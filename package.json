@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "dev": "npm run dev --prefix apps/web",
+    "build": "npm run build --prefix apps/web",
+    "start": "npm run start --prefix apps/web"
+  },
   "devDependencies": {
     "wrangler": "^4.63.0"
   }
