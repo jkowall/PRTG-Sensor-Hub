@@ -36,6 +36,7 @@ export default function RootLayout({
                                         priority
                                         style={{ height: '40px', width: 'auto' }}
                                     />
+                                    <span>Sensor Hub</span>
                                 </Link>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                                     <nav className="nav">
