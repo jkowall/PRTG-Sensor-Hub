@@ -9,6 +9,7 @@ const flatConfig = [
             "dist/**",
             "build/**",
             "node_modules/**",
+            ".tmp/**",
         ],
     },
     ...nextConfig,

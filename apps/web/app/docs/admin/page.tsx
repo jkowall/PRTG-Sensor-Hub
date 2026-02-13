@@ -42,7 +42,7 @@ export default function AdminDocsPage() {
                 <div style={{ marginBottom: '30px' }}>
                     <h3 style={{ fontSize: '1.4rem', marginBottom: '10px' }}>Single File Import</h3>
                     <p style={{ marginBottom: '10px' }}>
-                        Admins and users can import single files directly from GitHub. This is useful for scripts that don't have a dedicated repository.
+                        Admins and users can import single files directly from GitHub. This is useful for scripts that don&apos;t have a dedicated repository.
                     </p>
                     <ul style={{ paddingLeft: '20px', lineHeight: '1.6' }}>
                         <li>Copy the <strong>Raw</strong> or <strong>Blob</strong> URL of a file from GitHub (e.g., <code>https://github.com/user/repo/blob/main/sensor.ps1</code>).</li>
