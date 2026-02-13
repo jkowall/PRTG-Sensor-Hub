@@ -8,11 +8,11 @@ export async function GET(request: NextRequest) {
     if (!context || !context.env) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }
-    const env = context.env as unknown as { DB: D1Database, GITHUB_ID: string };
-    const clientId = env.GITHUB_ID;
+    const env = context.env as unknown as { DB: D1Database, GITHUB_CLIENT_ID: string };
+    const clientId = env.GITHUB_CLIENT_ID;
 
     if (!clientId) {
-        return NextResponse.json({ error: 'GITHUB_ID not configured' }, { status: 500 });
+        return NextResponse.json({ error: 'GITHUB_CLIENT_ID not configured' }, { status: 500 });
     }
 
     const url = new URL(request.url);

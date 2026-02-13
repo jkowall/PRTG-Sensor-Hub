@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
     }
     const env = context.env as unknown as {
         DB: D1Database;
-        GITHUB_ID: string;
-        GITHUB_SECRET: string;
+        GITHUB_CLIENT_ID: string;
+        GITHUB_CLIENT_SECRET: string;
         NEXTAUTH_SECRET: string;
     };
     const searchParams = request.nextUrl.searchParams;
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
                 'Accept': 'application/json',
             },
             body: JSON.stringify({
-                client_id: env.GITHUB_ID,
-                client_secret: env.GITHUB_SECRET,
+                client_id: env.GITHUB_CLIENT_ID,
+                client_secret: env.GITHUB_CLIENT_SECRET,
                 code,
             }),
         });

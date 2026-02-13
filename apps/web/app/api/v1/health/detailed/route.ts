@@ -17,7 +17,7 @@ export async function GET() {
         if (env) {
             report.bindings = {
                 DB: !!env.DB,
-                GITHUB_ID: !!env.GITHUB_ID,
+                GITHUB_CLIENT_ID: !!env.GITHUB_CLIENT_ID,
                 NEXTAUTH_SECRET: !!env.NEXTAUTH_SECRET,
             };
 
