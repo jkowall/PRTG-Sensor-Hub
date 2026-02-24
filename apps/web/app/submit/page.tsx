@@ -16,6 +16,7 @@ export default function SubmitSensorPage() {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [submissionType, setSubmissionType] = useState<'upload' | 'link'>('upload');
+    const [repoVerification, setRepoVerification] = useState<{ status: 'idle' | 'checking' | 'ok' | 'error'; message?: string }>({ status: 'idle' });
 
     const [formData, setFormData] = useState({
         display_name: '',
@@ -50,6 +51,9 @@ export default function SubmitSensorPage() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (e.target.name === 'repository_url') {
+            setRepoVerification({ status: 'idle' });
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,6 +73,9 @@ export default function SubmitSensorPage() {
             }
             if (submissionType === 'link' && !formData.repository_url) {
                 throw new Error('Please provide a repository URL.');
+            }
+            if (submissionType === 'link' && repoVerification.status !== 'ok') {
+                throw new Error('Please verify the repository link before submitting.');
             }
 
             const data = new FormData();
@@ -106,6 +113,27 @@ export default function SubmitSensorPage() {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const verifyRepository = async () => {
+        if (!formData.repository_url) {
+            setRepoVerification({ status: 'error', message: 'Please provide a repository URL.' });
+            return;
+        }
+
+        setRepoVerification({ status: 'checking' });
+        try {
+            const res = await fetch(`${API_URL}/verify/repo?url=${encodeURIComponent(formData.repository_url)}`);
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                setRepoVerification({ status: 'ok', message: data.message || 'Repository verified.' });
+            } else {
+                setRepoVerification({ status: 'error', message: data.error || 'Repository verification failed.' });
+            }
+        } catch (err) {
+            console.error('Repository verification failed:', err);
+            setRepoVerification({ status: 'error', message: 'Repository verification failed.' });
         }
     };
 
@@ -232,7 +260,10 @@ export default function SubmitSensorPage() {
                                 type="radio"
                                 name="submissionType"
                                 checked={submissionType === 'upload'}
-                                onChange={() => setSubmissionType('upload')}
+                                onChange={() => {
+                                    setSubmissionType('upload');
+                                    setRepoVerification({ status: 'idle' });
+                                }}
                             />
                             Upload Files (Official)
                         </label>
@@ -241,7 +272,10 @@ export default function SubmitSensorPage() {
                                 type="radio"
                                 name="submissionType"
                                 checked={submissionType === 'link'}
-                                onChange={() => setSubmissionType('link')}
+                                onChange={() => {
+                                    setSubmissionType('link');
+                                    setRepoVerification({ status: 'idle' });
+                                }}
                             />
                             Import from GitHub
                             <span style={{ fontSize: '0.7em', color: 'var(--text-muted)', marginLeft: '4px' }}>(Beta)</span>
@@ -288,6 +322,23 @@ export default function SubmitSensorPage() {
                             placeholder="https://github.com/username/repo"
                             style={{ marginBottom: '8px' }}
                         />
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
+                            <button
+                                type="button"
+                                onClick={verifyRepository}
+                                className="btn btn-outline"
+                                style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                                disabled={repoVerification.status === 'checking'}
+                            >
+                                {repoVerification.status === 'checking' ? 'Verifying...' : 'Verify Repository'}
+                            </button>
+                            {repoVerification.status === 'ok' && (
+                                <span style={{ color: 'var(--success)', fontSize: '0.85rem' }}>✓ {repoVerification.message || 'Verified'}</span>
+                            )}
+                            {repoVerification.status === 'error' && (
+                                <span style={{ color: 'var(--error)', fontSize: '0.85rem' }}>{repoVerification.message}</span>
+                            )}
+                        </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             <p>We will import files (scripts, images, README) from this repository and create a Pull Request in the Hub.</p>
                             <p>This creates a <strong>snapshot</strong> of your sensor. Future updates will require a new import.</p>

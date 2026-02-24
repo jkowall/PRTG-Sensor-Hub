@@ -1,0 +1,23 @@
+name: Verify Sensor Downloads
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run verification
+        env:
+          VERIFICATION_URL: ${{ secrets.VERIFICATION_URL }}
+          VERIFICATION_TOKEN: ${{ secrets.VERIFICATION_TOKEN }}
+        run: |
+          if [ -z "$VERIFICATION_URL" ] || [ -z "$VERIFICATION_TOKEN" ]; then
+            echo "Missing VERIFICATION_URL or VERIFICATION_TOKEN secret"
+            exit 1
+          fi
+          response=$(curl -sS -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL")
+          echo "$response" > verification.json
+          node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('verification.json','utf8'));if(!data||typeof data.issue_count!=='number'){console.error('Invalid response');process.exit(1);}if(data.issue_count>0){console.error('Verification failed with issues:',data.issue_count);process.exit(1);}console.log('Verification passed.');"

@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get('status');
 
         let query = `
-            SELECT s.id, s.slug, s.display_name, s.category, s.total_downloads, s.created_at, s.updated_at, s.is_certified, s.status, s.github_pr_url,
+            SELECT s.id, s.slug, s.display_name, s.category, s.description, s.tags, s.total_downloads, s.created_at, s.updated_at, s.is_certified, s.status, s.github_pr_url,
             (SELECT COUNT(*) FROM versions v WHERE v.sensor_id = s.id) as version_count
             FROM sensors s
             WHERE 1=1
@@ -65,10 +65,14 @@ export async function GET(request: NextRequest) {
         query += ` ORDER BY ${sortCol} ${sortDir}`;
 
         const { results } = await env.DB.prepare(query).bind(...params).all();
+        const safeResults = results.map((r: any) => ({
+            ...r,
+            tags: r.tags ? JSON.parse(r.tags) : []
+        }));
 
         return NextResponse.json({
-            items: results,
-            total: results.length
+            items: safeResults,
+            total: safeResults.length
         });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

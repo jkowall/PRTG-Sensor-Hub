@@ -152,6 +152,7 @@ export async function GET(request: NextRequest) {
 }
 
 import { GitHubService, GitHubFile } from '@/lib/github';
+import { verifyRepositoryUrl } from '@/lib/verify-repo';
 
 export async function POST(request: NextRequest) {
     const context = await getCloudflareContext();
@@ -232,6 +233,15 @@ export async function POST(request: NextRequest) {
         else if (repositoryUrl) {
             if (!env.GITHUB_BOT_TOKEN) {
                 return NextResponse.json({ error: 'Server misconfigured: Missing GITHUB_BOT_TOKEN' }, { status: 500 });
+            }
+
+            try {
+                const verification = await verifyRepositoryUrl(repositoryUrl, env.GITHUB_BOT_TOKEN);
+                if (!verification.ok) {
+                    return NextResponse.json({ error: `Repository verification failed: ${verification.message}` }, { status: 400 });
+                }
+            } catch (verifyError: any) {
+                return NextResponse.json({ error: `Repository verification failed: ${verifyError.message}` }, { status: 400 });
             }
 
             try {

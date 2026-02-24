@@ -39,19 +39,52 @@ interface Sensor {
     updated_at: string;
 }
 
+interface VerificationIssue {
+    sensor_id: string;
+    slug: string;
+    display_name: string;
+    category: string;
+    status: string;
+    version_id: string;
+    version_str: string;
+    github_url: string | null;
+    commit_sha: string | null;
+    download_url?: string;
+    issue_code: string;
+    issue_summary: string;
+    issue_detail?: string;
+}
+
+interface VersionEditState {
+    id: string;
+    sensor_id: string;
+    slug: string;
+    display_name: string;
+    version_str: string;
+    github_url: string;
+    commit_sha: string;
+}
+
 export default function AdminPage() {
     const { user, token, loading } = useAuth();
     const [stats, setStats] = useState<Stats | null>(null);
     const [users, setUsers] = useState<User[]>([]);
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [editingSensor, setEditingSensor] = useState<any | null>(null);
-    const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'sensors'>('stats');
+    const [editingVersion, setEditingVersion] = useState<VersionEditState | null>(null);
+    const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'sensors' | 'verification'>('stats');
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortCol, setSortCol] = useState('created_at');
     const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
     const [categoryFilter, setCategoryFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [verificationIssues, setVerificationIssues] = useState<VerificationIssue[]>([]);
+    const [verificationLoading, setVerificationLoading] = useState(false);
+    const [verificationError, setVerificationError] = useState<string | null>(null);
+    const [verificationSummary, setVerificationSummary] = useState<{ checked_versions: number; issue_count: number } | null>(null);
+    const [dispatchLoading, setDispatchLoading] = useState(false);
+    const [dispatchMessage, setDispatchMessage] = useState<string | null>(null);
 
     useEffect(() => {
         if (token && user?.is_admin) {
@@ -61,6 +94,13 @@ export default function AdminPage() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token, user, searchQuery, sortCol, sortOrder, categoryFilter, statusFilter]);
+
+    useEffect(() => {
+        if (activeTab === 'verification' && token && user?.is_admin && !verificationLoading && verificationIssues.length === 0) {
+            fetchVerification();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab, token, user]);
 
     const fetchStats = async () => {
         try {
@@ -107,6 +147,54 @@ export default function AdminPage() {
             }
         } catch (err) {
             console.error('Failed to fetch sensors:', err);
+        }
+    };
+
+    const fetchVerification = async () => {
+        setVerificationLoading(true);
+        setVerificationError(null);
+        try {
+            const res = await fetch(`${API_URL}/admin/verification`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setVerificationIssues(data.issues || []);
+                setVerificationSummary({
+                    checked_versions: data.checked_versions || 0,
+                    issue_count: data.issue_count || 0
+                });
+            } else {
+                const data = await res.json();
+                setVerificationError(data.error || 'Failed to run verification');
+            }
+        } catch (err) {
+            console.error('Failed to run verification:', err);
+            setVerificationError('Failed to run verification');
+        } finally {
+            setVerificationLoading(false);
+        }
+    };
+
+    const dispatchVerificationWorkflow = async () => {
+        setDispatchLoading(true);
+        setDispatchMessage(null);
+        try {
+            const res = await fetch(`${API_URL}/admin/verification/dispatch`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setDispatchMessage('Verification workflow queued in GitHub Actions.');
+            } else {
+                setDispatchMessage(data.error || 'Failed to dispatch workflow.');
+            }
+        } catch (err) {
+            console.error('Failed to dispatch verification workflow:', err);
+            setDispatchMessage('Failed to dispatch workflow.');
+        } finally {
+            setDispatchLoading(false);
         }
     };
 
@@ -219,6 +307,64 @@ export default function AdminPage() {
         }
     };
 
+    const updateVersionDetails = async (versionId: string, updates: any) => {
+        try {
+            const res = await fetch(`${API_URL}/admin/versions/${versionId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updates),
+            });
+            if (res.ok) {
+                setEditingVersion(null);
+                fetchVerification();
+            } else {
+                const data = await res.json();
+                setError(data.error || 'Failed to update version');
+            }
+        } catch (err) {
+            console.error('Failed to update version details:', err);
+            setError('An error occurred while updating version');
+        }
+    };
+
+    const openEditForSensor = async (issue: VerificationIssue) => {
+        const existing = sensors.find((s) => s.id === issue.sensor_id);
+        if (existing && existing.description) {
+            setEditingSensor(existing);
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/sensors/${issue.slug}`);
+            if (res.ok) {
+                const data = await res.json();
+                setEditingSensor({
+                    id: data.id,
+                    slug: data.slug,
+                    display_name: data.display_name,
+                    description: data.description || '',
+                    category: data.category,
+                    tags: data.tags || [],
+                    is_certified: data.is_certified,
+                    status: data.status,
+                    github_pr_url: data.github_pr_url,
+                    total_downloads: data.total_downloads || 0,
+                    version_count: Array.isArray(data.versions) ? data.versions.length : 0,
+                    created_at: data.created_at,
+                    updated_at: data.updated_at
+                });
+            } else {
+                setError('Failed to load sensor for editing');
+            }
+        } catch (err) {
+            console.error('Failed to load sensor for editing:', err);
+            setError('Failed to load sensor for editing');
+        }
+    };
+
     if (loading) {
         return (
             <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
@@ -255,7 +401,7 @@ export default function AdminPage() {
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
-                {(['stats', 'users', 'sensors'] as const).map(tab => (
+                {(['stats', 'users', 'sensors', 'verification'] as const).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -531,6 +677,131 @@ export default function AdminPage() {
                     </table>
                 </div>
             )}
+
+            {/* Verification Tab */}
+            {activeTab === 'verification' && (
+                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflow: 'hidden' }}>
+                    <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                        <div>
+                            <h2 style={{ margin: 0 }}>Verification Issues</h2>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>
+                                {verificationSummary
+                                    ? `${verificationSummary.issue_count} issues across ${verificationSummary.checked_versions} versions checked`
+                                    : 'Run verification to find missing downloads'}
+                            </div>
+                            {dispatchMessage && (
+                                <div style={{ marginTop: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                    {dispatchMessage}
+                                </div>
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={fetchVerification}
+                                className="btn btn-outline"
+                                style={{ padding: '10px 16px' }}
+                                disabled={verificationLoading}
+                            >
+                                {verificationLoading ? 'Running...' : 'Run Verification'}
+                            </button>
+                            <button
+                                onClick={dispatchVerificationWorkflow}
+                                className="btn btn-primary"
+                                style={{ padding: '10px 16px' }}
+                                disabled={dispatchLoading}
+                            >
+                                {dispatchLoading ? 'Dispatching...' : 'Run GitHub Action'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {verificationError && (
+                        <div style={{ padding: '16px 24px', color: 'var(--error)', borderBottom: '1px solid var(--border-color)' }}>
+                            {verificationError}
+                        </div>
+                    )}
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                <th style={{ padding: '16px', textAlign: 'left' }}>Sensor</th>
+                                <th style={{ padding: '16px', textAlign: 'left' }}>Version</th>
+                                <th style={{ padding: '16px', textAlign: 'left' }}>Issue</th>
+                                <th style={{ padding: '16px', textAlign: 'left' }}>Download</th>
+                                <th style={{ padding: '16px', textAlign: 'right' }}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {verificationIssues.map((issue) => (
+                                <tr key={`${issue.sensor_id}-${issue.version_id}-${issue.issue_code}`} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '16px' }}>
+                                        <div style={{ fontWeight: '600' }}>{issue.display_name}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{issue.slug}</div>
+                                    </td>
+                                    <td style={{ padding: '16px' }}>{issue.version_str}</td>
+                                    <td style={{ padding: '16px' }}>
+                                        <div style={{ fontWeight: '600' }}>{issue.issue_summary}</div>
+                                        {issue.issue_detail && (
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{issue.issue_detail}</div>
+                                        )}
+                                    </td>
+                                    <td style={{ padding: '16px' }}>
+                                        {issue.download_url ? (
+                                            <a href={issue.download_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)' }}>
+                                                Open
+                                            </a>
+                                        ) : (
+                                            <span style={{ color: 'var(--text-muted)' }}>N/A</span>
+                                        )}
+                                    </td>
+                                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                            <button
+                                                onClick={() => openEditForSensor(issue)}
+                                                className="btn btn-outline"
+                                                style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                            >
+                                                ✎ Edit
+                                            </button>
+                                            {issue.version_id && (
+                                                <button
+                                                    onClick={() => setEditingVersion({
+                                                        id: issue.version_id,
+                                                        sensor_id: issue.sensor_id,
+                                                        slug: issue.slug,
+                                                        display_name: issue.display_name,
+                                                        version_str: issue.version_str,
+                                                        github_url: issue.github_url || '',
+                                                        commit_sha: issue.commit_sha || ''
+                                                    })}
+                                                    className="btn btn-outline"
+                                                    style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                                >
+                                                    🧩 Fix Version
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => deleteSensor(issue.sensor_id)}
+                                                className="btn btn-outline"
+                                                style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--error)', borderColor: 'var(--border-color)' }}
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {!verificationLoading && verificationIssues.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        No verification issues found
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
             {/* Edit Sensor Modal */}
             {editingSensor && (
                 <div className="modal-overlay" style={{
@@ -653,6 +924,98 @@ export default function AdminPage() {
                                     description: editingSensor.description,
                                     category: editingSensor.category,
                                     tags: editingSensor.tags
+                                })}
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Version Modal */}
+            {editingVersion && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(5, 15, 52, 0.7)',
+                    backdropFilter: 'blur(12px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000, padding: '20px'
+                }}>
+                    <div className="sensor-card" style={{
+                        maxWidth: '520px',
+                        width: '100%',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        boxShadow: 'var(--shadow-lg)',
+                        background: 'var(--bg-card)',
+                        padding: '32px',
+                        position: 'relative'
+                    }}>
+                        <button
+                            onClick={() => setEditingVersion(null)}
+                            style={{
+                                position: 'absolute', top: '24px', right: '24px',
+                                background: 'transparent', border: 'none', color: 'var(--text-muted)',
+                                cursor: 'pointer', fontSize: '1.8rem', lineHeight: 1
+                            }}
+                        >
+                            ×
+                        </button>
+
+                        <h2 style={{
+                            marginBottom: '8px',
+                            fontSize: '1.6rem',
+                            fontWeight: '800'
+                        }}>
+                            Fix Version
+                        </h2>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
+                            {editingVersion.display_name} · v{editingVersion.version_str}
+                        </p>
+
+                        <div style={{ display: 'grid', gap: '20px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    GitHub URL
+                                </label>
+                                <input
+                                    type="text"
+                                    className="search-input"
+                                    style={{ padding: '12px 16px', fontSize: '1rem' }}
+                                    value={editingVersion.github_url}
+                                    onChange={(e) => setEditingVersion({ ...editingVersion, github_url: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Commit SHA
+                                </label>
+                                <input
+                                    type="text"
+                                    className="search-input"
+                                    style={{ padding: '12px 16px', fontSize: '1rem' }}
+                                    value={editingVersion.commit_sha}
+                                    onChange={(e) => setEditingVersion({ ...editingVersion, commit_sha: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', marginTop: '32px' }}>
+                            <button
+                                className="btn btn-outline"
+                                style={{ padding: '12px 24px', minWidth: '120px' }}
+                                onClick={() => setEditingVersion(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                style={{ padding: '12px 32px', minWidth: '160px' }}
+                                onClick={() => updateVersionDetails(editingVersion.id, {
+                                    github_url: editingVersion.github_url,
+                                    commit_sha: editingVersion.commit_sha
                                 })}
                             >
                                 Save Changes

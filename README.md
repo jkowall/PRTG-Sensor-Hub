@@ -70,6 +70,29 @@ prtg-sensor-hub/
     | `GH_CLIENT_SECRET` | GitHub OAuth Client Secret for production. |
     | `GH_BOT_TOKEN` | GitHub PAT for the bot account (needs `repo` scope). |
     | `NEXTAUTH_SECRET` | 32+ char random string for session encryption. |
+    | `VERIFICATION_TOKEN` | Shared token used by the download verification Action. |
+    | `VERIFICATION_URL` | Full URL to the verification endpoint (e.g. `https://.../api/v1/verification`). |
+
+  ### Verification Action Setup
+
+  To enable scheduled and on-demand verification checks:
+
+  1. **Create a Verification Token**
+    - Generate a long random string (e.g. `openssl rand -base64 32`).
+    - Set it in Cloudflare worker vars as `VERIFICATION_TOKEN`.
+
+  2. **Configure GitHub Secrets**
+    - Set `VERIFICATION_URL` to your deployed endpoint, for example:
+      `https://prtg-sensor-hub-web.jkowall.workers.dev/api/v1/verification`
+    - Set `VERIFICATION_TOKEN` to the same token you added in Cloudflare.
+
+  3. **Ensure Workflow Dispatch Access**
+    - The admin dashboard button uses `GITHUB_BOT_TOKEN` to dispatch workflows.
+    - That token must include the `workflow` scope (classic PAT) in addition to `repo`.
+
+  4. **Run It**
+    - Use the Admin Dashboard "Verification" tab to run either a local verification or dispatch the GitHub Action.
+    - The Action also runs nightly on schedule.
 
 ## Deployment
 
