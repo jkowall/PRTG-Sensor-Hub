@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { D1Database } from '@/lib/db';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { runVerification } from '@/lib/verification';
+import { runVerificationMetadataOnly } from '@/lib/verification';
 
 export const runtime = 'edge';
 
@@ -29,7 +30,9 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const verification = await runVerification(env.DB);
+        // GET returns metadata-only checks (fast), skip download checks for edge runtime
+        // GET returns metadata-only checks (fast), skip download checks for edge runtime
+        const verification = await runVerificationMetadataOnly(env.DB);
         return NextResponse.json(verification);
     } catch (error: any) {
         console.error('Verification error:', error);
