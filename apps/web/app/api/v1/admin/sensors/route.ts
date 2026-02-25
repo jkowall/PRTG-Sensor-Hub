@@ -48,13 +48,25 @@ export async function GET(request: NextRequest) {
         }
 
         if (category) {
-            query += ` AND s.category = ?`;
-            params.push(category);
+            const categories = category.split(',').map(item => item.trim()).filter(Boolean);
+            if (categories.length === 1) {
+                query += ` AND s.category = ?`;
+                params.push(categories[0]);
+            } else if (categories.length > 1) {
+                query += ` AND s.category IN (${categories.map(() => '?').join(',')})`;
+                params.push(...categories);
+            }
         }
 
         if (status) {
-            query += ` AND s.status = ?`;
-            params.push(status);
+            const statuses = status.split(',').map(item => item.trim()).filter(Boolean);
+            if (statuses.length === 1) {
+                query += ` AND s.status = ?`;
+                params.push(statuses[0]);
+            } else if (statuses.length > 1) {
+                query += ` AND s.status IN (${statuses.map(() => '?').join(',')})`;
+                params.push(...statuses);
+            }
         }
 
         // Validate sort column to prevent injection

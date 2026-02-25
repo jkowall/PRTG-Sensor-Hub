@@ -77,8 +77,8 @@ export default function AdminPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortCol, setSortCol] = useState('created_at');
     const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string[]>([]);
     const [verificationIssues, setVerificationIssues] = useState<VerificationIssue[]>([]);
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [verificationError, setVerificationError] = useState<string | null>(null);
@@ -86,23 +86,10 @@ export default function AdminPage() {
     const [dispatchLoading, setDispatchLoading] = useState(false);
     const [dispatchMessage, setDispatchMessage] = useState<string | null>(null);
 
-    const statusOptions = [
-        { value: '', label: 'All Statuses' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'approved', label: 'Approved' },
-        { value: 'certified', label: 'Certified' },
-        { value: 'built-in', label: 'Built-in' },
-        { value: 'deprecated', label: 'Deprecated' }
-    ];
-
-    const categoryOptions = [
-        { value: '', label: 'All Categories' },
-        { value: 'network', label: 'Network' },
-        { value: 'cloud', label: 'Cloud' },
-        { value: 'iot', label: 'IoT' },
-        { value: 'storage', label: 'Storage' },
-        { value: 'database', label: 'Database' }
-    ];
+    const statusOptions = ['pending', 'approved', 'certified', 'built-in', 'deprecated'];
+    const categoryOptions = Array.from(
+        new Set([...sensors.map(sensor => sensor.category), ...categoryFilter])
+    ).sort((a, b) => a.localeCompare(b));
 
     useEffect(() => {
         if (token && user?.is_admin) {
@@ -153,8 +140,8 @@ export default function AdminPage() {
             if (searchQuery) params.append('search', searchQuery);
             if (sortCol) params.append('sort', sortCol);
             if (sortOrder) params.append('order', sortOrder);
-            if (categoryFilter) params.append('category', categoryFilter);
-            if (statusFilter) params.append('status', statusFilter);
+            if (categoryFilter.length > 0) params.append('category', categoryFilter.join(','));
+            if (statusFilter.length > 0) params.append('status', statusFilter.join(','));
 
             const res = await fetch(`${API_URL}/admin/sensors?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` },
@@ -166,6 +153,23 @@ export default function AdminPage() {
         } catch (err) {
             console.error('Failed to fetch sensors:', err);
         }
+    };
+
+    const toggleCategoryFilter = (category: string) => {
+        setCategoryFilter(prev =>
+            prev.includes(category) ? prev.filter(item => item !== category) : [...prev, category]
+        );
+    };
+
+    const toggleStatusFilter = (status: string) => {
+        setStatusFilter(prev =>
+            prev.includes(status) ? prev.filter(item => item !== status) : [...prev, status]
+        );
+    };
+
+    const clearFilters = () => {
+        setCategoryFilter([]);
+        setStatusFilter([]);
     };
 
     const fetchVerification = async () => {
@@ -538,14 +542,14 @@ export default function AdminPage() {
                                 <h3>Status</h3>
                                 <ul className="filter-list" style={{ display: 'grid', gap: '6px' }}>
                                     {statusOptions.map((option) => (
-                                        <li key={option.label} className="checkbox-item" style={{ marginBottom: 0 }}>
+                                        <li key={option} className="checkbox-item" style={{ marginBottom: 0 }}>
                                             <label>
                                                 <input
                                                     type="checkbox"
-                                                    checked={statusFilter === option.value}
-                                                    onChange={() => setStatusFilter(statusFilter === option.value ? '' : option.value)}
+                                                    checked={statusFilter.includes(option)}
+                                                    onChange={() => toggleStatusFilter(option)}
                                                 />
-                                                <span className="label-text">{option.label}</span>
+                                                <span className="label-text">{option}</span>
                                             </label>
                                         </li>
                                     ))}
@@ -555,18 +559,27 @@ export default function AdminPage() {
                                 <h3>Category</h3>
                                 <ul className="filter-list" style={{ display: 'grid', gap: '6px' }}>
                                     {categoryOptions.map((option) => (
-                                        <li key={option.label} className="checkbox-item" style={{ marginBottom: 0 }}>
+                                        <li key={option} className="checkbox-item" style={{ marginBottom: 0 }}>
                                             <label>
                                                 <input
                                                     type="checkbox"
-                                                    checked={categoryFilter === option.value}
-                                                    onChange={() => setCategoryFilter(categoryFilter === option.value ? '' : option.value)}
+                                                    checked={categoryFilter.includes(option)}
+                                                    onChange={() => toggleCategoryFilter(option)}
                                                 />
-                                                <span className="label-text">{option.label}</span>
+                                                <span className="label-text">{option}</span>
                                             </label>
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                                <button
+                                    onClick={clearFilters}
+                                    className="btn btn-outline"
+                                    style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                                >
+                                    Clear Filters
+                                </button>
                             </div>
                         </div>
                     </div>
