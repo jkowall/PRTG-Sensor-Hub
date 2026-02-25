@@ -31,7 +31,7 @@ interface Sensor {
     description: string;
     tags: string[];
     is_certified: boolean;
-    status: 'pending' | 'approved' | 'certified';
+    status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
     github_pr_url?: string;
     total_downloads: number;
     version_count: number;
@@ -522,6 +522,8 @@ export default function AdminPage() {
                             <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
                             <option value="certified">Certified</option>
+                            <option value="built-in">Built-in</option>
+                            <option value="deprecated">Deprecated</option>
                         </select>
                         <select
                             className="search-input"
@@ -595,6 +597,10 @@ export default function AdminPage() {
                                             <span className="badge badge-certified">Certified</span>
                                         ) : s.status === 'approved' ? (
                                             <span className="badge badge-approved">Approved</span>
+                                        ) : s.status === 'built-in' ? (
+                                            <span className="badge badge-built-in">Built-in</span>
+                                        ) : s.status === 'deprecated' ? (
+                                            <span className="badge badge-deprecated">Deprecated</span>
                                         ) : (
                                             <span className="badge badge-pending">Pending</span>
                                         )}
@@ -621,7 +627,7 @@ export default function AdminPage() {
                                                         ✓ Approve
                                                     </button>
                                                 )}
-                                                {s.status !== 'certified' && (
+                                                {s.status !== 'certified' && s.status !== 'built-in' && s.status !== 'deprecated' && (
                                                     <button
                                                         onClick={() => updateSensorStatus(s.id, 'certified')}
                                                         className="btn btn-primary"

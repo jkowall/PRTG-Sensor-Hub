@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         const { results: categories } = await env.DB.prepare(`
             SELECT category as name, COUNT(*) as count 
             FROM sensors 
-            WHERE status IN ('approved', 'certified') 
+            WHERE status IN ('approved', 'certified', 'built-in') 
             GROUP BY category 
             ORDER BY count DESC
         `).all();
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         const { results: tags } = await env.DB.prepare(`
             SELECT value as name, COUNT(*) as count 
             FROM sensors, json_each(sensors.tags) 
-            WHERE status IN ('approved', 'certified') 
+            WHERE status IN ('approved', 'certified', 'built-in') 
             GROUP BY value 
             ORDER BY count DESC
         `).all();

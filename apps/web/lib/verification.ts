@@ -64,6 +64,7 @@ export async function runVerificationMetadataOnly(db: D1Database) {
                v.id as version_id, v.version_str, v.github_url, v.commit_sha
         FROM sensors s
         LEFT JOIN versions v ON v.sensor_id = s.id
+        WHERE s.status NOT IN ('built-in', 'deprecated')
         ORDER BY s.display_name ASC
     `).all();
 
@@ -173,6 +174,7 @@ export async function runVerification(db: D1Database) {
                v.id as version_id, v.version_str, v.github_url, v.commit_sha
         FROM sensors s
         LEFT JOIN versions v ON v.sensor_id = s.id
+        WHERE s.status NOT IN ('built-in', 'deprecated')
         ORDER BY s.display_name ASC
     `).all();
 

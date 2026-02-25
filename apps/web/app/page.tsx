@@ -15,7 +15,7 @@ interface Sensor {
     avg_rating: number;
     tags: string[];
     is_certified: boolean;
-    status: 'pending' | 'approved' | 'certified';
+    status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
 }
 
 interface PaginatedResponse {
@@ -246,6 +246,12 @@ export default function Home() {
                                                         )}
                                                         {sensor.status === 'approved' && (
                                                             <span className="badge badge-approved">Approved</span>
+                                                        )}
+                                                        {sensor.status === 'built-in' && (
+                                                            <span className="badge badge-built-in">Built-in</span>
+                                                        )}
+                                                        {sensor.status === 'deprecated' && (
+                                                            <span className="badge badge-deprecated">Deprecated</span>
                                                         )}
                                                     </div>
                                                     {sensor.is_certified && (

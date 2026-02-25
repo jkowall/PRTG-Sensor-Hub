@@ -30,7 +30,7 @@ interface SensorDetail {
     description: string; // Short description
     category: string;
     is_certified: boolean;
-    status: 'pending' | 'approved' | 'certified';
+    status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
     tags: string[];
     repository_url: string | null;
     total_downloads: number;
@@ -161,6 +161,16 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                 Approved
                             </span>
                         )}
+                        {sensor.status === 'built-in' && (
+                            <span className="badge badge-built-in" style={{ padding: '4px 12px', fontSize: '0.9rem' }}>
+                                Built into PRTG
+                            </span>
+                        )}
+                        {sensor.status === 'deprecated' && (
+                            <span className="badge badge-deprecated" style={{ padding: '4px 12px', fontSize: '0.9rem' }}>
+                                Deprecated
+                            </span>
+                        )}
                         {currentVersion?.verified && (
                             <span style={{
                                 background: 'var(--success)',
@@ -232,18 +242,28 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
 
                             <button
                                 onClick={() => {
-                                    if (sensor.status === 'pending') return;
+                                    if (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') return;
                                     window.location.href = `${API_URL}/sensors/${sensor.slug}/download?version=${selectedVersion}`;
                                 }}
-                                disabled={sensor.status === 'pending'}
-                                className={`btn btn-primary ${sensor.status === 'pending' ? 'btn-disabled' : ''}`}
-                                style={{ width: '100%', marginBottom: '12px', opacity: sensor.status === 'pending' ? 0.5 : 1, cursor: sensor.status === 'pending' ? 'not-allowed' : 'pointer' }}
+                                disabled={sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated'}
+                                className={`btn btn-primary ${(sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'btn-disabled' : ''}`}
+                                style={{ width: '100%', marginBottom: '12px', opacity: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 0.5 : 1, cursor: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'not-allowed' : 'pointer' }}
                             >
-                                {sensor.status === 'pending' ? '🔒 Review Pending' : '⬇️ Download Source (Zip)'}
+                                {sensor.status === 'pending' ? '🔒 Review Pending' : sensor.status === 'built-in' ? '📦 Built into PRTG' : sensor.status === 'deprecated' ? '⚠️ Deprecated' : '⬇️ Download Source (Zip)'}
                             </button>
                             {sensor.status === 'pending' && (
                                 <p style={{ fontSize: '0.75rem', color: 'var(--warning)', textAlign: 'center', marginBottom: '12px' }}>
                                     Downloads will be enabled after review.
+                                </p>
+                            )}
+                            {sensor.status === 'built-in' && (
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '12px' }}>
+                                    This sensor is included with PRTG — no separate download needed.
+                                </p>
+                            )}
+                            {sensor.status === 'deprecated' && (
+                                <p style={{ fontSize: '0.75rem', color: 'var(--error, #EF4444)', textAlign: 'center', marginBottom: '12px' }}>
+                                    This sensor has been deprecated and is no longer available.
                                 </p>
                             )}
                         </>

@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
             params.push(authenticatedUser.sub);
         } else {
             // Public view - show only approved/certified
-            whereClauses.push("(status = 'approved' OR status = 'certified')");
+            whereClauses.push("(status = 'approved' OR status = 'certified' OR status = 'built-in')");
         }
     } else if (owner_id) {
         // Explicit owner filter (often used for public profiles)

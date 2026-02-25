@@ -59,6 +59,9 @@ node_modules/
 out/
 .turbo/
 
+# Backups
+backups/
+
 # OS
 .DS_Store
 Thumbs.db

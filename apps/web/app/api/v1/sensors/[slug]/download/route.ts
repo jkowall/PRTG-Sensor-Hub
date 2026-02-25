@@ -26,6 +26,14 @@ export async function GET(
             return NextResponse.json({ error: 'Sensor is pending review and cannot be downloaded yet' }, { status: 403 });
         }
 
+        if ((sensor as any).status === 'built-in') {
+            return NextResponse.json({ error: 'This sensor is built into PRTG and does not require a separate download' }, { status: 400 });
+        }
+
+        if ((sensor as any).status === 'deprecated') {
+            return NextResponse.json({ error: 'This sensor has been deprecated and is no longer available for download' }, { status: 410 });
+        }
+
         // 2. Find version
         let version;
         if (versionStr) {
