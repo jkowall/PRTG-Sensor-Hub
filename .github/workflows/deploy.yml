@@ -48,3 +48,11 @@ jobs:
           GITHUB_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
           GITHUB_BOT_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
           VERIFICATION_TOKEN: ${{ secrets.VERIFICATION_TOKEN }}
+
+      - name: Apply D1 Migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: d1 execute DB --file=migrations/002_add_docs_url.sql
