@@ -18,6 +18,32 @@ jobs:
             echo "Missing VERIFICATION_URL or VERIFICATION_TOKEN secret"
             exit 1
           fi
-          response=$(curl -sS -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL")
-          echo "$response" > verification.json
-          node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('verification.json','utf8'));if(!data||typeof data.issue_count!=='number'){console.error('Invalid response');process.exit(1);}if(data.issue_count>0){console.error('Verification failed with issues:',data.issue_count);process.exit(1);}console.log('Verification passed.');"
+          echo "Fetching verification from: $VERIFICATION_URL"
+          response=$(curl -sS -w "\n%{http_code}" -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+          echo "HTTP Status: $http_code"
+          echo "Response body:"
+          echo "$body"
+          
+          if [ "$http_code" != "200" ]; then
+            echo "Verification endpoint returned HTTP $http_code"
+            exit 1
+          fi
+          
+          echo "$body" > verification.json
+          node -e "
+            const fs=require('fs');
+            const data=JSON.parse(fs.readFileSync('verification.json','utf8'));
+            console.log('Checked versions:', data.checked_versions);
+            console.log('Issues found:', data.issue_count);
+            if(!data||typeof data.issue_count!=='number'){
+              console.error('Invalid response structure');
+              process.exit(1);
+            }
+            if(data.issue_count>0){
+              console.error('Verification failed with '+data.issue_count+' issues');
+              process.exit(1);
+            }
+            console.log('✓ Verification passed - all downloads accessible');
+          "
