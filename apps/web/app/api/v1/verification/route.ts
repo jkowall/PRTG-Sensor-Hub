@@ -6,7 +6,17 @@ import { runVerification } from '@/lib/verification';
 export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
-    const context = await getCloudflareContext();
+    let context;
+    try {
+        context = await getCloudflareContext();
+    } catch (e: any) {
+        console.error('getCloudflareContext failed:', e);
+        return NextResponse.json({
+            error: 'Failed to initialize Cloudflare context. Make sure you are running in a supported environment.',
+            details: e.message
+        }, { status: 500 });
+    }
+
     if (!context || !context.env) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }
@@ -22,6 +32,7 @@ export async function GET(request: NextRequest) {
         const verification = await runVerification(env.DB);
         return NextResponse.json(verification);
     } catch (error: any) {
+        console.error('Verification error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
