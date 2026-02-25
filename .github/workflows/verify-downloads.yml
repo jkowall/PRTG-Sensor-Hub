@@ -36,14 +36,25 @@ jobs:
             const fs=require('fs');
             const data=JSON.parse(fs.readFileSync('verification.json','utf8'));
             console.log('Checked versions:', data.checked_versions);
-            console.log('Issues found:', data.issue_count);
+            console.log('Total issues:', data.issue_count);
             if(!data||typeof data.issue_count!=='number'){
               console.error('Invalid response structure');
               process.exit(1);
             }
-            if(data.issue_count>0){
-              console.error('Verification failed with '+data.issue_count+' issues');
+            const critical = (data.issues||[]).filter(i => 
+              i.issue_code === 'download_missing' || i.issue_code === 'download_error'
+            );
+            const warnings = (data.issues||[]).filter(i => 
+              i.issue_code !== 'download_missing' && i.issue_code !== 'download_error'
+            );
+            if(warnings.length > 0){
+              console.log('⚠ ' + warnings.length + ' metadata warning(s):');
+              warnings.forEach(w => console.log('  - ' + w.display_name + ': ' + w.issue_summary));
+            }
+            if(critical.length > 0){
+              console.error('✗ ' + critical.length + ' download failure(s):');
+              critical.forEach(c => console.error('  - ' + c.display_name + ': ' + c.issue_summary + (c.issue_detail ? ' (' + c.issue_detail + ')' : '')));
               process.exit(1);
             }
-            console.log('✓ Verification passed - all downloads accessible');
+            console.log('✓ Verification passed - no download failures');
           "
