@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-02-25
+
+### Added
+
+- **Built-in Sensor Status**: 301 Native PRTG Sensors now display a purple "Built-in" badge indicating no download is needed.
+- **Deprecated Sensor Status**: New red badge for deprecated sensors with download blocking and user-facing messaging.
+- **Admin Filters**: Status filter dropdown now includes Built-in and Deprecated options.
+
+### Changed
+
+- **Verification**: Built-in and deprecated sensors are excluded from download verification checks.
+- **Download Route**: Returns HTTP 400 for built-in sensors and HTTP 410 for deprecated sensors with clear error messages.
+
+### Removed
+
+- **Deprecated Sensors**: Removed SFTP Secure File Transfer Protocol and Common SaaS sensors (marked deprecated by Paessler).
+
 ## [2.8.2] - 2026-02-25
 
 ### Added
