@@ -86,6 +86,24 @@ export default function AdminPage() {
     const [dispatchLoading, setDispatchLoading] = useState(false);
     const [dispatchMessage, setDispatchMessage] = useState<string | null>(null);
 
+    const statusOptions = [
+        { value: '', label: 'All Statuses' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'approved', label: 'Approved' },
+        { value: 'certified', label: 'Certified' },
+        { value: 'built-in', label: 'Built-in' },
+        { value: 'deprecated', label: 'Deprecated' }
+    ];
+
+    const categoryOptions = [
+        { value: '', label: 'All Categories' },
+        { value: 'network', label: 'Network' },
+        { value: 'cloud', label: 'Cloud' },
+        { value: 'iot', label: 'IoT' },
+        { value: 'storage', label: 'Storage' },
+        { value: 'database', label: 'Database' }
+    ];
+
     useEffect(() => {
         if (token && user?.is_admin) {
             fetchStats();
@@ -159,10 +177,13 @@ export default function AdminPage() {
             });
             if (res.ok) {
                 const data = await res.json();
-                setVerificationIssues(data.issues || []);
+                const issues = (data.issues || []).filter((issue: VerificationIssue) =>
+                    issue.status !== 'built-in' && issue.status !== 'deprecated'
+                );
+                setVerificationIssues(issues);
                 setVerificationSummary({
                     checked_versions: data.checked_versions || 0,
-                    issue_count: data.issue_count || 0
+                    issue_count: issues.length
                 });
             } else {
                 const data = await res.json();
@@ -512,32 +533,42 @@ export default function AdminPage() {
                                 style={{ width: '100%', padding: '10px 16px' }}
                             />
                         </div>
-                        <select
-                            className="search-input"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            style={{ width: 'auto', padding: '10px 16px' }}
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="certified">Certified</option>
-                            <option value="built-in">Built-in</option>
-                            <option value="deprecated">Deprecated</option>
-                        </select>
-                        <select
-                            className="search-input"
-                            value={categoryFilter}
-                            onChange={(e) => setCategoryFilter(e.target.value)}
-                            style={{ width: 'auto', padding: '10px 16px' }}
-                        >
-                            <option value="">All Categories</option>
-                            <option value="network">Network</option>
-                            <option value="cloud">Cloud</option>
-                            <option value="iot">IoT</option>
-                            <option value="storage">Storage</option>
-                            <option value="database">Database</option>
-                        </select>
+                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                            <div className="filter-group" style={{ marginBottom: 0 }}>
+                                <h3>Status</h3>
+                                <ul className="filter-list" style={{ display: 'grid', gap: '6px' }}>
+                                    {statusOptions.map((option) => (
+                                        <li key={option.label} className="checkbox-item" style={{ marginBottom: 0 }}>
+                                            <label>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={statusFilter === option.value}
+                                                    onChange={() => setStatusFilter(statusFilter === option.value ? '' : option.value)}
+                                                />
+                                                <span className="label-text">{option.label}</span>
+                                            </label>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="filter-group" style={{ marginBottom: 0 }}>
+                                <h3>Category</h3>
+                                <ul className="filter-list" style={{ display: 'grid', gap: '6px' }}>
+                                    {categoryOptions.map((option) => (
+                                        <li key={option.label} className="checkbox-item" style={{ marginBottom: 0 }}>
+                                            <label>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={categoryFilter === option.value}
+                                                    onChange={() => setCategoryFilter(categoryFilter === option.value ? '' : option.value)}
+                                                />
+                                                <span className="label-text">{option.label}</span>
+                                            </label>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
