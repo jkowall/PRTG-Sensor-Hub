@@ -3,8 +3,6 @@ import { D1Database } from '@/lib/db';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { runVerificationMetadataOnly } from '@/lib/verification';
 
-export const runtime = 'edge';
-
 export async function GET(request: NextRequest) {
     let context;
     try {
