@@ -3,8 +3,6 @@ import { verifyJWT } from '@/lib/jwt';
 import { D1Database } from '@/lib/db';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-export const runtime = 'edge';
-
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

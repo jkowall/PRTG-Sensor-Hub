@@ -3,8 +3,6 @@ import { verifyJWT } from '@/lib/jwt';
 import { D1Database } from '@/lib/db';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-export const runtime = 'edge';
-
 const WORKFLOW_FILE = 'verify-downloads.yml';
 const OWNER = 'jkowall';
 const REPO = 'PRTG-Sensor-Hub';
