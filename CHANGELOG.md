@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Admin Filters**: Status and category checkbox filters now show live counts.
 - **Built-in Docs Links**: Built-in sensors now surface a docs link, editable from the admin modal.
+- **Automatic D1 Migrations**: GitHub Actions now automatically applies D1 migrations on deployment.
 
 ## [2.9.1] - 2026-02-25
 

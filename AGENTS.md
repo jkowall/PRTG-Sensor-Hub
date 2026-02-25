@@ -99,6 +99,24 @@ Both commands must pass with no errors before committing.
 
 **Important**: Never modify `schema.sql` directly for migrations. Always create new migration files. This ensures a clear audit trail and reproducible deployments.
 
+### Automatic Migration Execution
+
+Migrations are **automatically applied on deployment** via GitHub Actions:
+
+1. When you push to `main`, the deploy workflow triggers
+2. After the Cloudflare Pages deployment completes, the "Apply D1 Migrations" step runs
+3. All `.sql` files in `apps/web/migrations/` are executed in order
+
+This means:
+- ✅ No manual migration steps required
+- ✅ Migrations are tied to code deployments
+- ✅ All environments stay in sync
+
+**For local development**: Apply migrations manually to test:
+```bash
+cd apps/web && npx wrangler d1 execute DB --local --file=migrations/003_add_new_column.sql
+```
+
 ## Testing
 
 ### Running Tests
