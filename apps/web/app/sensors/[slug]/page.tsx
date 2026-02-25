@@ -33,6 +33,7 @@ interface SensorDetail {
     status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
     tags: string[];
     repository_url: string | null;
+    docs_url: string | null;
     total_downloads: number;
     avg_rating: number;
     created_at: string;
@@ -122,6 +123,8 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
         );
     }
 
+    const docsUrl = sensor.docs_url || '/docs';
+    const isInternalDocs = docsUrl.startsWith('/');
     const currentVersion = sensor.versions.find(v => v.version_str === selectedVersion) || sensor.versions[0];
 
     return (
@@ -269,6 +272,28 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                         </>
                     ) : (
                         <p style={{ color: 'var(--text-muted)' }}>No versions available</p>
+                    )}
+
+                    {sensor.status === 'built-in' && (
+                        isInternalDocs ? (
+                            <Link
+                                href={docsUrl}
+                                className="btn btn-outline"
+                                style={{ width: '100%', marginBottom: '12px' }}
+                            >
+                                View Docs
+                            </Link>
+                        ) : (
+                            <a
+                                href={docsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-outline"
+                                style={{ width: '100%', marginBottom: '12px' }}
+                            >
+                                View Docs
+                            </a>
+                        )
                     )}
 
                     <a

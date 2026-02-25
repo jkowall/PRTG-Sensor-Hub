@@ -16,6 +16,7 @@ interface Sensor {
     tags: string[];
     is_certified: boolean;
     status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
+    docs_url?: string | null;
 }
 
 interface PaginatedResponse {
@@ -285,6 +286,67 @@ export default function Home() {
                                                     <span key={tag} className="tag">{tag}</span>
                                                 ))}
                                             </div>
+
+                                            {sensor.status === 'built-in' && (
+                                                <div style={{ marginTop: '12px' }}>
+                                                    {sensor.docs_url ? (
+                                                        sensor.docs_url.startsWith('/') ? (
+                                                            <Link
+                                                                href={sensor.docs_url}
+                                                                onClick={(e) => e.preventDefault()}
+                                                                style={{
+                                                                    display: 'inline-block',
+                                                                    padding: '6px 12px',
+                                                                    fontSize: '0.85rem',
+                                                                    color: 'var(--accent-primary)',
+                                                                    textDecoration: 'none',
+                                                                    border: '1px solid var(--accent-primary)',
+                                                                    borderRadius: 'var(--border-radius-sm)',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                            >
+                                                                📖 View Docs
+                                                            </Link>
+                                                        ) : (
+                                                            <a
+                                                                href={sensor.docs_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.preventDefault()}
+                                                                style={{
+                                                                    display: 'inline-block',
+                                                                    padding: '6px 12px',
+                                                                    fontSize: '0.85rem',
+                                                                    color: 'var(--accent-primary)',
+                                                                    textDecoration: 'none',
+                                                                    border: '1px solid var(--accent-primary)',
+                                                                    borderRadius: 'var(--border-radius-sm)',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                            >
+                                                                📖 View Docs ↗
+                                                            </a>
+                                                        )
+                                                    ) : (
+                                                        <Link
+                                                            href="/docs"
+                                                            onClick={(e) => e.preventDefault()}
+                                                            style={{
+                                                                display: 'inline-block',
+                                                                padding: '6px 12px',
+                                                                fontSize: '0.85rem',
+                                                                color: 'var(--accent-primary)',
+                                                                textDecoration: 'none',
+                                                                border: '1px solid var(--accent-primary)',
+                                                                borderRadius: 'var(--border-radius-sm)',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            📖 View Docs
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </Link>
                                 ))}

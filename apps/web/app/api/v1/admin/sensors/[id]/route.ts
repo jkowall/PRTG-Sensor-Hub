@@ -135,7 +135,7 @@ export async function PATCH(
 
         const { id } = await params;
         const body = await request.json();
-        const { display_name, description, category, tags } = body;
+        const { display_name, description, category, tags, repository_url, docs_url } = body;
 
         const updates: string[] = [];
         const bindings: any[] = [];
@@ -155,6 +155,14 @@ export async function PATCH(
         if (tags !== undefined) {
             updates.push('tags = ?');
             bindings.push(typeof tags === 'string' ? tags : JSON.stringify(tags));
+        }
+        if (repository_url !== undefined) {
+            updates.push('repository_url = ?');
+            bindings.push(repository_url);
+        }
+        if (docs_url !== undefined) {
+            updates.push('docs_url = ?');
+            bindings.push(docs_url);
         }
 
         if (updates.length === 0) {

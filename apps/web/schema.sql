@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS sensors (
     category TEXT,
     tags TEXT,
     repository_url TEXT,
+    docs_url TEXT,
     github_pr_url TEXT,
     is_certified INTEGER DEFAULT 0,
     status TEXT DEFAULT 'pending',

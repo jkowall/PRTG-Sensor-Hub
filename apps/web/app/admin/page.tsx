@@ -33,6 +33,8 @@ interface Sensor {
     is_certified: boolean;
     status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
     github_pr_url?: string;
+    repository_url?: string | null;
+    docs_url?: string | null;
     total_downloads: number;
     version_count: number;
     created_at: string;
@@ -90,6 +92,20 @@ export default function AdminPage() {
     const categoryOptions = Array.from(
         new Set([...sensors.map(sensor => sensor.category), ...categoryFilter])
     ).sort((a, b) => a.localeCompare(b));
+    const statusCounts = sensors.reduce((acc, sensor) => {
+        acc[sensor.status] = (acc[sensor.status] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+    const categoryCounts = sensors.reduce((acc, sensor) => {
+        acc[sensor.category] = (acc[sensor.category] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const formatStatusLabel = (status: string) => {
+        if (status === 'built-in') return 'Built-in';
+        if (status === 'deprecated') return 'Deprecated';
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    };
 
     useEffect(() => {
         if (token && user?.is_admin) {
@@ -376,6 +392,8 @@ export default function AdminPage() {
                     is_certified: data.is_certified,
                     status: data.status,
                     github_pr_url: data.github_pr_url,
+                    repository_url: data.repository_url || null,
+                    docs_url: data.docs_url || null,
                     total_downloads: data.total_downloads || 0,
                     version_count: Array.isArray(data.versions) ? data.versions.length : 0,
                     created_at: data.created_at,
@@ -549,7 +567,8 @@ export default function AdminPage() {
                                                     checked={statusFilter.includes(option)}
                                                     onChange={() => toggleStatusFilter(option)}
                                                 />
-                                                <span className="label-text">{option}</span>
+                                                <span className="label-text">{formatStatusLabel(option)}</span>
+                                                <span className="count">({statusCounts[option] || 0})</span>
                                             </label>
                                         </li>
                                     ))}
@@ -567,6 +586,7 @@ export default function AdminPage() {
                                                     onChange={() => toggleCategoryFilter(option)}
                                                 />
                                                 <span className="label-text">{option}</span>
+                                                <span className="count">({categoryCounts[option] || 0})</span>
                                             </label>
                                         </li>
                                     ))}
@@ -945,6 +965,35 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
+                            <div style={{ display: 'grid', gap: '20px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Repository URL
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="search-input"
+                                        style={{ padding: '12px 16px', fontSize: '1rem' }}
+                                        placeholder="https://github.com/..."
+                                        value={editingSensor.repository_url || ''}
+                                        onChange={(e) => setEditingSensor({ ...editingSensor, repository_url: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Docs URL
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="search-input"
+                                        style={{ padding: '12px 16px', fontSize: '1rem' }}
+                                        placeholder="https://www.paessler.com/... or /docs/..."
+                                        value={editingSensor.docs_url || ''}
+                                        onChange={(e) => setEditingSensor({ ...editingSensor, docs_url: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                     Description
@@ -973,7 +1022,9 @@ export default function AdminPage() {
                                     display_name: editingSensor.display_name,
                                     description: editingSensor.description,
                                     category: editingSensor.category,
-                                    tags: editingSensor.tags
+                                    tags: editingSensor.tags,
+                                    repository_url: editingSensor.repository_url || null,
+                                    docs_url: editingSensor.docs_url || null
                                 })}
                             >
                                 Save Changes
