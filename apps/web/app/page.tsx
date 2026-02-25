@@ -129,18 +129,21 @@ export default function Home() {
     return (
         <>
             {/* Hero Section */}
-            <section className="hero">
-                <div className="container">
-                    <h1>PRTG Sensor Hub</h1>
-                    <p>
+            <section style={{ padding: '4rem 0 2rem 0', textAlign: 'center' }}>
+                <div className="modern-header-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
+                    <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                        PRTG Sensor Hub
+                    </h1>
+                    <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 3rem' }}>
                         Discover, download, and share custom sensors for PRTG Network Monitor.
                         Extend your monitoring capabilities with community-built solutions.
                     </p>
 
-                    <div className="search-container">
+                    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
                         <input
                             type="text"
-                            className="search-input"
+                            className="modern-search"
+                            style={{ width: '100%' }}
                             placeholder="Search sensors by name, description, or tags..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -150,8 +153,8 @@ export default function Home() {
             </section>
 
             {/* Sensors Grid with Sidebar */}
-            <section className="sensors-section">
-                <div className="container page-container">
+            <section style={{ padding: '3rem 0 5rem 0' }}>
+                <div className="modern-layout" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <SensorFilters
                         stats={stats}
                         selectedCategory={selectedCategory}
@@ -161,12 +164,12 @@ export default function Home() {
                         loading={!stats}
                     />
 
-                    <div>
-                        <div className="section-header">
-                            <h2 className="section-title">
+                    <div className="modern-main">
+                        <div style={{ paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <h2 className="modern-results-text" style={{ margin: 0 }}>
                                 {selectedCategory === 'All' ? 'All Sensors' : `${selectedCategory} Sensors`}
                             </h2>
-                            <span style={{ color: 'var(--text-muted)' }}>
+                            <span style={{ color: 'var(--text-muted)', fontWeight: '500' }}>
                                 {total} sensor{total !== 1 ? 's' : ''} found
                             </span>
                         </div>
@@ -222,128 +225,54 @@ export default function Home() {
                         )}
 
                         {loading ? (
-                            <div className="loading">
+                            <div className="loading" style={{ minHeight: '400px' }}>
                                 <div className="spinner"></div>
                             </div>
                         ) : (
-                            <div className="sensor-grid">
+                            <div className="modern-grid">
                                 {sensors.map(sensor => (
                                     <Link
                                         key={sensor.id}
                                         href={`/sensors/${sensor.slug}`}
-                                        style={{ textDecoration: 'none' }}
+                                        className="modern-card"
                                     >
-                                        <div className="sensor-card">
-                                            <div className="sensor-card-header">
-                                                <h3 className="sensor-name">{sensor.display_name}</h3>
-                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                                        <span className="sensor-category">{sensor.category}</span>
-                                                        {sensor.status === 'pending' && (
-                                                            <span className="badge badge-pending">Pending</span>
-                                                        )}
-                                                        {sensor.status === 'certified' && (
-                                                            <span className="badge badge-certified">Certified</span>
-                                                        )}
-                                                        {sensor.status === 'approved' && (
-                                                            <span className="badge badge-approved">Approved</span>
-                                                        )}
-                                                        {sensor.status === 'built-in' && (
-                                                            <span className="badge badge-built-in">Built-in</span>
-                                                        )}
-                                                        {sensor.status === 'deprecated' && (
-                                                            <span className="badge badge-deprecated">Deprecated</span>
-                                                        )}
-                                                    </div>
-                                                    {sensor.is_certified && (
-                                                        <span style={{
-                                                            background: 'var(--success)',
-                                                            color: 'white',
-                                                            padding: '2px 6px',
-                                                            borderRadius: '4px',
-                                                            fontSize: '0.7rem',
-                                                            fontWeight: 'bold'
-                                                        }}>
-                                                            ✓ Certified
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
+                                        <div style={{ marginBottom: '0.75rem' }}>
+                                            <span className="modern-badge" style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-tertiary)', padding: '0.2rem 0.6rem' }}>
+                                                {sensor.category}
+                                            </span>
+                                            {sensor.status === 'pending' && <span className="modern-badge" style={{ background: '#FFD70022', color: '#DAA520' }}>Pending</span>}
+                                            {sensor.status === 'certified' && <span className="modern-badge" style={{ background: '#14B8A622', color: '#14B8A6' }}>Certified</span>}
+                                            {sensor.status === 'approved' && <span className="modern-badge" style={{ background: '#3B82F622', color: '#3B82F6' }}>Approved</span>}
+                                            {sensor.status === 'built-in' && <span className="modern-badge" style={{ background: '#8B5CF622', color: '#8B5CF6' }}>Built-in</span>}
+                                            {sensor.status === 'deprecated' && <span className="modern-badge" style={{ background: '#EF444422', color: '#EF4444' }}>Deprecated</span>}
+                                            {sensor.is_certified && (
+                                                <span className="modern-badge" style={{ background: 'var(--success)', color: 'white' }}>✓ Certified</span>
+                                            )}
+                                        </div>
 
-                                            <p className="sensor-description">{formatDescription(sensor.description)}</p>
+                                        <h3 className="modern-title-text">{sensor.display_name}</h3>
 
-                                            <div className="sensor-meta">
-                                                <span>
-                                                    ⬇️ {sensor.total_downloads.toLocaleString()} downloads
+                                        <p style={{ color: 'var(--text-tertiary)', fontSize: '0.95rem', lineHeight: '1.5', marginTop: '0.5rem', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                            {formatDescription(sensor.description)}
+                                        </p>
+
+                                        <div className="modern-author-text">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                    {sensor.total_downloads.toLocaleString()}
                                                 </span>
-                                                <span className="rating">
-                                                    ⭐ {sensor.avg_rating.toFixed(1)}
+                                                <span style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>
+                                                    ★ {sensor.avg_rating.toFixed(1)}
                                                 </span>
                                             </div>
-
-                                            <div className="sensor-tags">
-                                                {sensor.tags.map(tag => (
-                                                    <span key={tag} className="tag">{tag}</span>
-                                                ))}
-                                            </div>
-
-                                            {sensor.status === 'built-in' && (
-                                                <div style={{ marginTop: '12px' }}>
-                                                    {sensor.docs_url ? (
-                                                        sensor.docs_url.startsWith('/') ? (
-                                                            <Link
-                                                                href={sensor.docs_url}
-                                                                onClick={(e) => e.preventDefault()}
-                                                                style={{
-                                                                    display: 'inline-block',
-                                                                    padding: '6px 12px',
-                                                                    fontSize: '0.85rem',
-                                                                    color: 'var(--accent-primary)',
-                                                                    textDecoration: 'none',
-                                                                    border: '1px solid var(--accent-primary)',
-                                                                    borderRadius: 'var(--border-radius-sm)',
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                📖 View Docs
-                                                            </Link>
-                                                        ) : (
-                                                            <a
-                                                                href={sensor.docs_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                onClick={(e) => e.preventDefault()}
-                                                                style={{
-                                                                    display: 'inline-block',
-                                                                    padding: '6px 12px',
-                                                                    fontSize: '0.85rem',
-                                                                    color: 'var(--accent-primary)',
-                                                                    textDecoration: 'none',
-                                                                    border: '1px solid var(--accent-primary)',
-                                                                    borderRadius: 'var(--border-radius-sm)',
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                📖 View Docs ↗
-                                                            </a>
-                                                        )
-                                                    ) : (
-                                                        <Link
-                                                            href="/docs"
-                                                            onClick={(e) => e.preventDefault()}
-                                                            style={{
-                                                                display: 'inline-block',
-                                                                padding: '6px 12px',
-                                                                fontSize: '0.85rem',
-                                                                color: 'var(--accent-primary)',
-                                                                textDecoration: 'none',
-                                                                border: '1px solid var(--accent-primary)',
-                                                                borderRadius: 'var(--border-radius-sm)',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                        >
-                                                            📖 View Docs
-                                                        </Link>
+                                            {sensor.tags.length > 0 && (
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
+                                                    {sensor.tags.slice(0, 3).map(tag => (
+                                                        <span key={tag} style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', background: 'var(--bg-label-hover)', borderRadius: '0.375rem', color: 'var(--text-muted)' }}>{tag}</span>
+                                                    ))}
+                                                    {sensor.tags.length > 3 && (
+                                                        <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', color: 'var(--text-muted)' }}>+{sensor.tags.length - 3}</span>
                                                     )}
                                                 </div>
                                             )}
