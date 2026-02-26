@@ -35,10 +35,10 @@ scripts/               # Data import scripts
 
 ## Worktree Setup
 
-Git worktrees do **not** inherit `node_modules`. After creating or entering a worktree, install dependencies before running any commands:
+Git worktrees do **not** inherit `node_modules`. Always run the following automatically before executing any tests or build commands in a worktree — do not wait to be asked:
 
 ```bash
-cd apps/web && npm install
+cd apps/web && npm ci --legacy-peer-deps
 ```
 
 ## Pre-Commit Checklist
