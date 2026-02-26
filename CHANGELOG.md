@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-02-26
+
+### Added
+
+- **Modern Dashboard Layout**: Ported the redesigned layout to Next.js — updated navigation, sidebar sensor filters, and improved responsive styling with refreshed global CSS.
+- **Contact Author**: Admin sensor edit modal now surfaces the sensor owner's name and email as a mailto link for easy outreach.
+
+### Fixed
+
+- **D1 Migrations (CI)**: Production migrations were silently applying to the local CI runner instead of the remote D1 database due to a missing `--remote` flag. Schema changes (e.g., `docs_url` column) were not reaching production until this was corrected.
+
 ## [2.9.3] - 2026-02-26
 
 ### Fixed
