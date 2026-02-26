@@ -12,11 +12,9 @@ export interface Stats {
 
 interface SensorFiltersProps {
     stats: Stats | null;
-    selectedCategory: string;
     selectedTags: string[];
     selectedStatuses: string[];
     selectedVendors: string[];
-    onCategoryChange: (category: string) => void;
     onTagToggle: (tag: string) => void;
     onStatusToggle: (status: string) => void;
     onVendorToggle: (vendor: string) => void;
@@ -156,11 +154,9 @@ function FilterCheckboxList({
 
 export default function SensorFilters({
     stats,
-    selectedCategory,
     selectedTags,
     selectedStatuses,
     selectedVendors,
-    onCategoryChange,
     onTagToggle,
     onStatusToggle,
     onVendorToggle,
@@ -172,13 +168,6 @@ export default function SensorFilters({
 
     if (!stats) return null;
 
-    // Build "What to monitor" items from categories
-    const totalSensors = stats.categories.reduce((acc, cat) => acc + cat.count, 0);
-    const categoryItems = [
-        { name: 'All', count: totalSensors },
-        ...stats.categories,
-    ];
-
     // Split tags into languages vs general
     const languageTags = stats.tags.filter(t => LANGUAGE_TAGS.has(t.name));
 
@@ -189,29 +178,13 @@ export default function SensorFilters({
         label: STATUS_LABELS[s.name] || s.name,
     }));
 
-    // Category uses single-select via toggle behavior
-    const handleCategoryToggle = (name: string) => {
-        onCategoryChange(name);
-    };
-
     return (
         <aside className="modern-sidebar">
             <h3 className="sidebar-title">Filters</h3>
 
-            {/* What to monitor (Categories) */}
-            <FilterAccordion title="What to monitor" defaultOpen>
-                <FilterCheckboxList
-                    items={categoryItems}
-                    selectedItems={[selectedCategory]}
-                    onToggle={handleCategoryToggle}
-                    searchPlaceholder="Search filter"
-                    maxVisible={6}
-                />
-            </FilterAccordion>
-
             {/* Script language (derived from tags) */}
             {languageTags.length > 0 && (
-                <FilterAccordion title="Script language" defaultOpen={false}>
+                <FilterAccordion title="Script language" defaultOpen>
                     <FilterCheckboxList
                         items={languageTags}
                         selectedItems={selectedTags}

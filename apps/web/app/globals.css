@@ -246,30 +246,35 @@ a:hover {
     color: var(--text-muted);
 }
 
-/* Category Pills */
-.categories {
+/* Collection Pills — single-select group at top of content area */
+.collection-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 24px;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.category-pill {
-    padding: 8px 16px;
+.collection-pill {
+    padding: 0.45rem 1rem;
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
+    border: 1px solid var(--border-medium);
+    border-radius: 9999px;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 500;
     cursor: pointer;
     transition: var(--transition);
+    white-space: nowrap;
 }
 
-.category-pill:hover,
-.category-pill.active {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
+.collection-pill:hover {
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+}
+
+.collection-pill.active {
+    background: var(--text-accent);
+    border-color: var(--text-accent);
     color: white;
 }
 
@@ -995,41 +1000,6 @@ a:hover {
     font-size: 1rem;
     color: var(--text-secondary);
     margin: 0;
-}
-
-/* -------------------------------------------------------------------------- */
-/* CATEGORY PILLS                                                               */
-/* -------------------------------------------------------------------------- */
-.category-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1.25rem;
-    margin-bottom: 1rem;
-}
-
-.category-pill-btn {
-    padding: 0.45rem 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-medium);
-    border-radius: 9999px;
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition);
-    white-space: nowrap;
-}
-
-.category-pill-btn:hover {
-    border-color: var(--text-accent);
-    color: var(--text-accent);
-}
-
-.category-pill-btn.active {
-    background: var(--text-accent);
-    border-color: var(--text-accent);
-    color: white;
 }
 
 /* -------------------------------------------------------------------------- */
