@@ -40,9 +40,19 @@ export async function GET(request: NextRequest) {
             ORDER BY count DESC
         `).all();
 
+        // Status counts
+        const { results: statuses } = await env.DB.prepare(`
+            SELECT status as name, COUNT(*) as count
+            FROM sensors
+            WHERE status IN ('approved', 'certified', 'built-in')
+            GROUP BY status
+            ORDER BY count DESC
+        `).all();
+
         return NextResponse.json({
             categories,
-            tags
+            tags,
+            statuses
         });
     } catch (error: any) {
         console.error('Stats API Error:', error);

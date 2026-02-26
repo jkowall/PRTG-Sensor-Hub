@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-02-26
+
+### Added
+
+- **Accordion Filter Sidebar**: Rewrote the sidebar with collapsible accordion sections (What to monitor, Script language, Source & Quality) with in-section search, "Show N more" truncation, and chevron animations.
+- **Category Pills**: Horizontal pill buttons below the search bar for quick category filtering.
+- **Active Filter Chips**: Removable filter chips bar showing all active filters with result count and "Clear all".
+- **Status Filtering**: Public sensors API now supports filtering by status (Approved, Certified, Built-in); stats API returns status counts.
+
+### Changed
+
+- **Compact Page Header**: Replaced the large centered hero section with a compact header (title + subtitle + Submit button) and search bar directly below.
+
 ## [2.10.0] - 2026-02-26
 
 ### Added

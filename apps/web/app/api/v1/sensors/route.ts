@@ -84,6 +84,18 @@ export async function GET(request: NextRequest) {
         params.push(category);
     }
 
+    // Support for status filter (public: only allowed statuses)
+    const statusParam = searchParams.get('status');
+    if (statusParam && !isAdmin) {
+        const allowedStatuses = ['approved', 'certified', 'built-in'];
+        const statuses = statusParam.split(',').filter(s => allowedStatuses.includes(s.trim()));
+        if (statuses.length > 0) {
+            const placeholders = statuses.map(() => '?').join(',');
+            whereClauses.push(`status IN (${placeholders})`);
+            params.push(...statuses);
+        }
+    }
+
     // Support for multiple tags (comma separated)
     const tagsParam = searchParams.get('tags');
     if (tagsParam) {
