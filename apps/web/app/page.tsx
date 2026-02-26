@@ -35,7 +35,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 export default function Home() {
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [selectedCollection, setSelectedCollection] = useState('All');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ export default function Home() {
             try {
                 const params = new URLSearchParams();
                 if (searchQuery) params.append('search', searchQuery);
-                if (selectedCategory !== 'All') params.append('category', selectedCategory);
+                if (selectedCollection !== 'All') params.append('category', selectedCollection);
                 if (selectedTags.length > 0) params.append('tags', selectedTags.join(','));
                 params.append('page', currentPage.toString());
                 params.append('page_size', pageSize.toString());
@@ -111,12 +111,12 @@ export default function Home() {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [searchQuery, selectedCategory, selectedTags, currentPage]);
+    }, [searchQuery, selectedCollection, selectedTags, currentPage]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedCategory, selectedTags]);
+    }, [searchQuery, selectedCollection, selectedTags]);
 
     const handleTagToggle = (tag: string) => {
         setSelectedTags(prev =>
@@ -157,17 +157,36 @@ export default function Home() {
                 <div className="modern-layout" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <SensorFilters
                         stats={stats}
-                        selectedCategory={selectedCategory}
                         selectedTags={selectedTags}
-                        onCategoryChange={setSelectedCategory}
                         onTagToggle={handleTagToggle}
                         loading={!stats}
                     />
 
                     <div className="modern-main">
+                        {/* Collection pills — single-select group, separate from filters */}
+                        {stats && (
+                            <div className="collection-pills">
+                                <button
+                                    className={`collection-pill${selectedCollection === 'All' ? ' active' : ''}`}
+                                    onClick={() => setSelectedCollection('All')}
+                                >
+                                    Show all
+                                </button>
+                                {stats.categories.map((cat: { name: string; count: number }) => (
+                                    <button
+                                        key={cat.name}
+                                        className={`collection-pill${selectedCollection === cat.name ? ' active' : ''}`}
+                                        onClick={() => setSelectedCollection(cat.name)}
+                                    >
+                                        {cat.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                         <div style={{ paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <h2 className="modern-results-text" style={{ margin: 0 }}>
-                                {selectedCategory === 'All' ? 'All Sensors' : `${selectedCategory} Sensors`}
+                                {selectedCollection === 'All' ? 'All Sensors' : selectedCollection}
                             </h2>
                             <span style={{ color: 'var(--text-muted)', fontWeight: '500' }}>
                                 {total} sensor{total !== 1 ? 's' : ''} found
