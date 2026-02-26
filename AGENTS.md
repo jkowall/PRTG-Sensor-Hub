@@ -135,6 +135,7 @@ export async function GET(request: NextRequest) {
 
 ## Git Conventions
 
+- **Always work in a branch** — never commit directly to `main`. Create a feature/fix branch first, unless subagents need to share the same branch (in which case reuse the existing branch rather than creating new ones).
 - **Branches**: `feature/`, `fix/`, `refactor/`, `docs/` prefixes
 - **Commits**: conventional commits — `type(scope): description`
   - Types: `feat`, `fix`, `refactor`, `docs`, `perf`, `test`, `chore`

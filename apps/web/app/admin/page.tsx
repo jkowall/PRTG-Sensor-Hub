@@ -39,6 +39,9 @@ interface Sensor {
     version_count: number;
     created_at: string;
     updated_at: string;
+    owner_email?: string | null;
+    owner_name?: string | null;
+    owner_github?: string | null;
 }
 
 interface VerificationIssue {
@@ -1017,28 +1020,41 @@ export default function AdminPage() {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', marginTop: '40px' }}>
-                            <button
-                                className="btn btn-outline"
-                                style={{ padding: '12px 24px', minWidth: '120px' }}
-                                onClick={() => setEditingSensor(null)}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                style={{ padding: '12px 32px', minWidth: '160px' }}
-                                onClick={() => updateSensorDetails(editingSensor.id, {
-                                    display_name: editingSensor.display_name,
-                                    description: editingSensor.description,
-                                    category: editingSensor.category,
-                                    tags: editingSensor.tags,
-                                    repository_url: editingSensor.repository_url || null,
-                                    docs_url: editingSensor.docs_url || null
-                                })}
-                            >
-                                Save Changes
-                            </button>
+                        <div style={{ display: 'flex', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px' }}>
+                            {editingSensor.owner_email ? (
+                                <a
+                                    href={`mailto:${editingSensor.owner_email}?subject=RE: ${encodeURIComponent(editingSensor.display_name)} on PRTG Sensor Hub`}
+                                    className="btn btn-outline"
+                                    style={{ padding: '12px 20px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}
+                                >
+                                    Contact Author
+                                </a>
+                            ) : (
+                                <span />
+                            )}
+                            <div style={{ display: 'flex', gap: '16px' }}>
+                                <button
+                                    className="btn btn-outline"
+                                    style={{ padding: '12px 24px', minWidth: '120px' }}
+                                    onClick={() => setEditingSensor(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-primary"
+                                    style={{ padding: '12px 32px', minWidth: '160px' }}
+                                    onClick={() => updateSensorDetails(editingSensor.id, {
+                                        display_name: editingSensor.display_name,
+                                        description: editingSensor.description,
+                                        category: editingSensor.category,
+                                        tags: editingSensor.tags,
+                                        repository_url: editingSensor.repository_url || null,
+                                        docs_url: editingSensor.docs_url || null
+                                    })}
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

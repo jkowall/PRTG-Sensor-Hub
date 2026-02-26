@@ -54,6 +54,13 @@ export async function GET(
             return NextResponse.json({ error: 'This version is still pending verification and cannot be downloaded yet' }, { status: 403 });
         }
 
+        if (version.commit_sha === 'imported') {
+            return NextResponse.json({
+                error: 'This is a legacy imported sensor. Please download it directly from its original source.',
+                source_url: version.github_url
+            }, { status: 400 });
+        }
+
         // 3. Increment download counts (D1 batch for atomicity alternative)
         await env.DB.batch([
             env.DB.prepare('UPDATE sensors SET total_downloads = total_downloads + 1 WHERE id = ?').bind(sensor.id),
