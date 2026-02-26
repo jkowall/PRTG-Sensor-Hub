@@ -58,5 +58,5 @@ jobs:
           # Apply migrations in order, continuing on errors (in case already applied)
           for migration in migrations/*.sql; do
             echo "Applying migration: $migration"
-            npx wrangler d1 execute DB --file="$migration" || echo "Migration $migration failed or already applied, continuing..."
+            npx wrangler d1 execute DB --remote --file="$migration" || echo "Migration $migration failed or already applied, continuing..."
           done
