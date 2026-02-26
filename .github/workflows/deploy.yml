@@ -55,8 +55,27 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          # Apply migrations in order, continuing on errors (in case already applied)
+          set -e
+
+          # Create migration tracking table
+          npx wrangler d1 execute DB --remote --command "CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, applied_at DATETIME DEFAULT CURRENT_TIMESTAMP);"
+
+          # Seed migrations applied before tracking was introduced
+          npx wrangler d1 execute DB --remote --command "INSERT OR IGNORE INTO _migrations (name) VALUES ('001_builtin_status.sql'), ('002_add_docs_url.sql');"
+
+          # Apply pending migrations in order
           for migration in migrations/*.sql; do
-            echo "Applying migration: $migration"
-            npx wrangler d1 execute DB --remote --file="$migration" || echo "Migration $migration failed or already applied, continuing..."
+            name=$(basename "$migration")
+
+            if npx wrangler d1 execute DB --remote --command "SELECT name FROM _migrations WHERE name = '${name}';" 2>&1 | grep -q "${name}"; then
+              echo "Skipping ${name} (already applied)"
+              continue
+            fi
+
+            echo "Applying ${name}..."
+            npx wrangler d1 execute DB --remote --file="$migration"
+            npx wrangler d1 execute DB --remote --command "INSERT INTO _migrations (name) VALUES ('${name}');"
+            echo "${name} applied successfully"
           done
+
+          echo "All migrations up to date."

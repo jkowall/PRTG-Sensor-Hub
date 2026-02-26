@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.4] - 2026-02-26
+
+### Fixed
+
+- **D1 Migration Tracking**: Deploy now tracks applied migrations in a `_migrations` table, preventing duplicate `ALTER TABLE` errors (e.g., `duplicate column name: docs_url`) on every deploy.
+- **Deploy Error Visibility**: Migration failures now correctly fail the GitHub Actions job instead of being silently swallowed.
+
 ## [2.9.3] - 2026-02-26
 
 ### Fixed
