@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.3] - 2026-02-26
+
+### Fixed
+
+- **Admin Sensors Tab**: Fix sensors not displaying due to unhandled JSON parse error in admin sensors API. A single sensor with malformed tags JSON would crash the entire response.
+- **Admin Error Visibility**: API errors in the sensors tab are now shown to the admin instead of silently displaying "No sensors found".
+- **CSS `--bg-hover` variable**: Restore missing legacy alias removed during layout modernization, fixing broken hover states on nav links, tags, and pagination.
+
 ## [2.9.2] - 2026-02-25
 
 ### Added

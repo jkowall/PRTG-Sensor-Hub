@@ -39,6 +39,7 @@
     /* Legacy aliases to avoid breaking non-updated components immediately */
     --bg-primary: var(--bg-app);
     --bg-secondary: var(--bg-sidebar);
+    --bg-hover: #f1f3f5;
     --border-color: var(--border-medium);
     --accent-primary: var(--text-accent);
     --accent-secondary: #E6007E;
@@ -88,6 +89,7 @@
     /* Legacy aliases */
     --bg-primary: var(--bg-app);
     --bg-secondary: var(--bg-sidebar);
+    --bg-hover: #15255a;
     --border-color: var(--border-medium);
     --accent-primary: var(--text-accent);
 }

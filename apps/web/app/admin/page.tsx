@@ -164,10 +164,15 @@ export default function AdminPage() {
             });
             if (res.ok) {
                 const data = await res.json();
-                setSensors(data.items);
+                setSensors(data.items || []);
+                setError(null);
+            } else {
+                const data = await res.json().catch(() => ({}));
+                setError(data.error || `Failed to fetch sensors (${res.status})`);
             }
         } catch (err) {
             console.error('Failed to fetch sensors:', err);
+            setError('Failed to fetch sensors');
         }
     };
 
@@ -603,6 +608,11 @@ export default function AdminPage() {
                             </div>
                         </div>
                     </div>
+                    {error && (
+                        <div style={{ padding: '16px 24px', background: 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid var(--error)', color: 'var(--error)', fontSize: '0.9rem' }}>
+                            {error}
+                        </div>
+                    )}
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>

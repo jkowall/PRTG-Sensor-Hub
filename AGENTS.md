@@ -1,200 +1,86 @@
-# Agent Guidelines
+# PRTG Sensor Hub — Agent Guidelines
 
-This project uses a unified Next.js 16 stack on Cloudflare.
+Monorepo for the PRTG Sensor Hub — a community sensor catalog. Next.js 16 (App Router) on Cloudflare Pages with D1 (SQLite) database.
 
-## ⚠️ Mandatory Pre-Commit Checklist
+## Project Structure
 
-1. [ ] Run linting: `cd apps/web && npm run lint`
-2. [ ] Verify Edge compatibility: `cd apps/web && npm run pages:build`
-3. [ ] Update `CHANGELOG.md` for user-facing changes
-
-## Testing & Deployment Workflow
-
-### Testing Before Push
-
-Always run the pre-commit checklist locally to catch issues early:
-```bash
-cd apps/web
-npm run lint          # Check for code style issues
-npm run pages:build   # Verify Cloudflare Pages compatibility
+```text
+apps/web/              # Next.js app (all development happens here)
+  app/                 # App Router pages, layouts, API routes
+    api/v1/            # REST API endpoints
+    components/        # Shared React components
+    context/           # AuthContext, ThemeContext
+    admin/             # Admin panel
+    sensors/[slug]/    # Sensor detail pages
+    submit/            # Sensor submission page
+    my-sensors/        # User's sensors page
+    auth/              # GitHub OAuth callback
+    docs/              # Documentation pages
+  lib/                 # Utilities (db, jwt, github, verification)
+  migrations/          # D1 migration SQL files (sequential numbering)
+  schema.sql           # Full DB schema (reference only — never edit for migrations)
+  __tests__/           # Test files
+  wrangler.jsonc       # Cloudflare Workers config
+scripts/               # Data import scripts
+.github/workflows/     # CI (ci.yml) and deploy (deploy.yml)
 ```
 
-Both commands must pass with no errors before committing.
+## Critical Rules
 
-### Deployment Strategy
+1. **Every route/page must use `export const runtime = 'edge'`** — runs on Cloudflare Workers, not Node.js.
+2. **Use `getCloudflareContext()` from `@opennextjs/cloudflare`** to access D1 and secrets. Never use `process.env` for secrets.
+3. **Never deploy locally** — push to `main` triggers automatic Cloudflare Pages deployment + D1 migrations via GitHub Actions.
+4. **Never modify `schema.sql` for changes** — create new files in `apps/web/migrations/` with sequential numbering (e.g., `003_description.sql`).
+5. **Pre-commit checklist is mandatory** — see below.
 
-**Do NOT attempt to deploy from local using `wrangler pages deploy`.** Instead:
-
-1. **Commit & Push**: Make your changes, run the checklist above, then:
-   ```bash
-   git add -A
-   git commit -m "your descriptive commit message"
-   git push origin main
-   ```
-
-2. **Automatic Deployment**: Cloudflare Pages is configured to auto-deploy on git push to `main`. The deployment pipeline will:
-   - Build the Next.js app using OpenNext
-   - Publish static assets and serverless functions
-   - Deploy within 1-2 minutes
-
-3. **Verify Deployment**: Check the Cloudflare Pages dashboard or git push output for a deployment URL.
-
-### Why Push Instead of Local Deploy?
-
-- **Consistency**: CI/CD ensures builds are clean and reproducible
-- **Version Control**: Deployment is tied to commit history
-- **Secrets Management**: Cloudflare secrets are managed server-side, not from local environment
-- **Reliability**: Avoids authentication and permission issues with local `wrangler` CLI
-
-## Development Standards
-
-### API Routes
-
-- **Runtime**: Always use `runtime = 'edge'` in API routes and pages.
-- **Context**: Access bindings (D1) and secrets via `getRequestContext().env` instead of `process.env`.
-
-### Styling
-
-- Prioritize visual excellence; use the PRTG cyan/pink brand colors.
-- Ensure dark mode compatibility (use `logo-image` class for the logo).
-
-### Versioning
-
-- **Source of Truth**: The version in `package.json` is the single source of truth.
-- **Display**: The application footer automatically reads from `package.json`. When releasing, bump `package.json`, **run `npm install` to update `package-lock.json`**, and update `CHANGELOG.md`.
-
-### Local Development
-
-- **Database**: The project uses Cloudflare D1.
-  - To seed the local database: `npx wrangler d1 execute DB --local --file=schema.sql`
-  - If `wrangler` fails with permissions, you can manually apply `schema.sql` to the `.sqlite` file in `.wrangler/state/v3/d1/`.
-- **Pre-Commit**: Follow the checklist above.
-
-## Database Migrations
-
-### Creating a Migration
-
-1. Create a new `.sql` file in `apps/web/migrations/` with sequential numbering:
-   ```bash
-   # Example: apps/web/migrations/003_add_new_column.sql
-   ```
-
-2. Write your migration SQL:
-   ```sql
-   -- Migration: Add new_column to sensors
-   -- Run with: npx wrangler d1 execute DB --file=migrations/003_add_new_column.sql
-   -- For local: npx wrangler d1 execute DB --local --file=migrations/003_add_new_column.sql
-
-   ALTER TABLE sensors ADD COLUMN new_column TEXT;
-   ```
-
-3. Test locally:
-   ```bash
-   cd apps/web && npx wrangler d1 execute DB --local --file=migrations/003_add_new_column.sql
-   ```
-
-4. Apply to production (via the deployment pipeline after pushing to main):
-   - The migration runs automatically on deployed instances
-   - Monitor Cloudflare Pages logs to confirm success
-
-**Important**: Never modify `schema.sql` directly for migrations. Always create new migration files. This ensures a clear audit trail and reproducible deployments.
-
-### Automatic Migration Execution
-
-Migrations are **automatically applied on deployment** via GitHub Actions:
-
-1. When you push to `main`, the deploy workflow triggers
-2. After the Cloudflare Pages deployment completes, the "Apply D1 Migrations" step runs
-3. All `.sql` files in `apps/web/migrations/` are executed in order
-
-This means:
-- ✅ No manual migration steps required
-- ✅ Migrations are tied to code deployments
-- ✅ All environments stay in sync
-
-**For local development**: Apply migrations manually to test:
-```bash
-cd apps/web && npx wrangler d1 execute DB --local --file=migrations/003_add_new_column.sql
-```
-
-## Testing
-
-### Running Tests
+## Pre-Commit Checklist
 
 ```bash
-cd apps/web
-npm run test          # Run all tests once
-npm run test:watch   # Run tests in watch mode (for development)
+cd apps/web && npm run lint && npm run pages:build
 ```
 
-### Test Files
+Both must pass with no errors before committing. Update `CHANGELOG.md` for user-facing changes.
 
-- Tests are colocated next to source code or in `__tests__/` directories
-- Use Jest configuration from [jest.config.js](apps/web/jest.config.js)
-- Follow the naming pattern: `*.test.ts` or `*.test.tsx`
+## Commands
 
-### Writing Tests
+All commands run from `apps/web/`:
 
-- Test API route handlers with mock requests/responses
-- Test React components with `@testing-library/react`
-- Mock Cloudflare context and D1 Database calls
-- Aim for high coverage on critical paths: auth, data validation, error handling
+|Command|Purpose|
+|---|---|
+|`npm run dev`|Local dev server|
+|`npm run lint`|ESLint|
+|`npm run pages:build`|Cloudflare Pages build (Edge compatibility check)|
+|`npm run test`|Jest tests|
+|`npm run test:watch`|Jest in watch mode|
+|`npx wrangler d1 execute DB --local --file=schema.sql`|Seed local D1 database|
+|`npx wrangler d1 execute DB --local --file=migrations/NNN_name.sql`|Apply a migration locally|
 
-## Git Workflow
+## Database
 
-### Branch Naming
+### Schema (3 tables)
 
-- `feature/description` - New features
-- `fix/description` - Bug fixes
-- `refactor/description` - Code improvements without functional changes
-- `docs/description` - Documentation updates
+- **users**: id, email, full_name, github_id, github_username, avatar_url, is_admin, is_blocked, timestamps
+- **sensors**: id, owner_id, slug, display_name, description, category, tags (JSON string), repository_url, docs_url, github_pr_url, is_certified, status (`pending`|`approved`|`certified`|`built-in`|`deprecated`), total_downloads, timestamps
+- **versions**: id, sensor_id, version_str, min_prtg_version, changelog, github_url, commit_sha, download_count, created_at
 
-### Commit Messages
+### Migrations
 
-Follow conventional commits format:
+1. Create `apps/web/migrations/NNN_description.sql` with sequential numbering
+2. Test locally: `cd apps/web && npx wrangler d1 execute DB --local --file=migrations/NNN_description.sql`
+3. Commit and push — migrations run automatically on deploy via GitHub Actions
 
-```
-type(scope): description
+All `.sql` files in `migrations/` are executed in order during deployment. Never modify `schema.sql` directly.
 
-feat(admin): add docs_url field to sensors
-fix(api): handle null repository_url in admin response
-docs(agents): add testing guidelines
-refactor(admin): simplify sensor edit modal
-```
+### Local Database Recovery
 
-Types: `feat`, `fix`, `refactor`, `docs`, `perf`, `test`, `chore`
-
-### Pull Requests
-
-- Keep PRs focused on a single feature or fix
-- Link related issues if applicable
-- Ensure pre-commit checklist passes
-- Wait for Cloudflare Pages deployment preview before merging
-
-## Environment Variables
-
-### Development (`.env.local`)
+If the local D1 database gets corrupted:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
+rm -rf .wrangler/state/v3/d1/
+cd apps/web && npx wrangler d1 execute DB --local --file=schema.sql
 ```
 
-### Production (Cloudflare Secrets)
-
-Set these in the Cloudflare dashboard under Workers > Settings > Secrets:
-
-| Variable | Purpose |
-|----------|---------|
-| `NEXTAUTH_SECRET` | JWT signing secret for authentication |
-| `GITHUB_CLIENT_ID` | OAuth app ID for GitHub login |
-| `GITHUB_CLIENT_SECRET` | OAuth app secret |
-| `GITHUB_BOT_TOKEN` | GitHub PAT for repo operations (PR creation, file access) |
-
-These are **not** stored in git. Each developer and the CI/CD pipeline get them from Cloudflare.
-
-## API Route Patterns
-
-### Standard Structure
+## API Route Pattern
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
@@ -204,13 +90,16 @@ export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
     const context = await getCloudflareContext();
-    if (!context || !context.env) {
+    if (!context?.env) {
         return NextResponse.json({ error: 'Context not found' }, { status: 500 });
     }
     const env = context.env as unknown as { DB: D1Database; NEXTAUTH_SECRET: string };
 
     try {
-        // Your logic here
+        // Always use parameterized queries — never interpolate user input
+        const result = await env.DB.prepare('SELECT * FROM sensors WHERE slug = ?')
+            .bind(slug)
+            .first();
         return NextResponse.json({ data: result });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -218,240 +107,81 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-### Best Practices
-
-- Always set `runtime = 'edge'` for Edge compatibility
-- Use `getCloudflareContext()` to access bindings (D1, secrets)
-- Validate input parameters before use
-- Return proper HTTP status codes
-- Include descriptive error messages
-- Use parameterized queries to prevent SQL injection
-
-## Error Handling
-
-### API Route Errors
-
-```typescript
-// 400: Bad Request (invalid input)
-return NextResponse.json({ error: 'Missing required field' }, { status: 400 });
-
-// 401: Unauthorized (missing/invalid auth)
-return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-// 403: Forbidden (authenticated but lacks permission)
-return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
-// 404: Not Found
-return NextResponse.json({ error: 'Sensor not found' }, { status: 404 });
-
-// 500: Server Error
-return NextResponse.json({ error: error.message }, { status: 500 });
-```
-
-### Frontend Error Display
-
-- Show user-friendly error messages in UI
-- Log full error details to console for debugging
-- Avoid exposing internal server details to users
-- Handle abort errors gracefully in fetch calls
-
 ## Authentication & Authorization
 
-### JWT Verification
+- GitHub OAuth login, JWT-based sessions
+- JWT helper: `import { verifyJWT } from '@/lib/jwt'`
+- Auth context: `import { useAuth } from '@/app/context/AuthContext'`
+- **Admin routes**: verify `is_admin` from DB after JWT validation
+- **Mutation routes**: check `is_blocked` before proceeding
+- Use standard HTTP status codes: 400 (bad input), 401 (no/invalid auth), 403 (forbidden/blocked), 404, 500
 
-```typescript
-const token = authHeader.split(' ')[1];
-const payload = await verifyJWT(token, secret);
+## Frontend Conventions
 
-if (!payload || !payload.sub) {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-}
-```
+- React 19 with App Router — no `pages/` directory
+- **Contexts**: `AuthContext` (user, token, loading), `ThemeContext` (isDark, toggleTheme)
+- **State management**: `useState` + Context only — no Redux/Zustand
+- **Styling**: PRTG brand colors (cyan/pink), dark mode support, `logo-image` class on logos
+- **Markdown rendering**: `react-markdown` only — never `dangerouslySetInnerHTML`
+- **Components**: single responsibility, lift state only as needed, `useMemo`/`useCallback` where appropriate
 
-### Admin Checks
+## TypeScript Conventions
 
-```typescript
-const admin = await env.DB.prepare('SELECT is_admin FROM users WHERE id = ?')
-    .bind(payload.sub)
-    .first();
-
-if (!admin || !(admin as any).is_admin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-}
-```
-
-### User Blocking
-
-Always check if a user is blocked before allowing mutations:
-
-```typescript
-const userCheck = await env.DB.prepare('SELECT is_blocked FROM users WHERE id = ?')
-    .bind(payload.sub)
-    .first();
-
-if ((userCheck as any)?.is_blocked) {
-    return NextResponse.json({ error: 'Your account has been blocked.' }, { status: 403 });
-}
-```
-
-## TypeScript
-
-### Conventions
-
-- Use strict mode (configured in `tsconfig.json`)
+- Strict mode enabled
 - Prefer explicit types over `any`
-- Define interfaces for API responses and database rows
-- Use `as unknown as` when casting D1 results to avoid type errors
+- Use `as unknown as` for D1 result casting
+- Define interfaces for API responses and DB rows
 - Mark nullable fields with `| null` or `?`
 
-### Example
+## Git Conventions
 
-```typescript
-interface Sensor {
-    id: string;
-    slug: string;
-    display_name: string;
-    category: string;
-    description: string | null;
-    tags: string[];  // Always array, never null
-    status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
-}
-```
+- **Branches**: `feature/`, `fix/`, `refactor/`, `docs/` prefixes
+- **Commits**: conventional commits — `type(scope): description`
+  - Types: `feat`, `fix`, `refactor`, `docs`, `perf`, `test`, `chore`
+- **PRs**: single focus, link issues, wait for Cloudflare preview deploy before merging
 
-## Frontend Patterns
+## Versioning
 
-### Context & Hooks
+`apps/web/package.json` version is the single source of truth (displayed in app footer). When releasing: bump version, run `npm install` to sync lock file, update `CHANGELOG.md`.
 
-The app uses `AuthContext` for user state and `ThemeContext` for appearance:
+## Environment Variables
 
-```typescript
-import { useAuth } from '@/app/context/AuthContext';
-import { useTheme } from '@/app/context/ThemeContext';
+- **Local**: `.env.local` — `NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1`
+- **Production** (Cloudflare Secrets — never in git):
 
-export default function MyComponent() {
-    const { user, token, loading } = useAuth();
-    const { isDark, toggleTheme } = useTheme();
-    
-    if (loading) return <div>Loading...</div>;
-    if (!user) return <div>Not authenticated</div>;
-    
-    return <div>Hello {user.github_username}</div>;
-}
-```
+|Variable|Purpose|
+|---|---|
+|`NEXTAUTH_SECRET`|JWT signing secret|
+|`GITHUB_CLIENT_ID`|OAuth app ID|
+|`GITHUB_CLIENT_SECRET`|OAuth app secret|
+|`GITHUB_BOT_TOKEN`|GitHub PAT for repo operations|
+|`VERIFICATION_TOKEN`|Sensor verification token|
 
-### State Management
+## Testing
 
-- Use React's `useState` for local component state
-- Use Context for global state (auth, theme, user preferences)
-- Keep complex state logic in custom hooks
-- Avoid redux/zustand; context + hooks are sufficient for current scope
+- Jest 29 with `@testing-library/react` and jsdom
+- Tests colocated next to source or in `__tests__/` directories
+- Naming: `*.test.ts` or `*.test.tsx`
+- Mock `getCloudflareContext()` and D1 in API route tests
+- CI runs: `npm run lint` and `npm test -- --forceExit`
 
-### Component Structure
+## Deployment
 
-- Keep components focused on a single responsibility
-- Lift state up only as needed
-- Memoize expensive computations with `useMemo`
-- Use `useCallback` for event handlers passed to child components
+Push to `main` triggers the full pipeline (GitHub Actions):
+
+1. Build Next.js with OpenNext (`npm run pages:build`)
+2. Deploy to Cloudflare Pages
+3. Apply all D1 migrations in order
+
+No manual deployment steps. Do not use `wrangler pages deploy` locally.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### `wrangler login` fails or times out
-- Try setting: `NODE_OPTIONS="--dns-result-order=ipv4first" wrangler login`
-- Clear cache: `rm -rf ~/.wrangler`
-- Check internet connection and firewall
-
-#### D1 migration errors
-- If SQLite file is corrupted: `rm -rf .wrangler/state/v3/d1/`
-- Then re-seed: `npx wrangler d1 execute DB --local --file=schema.sql`
-- For permission errors, check file ownership: `ls -la .wrangler/state/v3/d1/`
-
-#### Build fails with "module not found"
-- Clear dependencies: `rm -rf node_modules package-lock.json`
-- Reinstall: `npm install`
-- Verify Node version: `node --version` (should be 18+)
-
-#### Tests fail locally but pass in CI
-- Clear Jest cache: `npm run test -- --clearCache`
-- Check Node version matches CI environment
-- Ensure `.env.local` isn't being loaded in tests
-
-#### API routes return 500 in production but work locally
-- Check Cloudflare secrets are set (NEXTAUTH_SECRET, GITHUB_BOT_TOKEN, etc.)
-- Verify D1 database is migrated
-- Check function size; Cloudflare has limits on worker code
-
-#### Page appears outdated after deploy
-- Hard refresh browser: `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows)
-- Clear CloudFlare cache: Cloudflare Dashboard > Cache > Purge Everything
-- Check deployment completed: Cloudflare Pages > Deployments
-
-## Code Review Guidelines
-
-### What to Check
-
-1. **Pre-Commit Checklist**: Lint and build pass?
-2. **CHANGELOG.md**: Updated for user-facing changes?
-3. **Database**: Any schema changes migrated properly?
-4. **Security**: Input validated? SQL injection prevented? Auth checks in place?
-5. **Types**: No `any` types? Proper error handling?
-6. **Tests**: New endpoints tested? Coverage maintained?
-7. **Performance**: N+1 queries? Unnecessary API calls?
-8. **Accessibility**: Keyboard navigation? ARIA labels?
-
-### Review Comments
-
-- Be constructive and specific: "This query could use an index" instead of "slow query"
-- Suggest improvements: Show example code
-- Approve if checklist passes even if code isn't perfect
-- Request changes only for bugs, security, or major performance issues
-
-## Security
-
-### Input Validation
-
-Always validate and sanitize user input:
-
-```typescript
-if (!displayName || displayName.trim().length === 0) {
-    return NextResponse.json({ error: 'Display name required' }, { status: 400 });
-}
-
-if (!['network', 'cloud', 'iot'].includes(category)) {
-    return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
-}
-```
-
-### SQL Injection Prevention
-
-Use parameterized queries (binding):
-
-```typescript
-// ✅ Safe - parameterized
-const sensor = await env.DB.prepare('SELECT * FROM sensors WHERE slug = ?')
-    .bind(slug)
-    .first();
-
-// ❌ Never do this - vulnerable to SQL injection
-const sensor = await env.DB.prepare(`SELECT * FROM sensors WHERE slug = '${slug}'`);
-```
-
-### XSS Prevention
-
-- `react-markdown` is configured to be safe
-- Avoid `dangerouslySetInnerHTML` - use sanitized markdown instead
-- URL parameters are automatically escaped by Next.js
-
-### CORS & Rate Limiting
-
-- No CORS headers needed; same-origin by default
-- Cloudflare handles rate limiting at the edge
-- For API abuse, mark users as blocked via admin panel
-
-### Secrets Management
-
-- **Never** commit secrets to git
-- Use Cloudflare secrets for production
-- Use `.env.local` locally (in `.gitignore`)
-- Rotate secrets periodically (especially GITHUB_BOT_TOKEN)
+|Problem|Fix|
+|---|---|
+|`wrangler login` fails|`NODE_OPTIONS="--dns-result-order=ipv4first" wrangler login`|
+|D1 corrupted locally|`rm -rf .wrangler/state/v3/d1/` then re-seed|
+|"module not found" build error|`rm -rf node_modules package-lock.json && npm install`|
+|Tests fail locally but pass in CI|`npm test -- --clearCache`, check Node version|
+|API 500 in prod, works locally|Check Cloudflare secrets are set, D1 is migrated|
+|Stale page after deploy|Hard refresh (`Cmd+Shift+R`), purge Cloudflare cache|
