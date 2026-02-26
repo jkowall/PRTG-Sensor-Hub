@@ -662,7 +662,18 @@ export default function AdminPage() {
                             {sensors.map(s => (
                                 <tr key={s.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                     <td style={{ padding: '16px' }}>
-                                        <div style={{ fontWeight: '600' }}>{s.display_name}</div>
+                                        <div style={{ fontWeight: '600' }}>
+                                            <a
+                                                href={`/sensors/${s.slug}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ color: 'inherit', textDecoration: 'none' }}
+                                                title="View public sensor page"
+                                            >
+                                                {s.display_name}
+                                                <span style={{ marginLeft: '4px', fontSize: '0.75rem', color: 'var(--accent-primary)', verticalAlign: 'middle' }}>↗</span>
+                                            </a>
+                                        </div>
                                         {s.github_pr_url && (
                                             <a href={s.github_pr_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>
                                                 View PR ↗

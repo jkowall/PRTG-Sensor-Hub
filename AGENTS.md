@@ -33,6 +33,14 @@ scripts/               # Data import scripts
 4. **Never modify `schema.sql` for changes** — create new files in `apps/web/migrations/` with sequential numbering (e.g., `003_description.sql`).
 5. **Pre-commit checklist is mandatory** — see below.
 
+## Worktree Setup
+
+Git worktrees do **not** inherit `node_modules`. After creating or entering a worktree, install dependencies before running any commands:
+
+```bash
+cd apps/web && npm install
+```
+
 ## Pre-Commit Checklist
 
 ```bash
