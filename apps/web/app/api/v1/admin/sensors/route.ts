@@ -77,10 +77,19 @@ export async function GET(request: NextRequest) {
         query += ` ORDER BY ${sortCol} ${sortDir}`;
 
         const { results } = await env.DB.prepare(query).bind(...params).all();
-        const safeResults = results.map((r: any) => ({
-            ...r,
-            tags: r.tags ? JSON.parse(r.tags) : []
-        }));
+        const safeResults = results.map((r: any) => {
+            let tags: string[] = [];
+            try {
+                tags = r.tags ? JSON.parse(r.tags) : [];
+            } catch {
+                tags = [];
+            }
+            return {
+                ...r,
+                tags,
+                is_certified: Boolean(r.is_certified),
+            };
+        });
 
         return NextResponse.json({
             items: safeResults,
