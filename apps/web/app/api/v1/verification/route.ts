@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
         const rows = results as VerificationRow[];
         const issues: any[] = [];
         let checkedVersions = 0;
+        let importedVersions = 0;
 
         for (const row of rows) {
             if (!row.version_id) {
@@ -64,6 +65,11 @@ export async function GET(request: NextRequest) {
                     github_url: row.github_url || null, commit_sha: row.commit_sha || null,
                     issue_code: 'missing_version', issue_summary: 'No versions available'
                 });
+                continue;
+            }
+            // Skip imported legacy sensors - they use reference URLs, not downloadable repos
+            if (row.commit_sha === 'imported') {
+                importedVersions++;
                 continue;
             }
             checkedVersions++;
@@ -110,6 +116,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             checked_versions: checkedVersions,
+            imported_versions: importedVersions,
             issue_count: issues.length,
             issues
         });

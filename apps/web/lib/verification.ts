@@ -71,6 +71,7 @@ export async function runVerificationMetadataOnly(db: D1Database) {
     const rows = results as VerificationRow[];
     const issues: VerificationIssue[] = [];
     let checkedVersions = 0;
+    let importedVersions = 0;
 
     for (const row of rows) {
         if (!row.version_id) {
@@ -87,6 +88,12 @@ export async function runVerificationMetadataOnly(db: D1Database) {
                 issue_code: 'missing_version',
                 issue_summary: 'No versions available'
             });
+            continue;
+        }
+
+        // Skip imported legacy sensors - they use reference URLs, not downloadable repos
+        if (row.commit_sha === 'imported') {
+            importedVersions++;
             continue;
         }
 
@@ -162,6 +169,7 @@ export async function runVerificationMetadataOnly(db: D1Database) {
 
     return {
         checked_versions: checkedVersions,
+        imported_versions: importedVersions,
         issue_count: issues.length,
         issues
     };
@@ -181,6 +189,7 @@ export async function runVerification(db: D1Database) {
     const rows = results as VerificationRow[];
     const issues: VerificationIssue[] = [];
     const downloadChecks: { row: VerificationRow; downloadUrl: string }[] = [];
+    let importedVersions = 0;
 
     for (const row of rows) {
         if (!row.version_id) {
@@ -197,6 +206,12 @@ export async function runVerification(db: D1Database) {
                 issue_code: 'missing_version',
                 issue_summary: 'No versions available'
             });
+            continue;
+        }
+
+        // Skip imported legacy sensors - they use reference URLs, not downloadable repos
+        if (row.commit_sha === 'imported') {
+            importedVersions++;
             continue;
         }
 
@@ -312,6 +327,7 @@ export async function runVerification(db: D1Database) {
 
     return {
         checked_versions: downloadChecks.length,
+        imported_versions: importedVersions,
         issue_count: issues.length,
         issues
     };

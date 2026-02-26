@@ -75,10 +75,16 @@ export async function GET(request: NextRequest) {
         const rows = results as VerificationRow[];
         const issues: any[] = [];
         const downloadChecks: { row: VerificationRow; downloadUrl: string }[] = [];
+        let importedVersions = 0;
 
         for (const row of rows) {
             if (!row.version_id) {
                 issues.push({ sensor_id: row.sensor_id, slug: row.slug, display_name: row.display_name, category: row.category, status: row.status, version_id: '', version_str: 'none', github_url: row.github_url || null, commit_sha: row.commit_sha || null, issue_code: 'missing_version', issue_summary: 'No versions available' });
+                continue;
+            }
+            // Skip imported legacy sensors - they use reference URLs, not downloadable repos
+            if (row.commit_sha === 'imported') {
+                importedVersions++;
                 continue;
             }
             if (!row.github_url) {
@@ -111,7 +117,7 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        return NextResponse.json({ checked_versions: downloadChecks.length, issue_count: issues.length, issues });
+        return NextResponse.json({ checked_versions: downloadChecks.length, imported_versions: importedVersions, issue_count: issues.length, issues });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
