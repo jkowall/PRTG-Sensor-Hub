@@ -154,6 +154,16 @@ export async function GET(request: NextRequest) {
 
 `apps/web/package.json` version is the single source of truth (displayed in app footer). When releasing: bump version, run `npm install` to sync lock file, update `CHANGELOG.md`.
 
+### When to bump and changelog
+
+Do this **in the same commit** as the change, not batched later:
+
+- **patch** (`x.y.Z`): bug fixes, CI/ops fixes, copy changes
+- **minor** (`x.Y.0`): new user-facing features, significant UI changes, new admin capabilities
+- **major** (`X.0.0`): breaking API changes, major architecture rewrites
+
+Any commit with type `feat` or a `fix` that affects user-visible behavior must include a `CHANGELOG.md` entry. Internal-only changes (`docs`, `chore`, `refactor`, `test`) do not require a changelog entry or version bump.
+
 ## Environment Variables
 
 - **Local**: `.env.local` — `NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1`
