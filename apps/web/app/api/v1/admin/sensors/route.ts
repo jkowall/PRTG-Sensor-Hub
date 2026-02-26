@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get('status');
 
         let query = `
-            SELECT s.id, s.slug, s.display_name, s.category, s.description, s.tags, s.total_downloads, s.created_at, s.updated_at, s.is_certified, s.status, s.github_pr_url, s.repository_url, s.docs_url,
+            SELECT s.id, s.slug, s.display_name, s.category, s.description, s.tags, s.vendor, s.total_downloads, s.created_at, s.updated_at, s.is_certified, s.status, s.github_pr_url, s.repository_url, s.docs_url,
             u.email as owner_email, u.full_name as owner_name, u.github_username as owner_github,
             (SELECT COUNT(*) FROM versions v WHERE v.sensor_id = s.id) as version_count
             FROM sensors s
@@ -72,8 +72,16 @@ export async function GET(request: NextRequest) {
         }
 
         // Validate sort column to prevent injection
-        const allowedSortColumns = ['display_name', 'category', 'total_downloads', 'created_at', 'updated_at', 'status', 'version_count'];
-        const sortCol = allowedSortColumns.includes(sort) ? sort : 'created_at';
+        const allowedSortColumns: Record<string, string> = {
+            'display_name': 's.display_name',
+            'category': 's.category',
+            'total_downloads': 's.total_downloads',
+            'created_at': 's.created_at',
+            'updated_at': 's.updated_at',
+            'status': 's.status',
+            'version_count': 'version_count',
+        };
+        const sortCol = allowedSortColumns[sort] || 's.created_at';
         const sortDir = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
         query += ` ORDER BY ${sortCol} ${sortDir}`;

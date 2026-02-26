@@ -55,10 +55,11 @@ export async function GET(
         }
 
         if (version.commit_sha === 'imported') {
-            return NextResponse.json({
-                error: 'This is a legacy imported sensor. Please download it directly from its original source.',
-                source_url: version.github_url
-            }, { status: 400 });
+            const sourceUrl = version.github_url as string | null;
+            if (sourceUrl) {
+                return NextResponse.redirect(sourceUrl, 302);
+            }
+            return NextResponse.json({ error: 'No source URL available for this legacy sensor' }, { status: 404 });
         }
 
         // 3. Increment download counts (D1 batch for atomicity alternative)

@@ -21,6 +21,7 @@ interface Version {
     security_check_passed: boolean;
     download_count: number;
     created_at: string;
+    commit_sha: string | null;
 }
 
 interface SensorDetail {
@@ -123,7 +124,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
         );
     }
 
-    const docsUrl = sensor.docs_url || '/docs';
+    const docsUrl = sensor.docs_url || (sensor.status === 'built-in' ? sensor.repository_url : null) || '/docs';
     const isInternalDocs = docsUrl.startsWith('/');
     const currentVersion = sensor.versions.find(v => v.version_str === selectedVersion) || sensor.versions[0];
 
@@ -243,17 +244,29 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                 )}
                             </div>
 
-                            <button
-                                onClick={() => {
-                                    if (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') return;
-                                    window.location.href = `${API_URL}/sensors/${sensor.slug}/download?version=${selectedVersion}`;
-                                }}
-                                disabled={sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated'}
-                                className={`btn btn-primary ${(sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'btn-disabled' : ''}`}
-                                style={{ width: '100%', marginBottom: '12px', opacity: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 0.5 : 1, cursor: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'not-allowed' : 'pointer' }}
-                            >
-                                {sensor.status === 'pending' ? '🔒 Review Pending' : sensor.status === 'built-in' ? '📦 Built into PRTG' : sensor.status === 'deprecated' ? '⚠️ Deprecated' : '⬇️ Download Source (Zip)'}
-                            </button>
+                            {currentVersion?.commit_sha === 'imported' && sensor.status !== 'pending' && sensor.status !== 'built-in' && sensor.status !== 'deprecated' ? (
+                                <a
+                                    href={sensor.repository_url || '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn btn-primary"
+                                    style={{ width: '100%', marginBottom: '12px', display: 'block', textAlign: 'center' }}
+                                >
+                                    🔗 View Source
+                                </a>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        if (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') return;
+                                        window.location.href = `${API_URL}/sensors/${sensor.slug}/download?version=${selectedVersion}`;
+                                    }}
+                                    disabled={sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated'}
+                                    className={`btn btn-primary ${(sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'btn-disabled' : ''}`}
+                                    style={{ width: '100%', marginBottom: '12px', opacity: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 0.5 : 1, cursor: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'not-allowed' : 'pointer' }}
+                                >
+                                    {sensor.status === 'pending' ? '🔒 Review Pending' : sensor.status === 'built-in' ? '📦 Built into PRTG' : sensor.status === 'deprecated' ? '⚠️ Deprecated' : '⬇️ Download Source (Zip)'}
+                                </button>
+                            )}
                             {sensor.status === 'pending' && (
                                 <p style={{ fontSize: '0.75rem', color: 'var(--warning)', textAlign: 'center', marginBottom: '12px' }}>
                                     Downloads will be enabled after review.
@@ -296,15 +309,17 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                         )
                     )}
 
-                    <a
-                        href={sensor.repository_url || `https://github.com/jkowall/PRTG-Sensor-Hub-Sensors/tree/main/sensors/${sensor.category}/${sensor.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-outline"
-                        style={{ width: '100%' }}
-                    >
-                        View on GitHub
-                    </a>
+                    {sensor.status !== 'built-in' && (
+                        <a
+                            href={sensor.repository_url || `https://github.com/jkowall/PRTG-Sensor-Hub-Sensors/tree/main/sensors/${sensor.category}/${sensor.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline"
+                            style={{ width: '100%' }}
+                        >
+                            View on GitHub
+                        </a>
+                    )}
                 </div>
             </div>
 

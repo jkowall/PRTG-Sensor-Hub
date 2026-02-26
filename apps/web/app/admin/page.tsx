@@ -30,6 +30,7 @@ interface Sensor {
     category: string;
     description: string;
     tags: string[];
+    vendor?: string | null;
     is_certified: boolean;
     status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
     github_pr_url?: string;
@@ -662,7 +663,18 @@ export default function AdminPage() {
                             {sensors.map(s => (
                                 <tr key={s.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                     <td style={{ padding: '16px' }}>
-                                        <div style={{ fontWeight: '600' }}>{s.display_name}</div>
+                                        <div style={{ fontWeight: '600' }}>
+                                            <a
+                                                href={`/sensors/${s.slug}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ color: 'inherit', textDecoration: 'none' }}
+                                                title="View public sensor page"
+                                            >
+                                                {s.display_name}
+                                                <span style={{ marginLeft: '4px', fontSize: '0.75rem', color: 'var(--accent-primary)', verticalAlign: 'middle' }}>↗</span>
+                                            </a>
+                                        </div>
                                         {s.github_pr_url && (
                                             <a href={s.github_pr_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>
                                                 View PR ↗
@@ -978,6 +990,20 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Vendor
+                                </label>
+                                <input
+                                    type="text"
+                                    className="search-input"
+                                    style={{ padding: '12px 16px', fontSize: '1rem' }}
+                                    placeholder="e.g. Docker, AWS, Cisco..."
+                                    value={editingSensor.vendor || ''}
+                                    onChange={(e) => setEditingSensor({ ...editingSensor, vendor: e.target.value })}
+                                />
+                            </div>
+
                             <div style={{ display: 'grid', gap: '20px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -1048,6 +1074,7 @@ export default function AdminPage() {
                                         description: editingSensor.description,
                                         category: editingSensor.category,
                                         tags: editingSensor.tags,
+                                        vendor: editingSensor.vendor || null,
                                         repository_url: editingSensor.repository_url || null,
                                         docs_url: editingSensor.docs_url || null
                                     })}

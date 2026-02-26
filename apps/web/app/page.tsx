@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDescription } from '@/lib/utils';
+import SensorFilters from './components/SensorFilters';
 
 // Types
 interface Sensor {
@@ -50,13 +51,15 @@ export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [total, setTotal] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const pageSize = 20; // Default page size
+    const pageSize = 20;
 
     // Fetch stats on mount
     useEffect(() => {
@@ -90,6 +93,8 @@ export default function Home() {
                 if (searchQuery) params.append('search', searchQuery);
                 if (selectedCategory !== 'All') params.append('category', selectedCategory);
                 if (selectedTags.length > 0) params.append('tags', selectedTags.join(','));
+                if (selectedStatuses.length > 0) params.append('status', selectedStatuses.join(','));
+                if (selectedVendors.length > 0) params.append('vendor', selectedVendors.join(','));
                 params.append('page', currentPage.toString());
                 params.append('page_size', pageSize.toString());
 
@@ -118,62 +123,150 @@ export default function Home() {
             }
         }
 
-        // Debounce search
         const timer = setTimeout(fetchSensors, 300);
         return () => {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [searchQuery, selectedCategory, selectedTags, currentPage]);
+    }, [searchQuery, selectedCategory, selectedTags, selectedStatuses, selectedVendors, currentPage]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedCategory, selectedTags]);
+    }, [searchQuery, selectedCategory, selectedTags, selectedStatuses, selectedVendors]);
 
     const handleTagToggle = (tag: string) => {
         setSelectedTags(prev =>
-            prev.includes(tag)
-                ? prev.filter(t => t !== tag)
-                : [...prev, tag]
+            prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
         );
+    };
+
+    const handleStatusToggle = (status: string) => {
+        setSelectedStatuses(prev =>
+            prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
+        );
+    };
+
+    const handleVendorToggle = (vendor: string) => {
+        setSelectedVendors(prev =>
+            prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
+        );
+    };
+
+    const clearAllFilters = () => {
+        setSelectedCategory('All');
+        setSelectedTags([]);
+        setSelectedStatuses([]);
+        setSelectedVendors([]);
+        setSearchQuery('');
+    };
+
+    const hasActiveFilters =
+        selectedCategory !== 'All' ||
+        selectedTags.length > 0 ||
+        selectedStatuses.length > 0 ||
+        selectedVendors.length > 0;
+
+    const statusLabels: Record<string, string> = {
+        approved: 'Approved',
+        certified: 'Certified',
+        'built-in': 'Built-in',
     };
 
     return (
         <>
-            {/* Hero Section */}
-            <section style={{ padding: '4rem 0 2rem 0', textAlign: 'center' }}>
-                <div className="modern-header-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
-                    <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                        PRTG Sensor Hub
-                    </h1>
-                    <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 3rem' }}>
-                        Discover, download, and share custom sensors for PRTG Network Monitor.
-                        Extend your monitoring capabilities with community-built solutions.
-                    </p>
-
-                    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-                        <input
-                            type="text"
-                            className="modern-search"
-                            style={{ width: '100%' }}
-                            placeholder="Search sensors by name, description, or tags..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+            {/* Compact Page Header */}
+            <section style={{ padding: '2rem 0 0 0' }}>
+                <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
+                    <div className="page-header">
+                        <div>
+                            <h1>Sensors</h1>
+                            <p>Browse community sensors, scripts, and templates for PRTG</p>
+                        </div>
+                        <Link href="/submit" className="btn btn-primary" style={{ flexShrink: 0 }}>
+                            Submit sensor
+                        </Link>
                     </div>
+
+                    {/* Search bar */}
+                    <input
+                        type="text"
+                        className="modern-search"
+                        style={{ width: '100%' }}
+                        placeholder="Search sensors by name, description, or tags..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+
+                    {/* Category pills */}
+                    {stats && (
+                        <div className="category-pills">
+                            <button
+                                className={`category-pill-btn${selectedCategory === 'All' ? ' active' : ''}`}
+                                onClick={() => setSelectedCategory('All')}
+                            >
+                                Show all
+                            </button>
+                            {stats.categories.map((cat: { name: string; count: number }) => (
+                                <button
+                                    key={cat.name}
+                                    className={`category-pill-btn${selectedCategory === cat.name ? ' active' : ''}`}
+                                    onClick={() => setSelectedCategory(cat.name)}
+                                >
+                                    {cat.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Active filter chips */}
+                    {hasActiveFilters && (
+                        <div className="active-filters-bar">
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>Filters:</span>
+                            {selectedCategory !== 'All' && (
+                                <button className="filter-chip" onClick={() => setSelectedCategory('All')}>
+                                    {selectedCategory} <span className="chip-x">&times;</span>
+                                </button>
+                            )}
+                            {selectedTags.map(tag => (
+                                <button key={tag} className="filter-chip" onClick={() => handleTagToggle(tag)}>
+                                    {tag} <span className="chip-x">&times;</span>
+                                </button>
+                            ))}
+                            {selectedStatuses.map(s => (
+                                <button key={s} className="filter-chip" onClick={() => handleStatusToggle(s)}>
+                                    {statusLabels[s] || s} <span className="chip-x">&times;</span>
+                                </button>
+                            ))}
+                            {selectedVendors.map(v => (
+                                <button key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
+                                    {v} <span className="chip-x">&times;</span>
+                                </button>
+                            ))}
+                            <span className="filter-results-count">
+                                Showing {total} result{total !== 1 ? 's' : ''}
+                            </span>
+                            <button className="filter-clear-all" onClick={clearAllFilters}>
+                                Clear all
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
 
             {/* Sensors Grid with Sidebar */}
-            <section style={{ padding: '3rem 0 5rem 0' }}>
+            <section style={{ padding: '1.5rem 0 5rem 0' }}>
                 <div className="modern-layout" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <SensorFilters
                         stats={stats}
                         selectedCategory={selectedCategory}
                         selectedTags={selectedTags}
+                        selectedStatuses={selectedStatuses}
+                        selectedVendors={selectedVendors}
                         onCategoryChange={setSelectedCategory}
                         onTagToggle={handleTagToggle}
+                        onStatusToggle={handleStatusToggle}
+                        onVendorToggle={handleVendorToggle}
                         loading={!stats}
                     />
 
@@ -186,43 +279,6 @@ export default function Home() {
                                 {total} sensor{total !== 1 ? 's' : ''} found
                             </span>
                         </div>
-
-                        {selectedTags.length > 0 && (
-                            <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Filters:</span>
-                                {selectedTags.map(tag => (
-                                    <button
-                                        key={tag}
-                                        onClick={() => handleTagToggle(tag)}
-                                        className="tag"
-                                        style={{
-                                            background: 'var(--accent-primary)',
-                                            color: 'white',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px'
-                                        }}
-                                    >
-                                        {tag} <span>×</span>
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => setSelectedTags([])}
-                                    style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        color: 'var(--accent-secondary)',
-                                        cursor: 'pointer',
-                                        fontSize: '0.9rem',
-                                        textDecoration: 'underline'
-                                    }}
-                                >
-                                    Clear all
-                                </button>
-                            </div>
-                        )}
 
                         {error && (
                             <div style={{
@@ -314,10 +370,7 @@ export default function Home() {
                                 </button>
 
                                 {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                    .filter(p => {
-                                        // Show first, last, and pages around current
-                                        return p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1;
-                                    })
+                                    .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
                                     .map((p, i, arr) => (
                                         <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
                                             {i > 0 && arr[i - 1] !== p - 1 && (
@@ -355,5 +408,3 @@ export default function Home() {
         </>
     );
 }
-
-import SensorFilters from './components/SensorFilters';

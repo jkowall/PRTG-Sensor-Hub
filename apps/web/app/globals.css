@@ -971,3 +971,299 @@ a:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* -------------------------------------------------------------------------- */
+/* PAGE HEADER (compact Sensors header)                                         */
+/* -------------------------------------------------------------------------- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+
+.page-header p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* CATEGORY PILLS                                                               */
+/* -------------------------------------------------------------------------- */
+.category-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.category-pill-btn {
+    padding: 0.45rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-radius: 9999px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.category-pill-btn:hover {
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+}
+
+.category-pill-btn.active {
+    background: var(--text-accent);
+    border-color: var(--text-accent);
+    color: white;
+}
+
+/* -------------------------------------------------------------------------- */
+/* ACTIVE FILTER CHIPS BAR                                                      */
+/* -------------------------------------------------------------------------- */
+.active-filters-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    background: var(--bg-badge);
+    border: 1px solid var(--border-subtle);
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-accent);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-chip:hover {
+    background: rgba(0, 175, 216, 0.15);
+    border-color: var(--text-accent);
+}
+
+.filter-chip .chip-x {
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 0.7;
+}
+
+.filter-chip:hover .chip-x {
+    opacity: 1;
+}
+
+.filter-results-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-left: 0.25rem;
+}
+
+.filter-clear-all {
+    background: none;
+    border: none;
+    color: var(--text-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    transition: var(--transition);
+}
+
+.filter-clear-all:hover {
+    text-decoration: underline;
+}
+
+/* -------------------------------------------------------------------------- */
+/* FILTER ACCORDION                                                             */
+/* -------------------------------------------------------------------------- */
+.filter-accordion {
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.filter-accordion:last-child {
+    border-bottom: none;
+}
+
+.filter-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 1rem 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.filter-accordion-header:hover {
+    color: var(--text-accent);
+}
+
+.filter-accordion-chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+}
+
+.filter-accordion-chevron.open {
+    transform: rotate(180deg);
+}
+
+.filter-accordion-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.25s ease;
+    max-height: 0;
+    opacity: 0;
+}
+
+.filter-accordion-content.open {
+    max-height: 600px;
+    opacity: 1;
+    padding-bottom: 1rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/* FILTER SEARCH INPUT (inside accordion)                                       */
+/* -------------------------------------------------------------------------- */
+.filter-search-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    transition: var(--transition);
+}
+
+.filter-search-input:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    box-shadow: 0 0 0 2px rgba(0, 175, 216, 0.15);
+}
+
+.filter-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------- */
+/* FILTER CHECKBOX ITEMS                                                        */
+/* -------------------------------------------------------------------------- */
+.filter-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 0.15rem;
+}
+
+.filter-checkbox-item:hover {
+    background: var(--bg-label-hover);
+}
+
+.filter-checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--text-accent);
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: 3px;
+}
+
+.filter-checkbox-item .filter-item-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    transition: color 0.15s;
+}
+
+.filter-checkbox-item .filter-item-name.selected {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.filter-checkbox-item .filter-item-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------- */
+/* SHOW MORE LINK                                                               */
+/* -------------------------------------------------------------------------- */
+.show-more-link {
+    background: none;
+    border: none;
+    color: var(--text-accent);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    margin-top: 0.25rem;
+    transition: var(--transition);
+}
+
+.show-more-link:hover {
+    text-decoration: underline;
+}
+
+/* -------------------------------------------------------------------------- */
+/* SIDEBAR TITLE                                                                */
+/* -------------------------------------------------------------------------- */
+.sidebar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* DISABLED ACCORDION (coming soon)                                             */
+/* -------------------------------------------------------------------------- */
+.filter-accordion.disabled .filter-accordion-header {
+    color: var(--text-muted);
+    cursor: default;
+}
+
+.filter-accordion.disabled .filter-accordion-header:hover {
+    color: var(--text-muted);
+}
+
+.filter-accordion.disabled .filter-accordion-chevron {
+    opacity: 0.3;
+}

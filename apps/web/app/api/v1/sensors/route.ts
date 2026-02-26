@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const search = searchParams.get('search');
     const owner_id = searchParams.get('owner_id');
+    const vendor = searchParams.get('vendor');
     const page = parseInt(searchParams.get('page') || '1');
     const page_size = parseInt(searchParams.get('page_size') || '20');
 
@@ -84,6 +85,18 @@ export async function GET(request: NextRequest) {
         params.push(category);
     }
 
+    // Support for status filter (public: only allowed statuses)
+    const statusParam = searchParams.get('status');
+    if (statusParam && !isAdmin) {
+        const allowedStatuses = ['approved', 'certified', 'built-in'];
+        const statuses = statusParam.split(',').filter(s => allowedStatuses.includes(s.trim()));
+        if (statuses.length > 0) {
+            const placeholders = statuses.map(() => '?').join(',');
+            whereClauses.push(`status IN (${placeholders})`);
+            params.push(...statuses);
+        }
+    }
+
     // Support for multiple tags (comma separated)
     const tagsParam = searchParams.get('tags');
     if (tagsParam) {
@@ -104,6 +117,17 @@ export async function GET(request: NextRequest) {
             const placeholders = tags.map(() => '?').join(',');
             whereClauses.push(`EXISTS (SELECT 1 FROM json_each(sensors.tags) WHERE value IN (${placeholders}))`);
             params.push(...tags);
+        }
+    }
+
+    if (vendor) {
+        const vendors = vendor.split(',').map(v => v.trim()).filter(Boolean);
+        if (vendors.length === 1) {
+            whereClauses.push('vendor = ?');
+            params.push(vendors[0]);
+        } else if (vendors.length > 1) {
+            whereClauses.push(`vendor IN (${vendors.map(() => '?').join(',')})`);
+            params.push(...vendors);
         }
     }
 
@@ -188,6 +212,9 @@ export async function POST(request: NextRequest) {
         const category = formData.get('category') as string;
         const tags = formData.get('tags') as string; // JSON string
         const scriptLanguage = formData.get('script_language') as string;
+        const vendorField = formData.get('vendor') as string;
+        // Auto-detect vendor from display_name if not explicitly provided
+        const sensorVendor = vendorField || (displayName ? displayName.split(' ')[0] : null);
 
         // Handle multiple files
         const files = formData.getAll('file') as File[];
@@ -423,9 +450,9 @@ export async function POST(request: NextRequest) {
 
         try {
             await env.DB.prepare(
-                'INSERT INTO sensors (id, owner_id, slug, display_name, description, category, tags, is_certified, status, github_pr_url, repository_url) VALUES (?, ?, ?, ?, ?, ?, ?, 0, \'pending\', ?, ?)'
+                'INSERT INTO sensors (id, owner_id, slug, display_name, description, category, tags, vendor, is_certified, status, github_pr_url, repository_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, \'pending\', ?, ?)'
             )
-                .bind(sensorId, payload.sub, slug, displayName, description, category, tags, prUrl, repositoryUrl || null)
+                .bind(sensorId, payload.sub, slug, displayName, description, category, tags, sensorVendor, prUrl, repositoryUrl || null)
                 .run();
 
             // Add initial version (virtual)
