@@ -1012,44 +1012,60 @@ a:hover {
     gap: 0.5rem;
     padding: 0.75rem 0;
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border-subtle);
+}
+
+.active-filters-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.active-filters-divider {
+    width: 1px;
+    height: 1.25rem;
+    background: var(--border-medium);
+    flex-shrink: 0;
+    margin: 0 0.25rem;
 }
 
 .filter-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.3rem 0.75rem;
-    background: var(--bg-badge);
-    border: 1px solid var(--border-subtle);
-    border-radius: 9999px;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    background: #e4efff;
+    border: none;
+    border-radius: 0.5rem;
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--text-accent);
+    color: #0f67ff;
     cursor: pointer;
     transition: var(--transition);
 }
 
 .filter-chip:hover {
-    background: rgba(0, 175, 216, 0.15);
-    border-color: var(--text-accent);
+    background: #d4e4ff;
 }
 
-.filter-chip .chip-x {
-    font-size: 1rem;
-    line-height: 1;
-    opacity: 0.7;
+.filter-chip .chip-close {
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+    flex-shrink: 0;
 }
 
-.filter-chip:hover .chip-x {
+.filter-chip:hover .chip-close {
     opacity: 1;
 }
 
-.filter-results-count {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    margin-left: 0.25rem;
+[data-theme='dark'] .filter-chip {
+    background: rgba(15, 103, 255, 0.15);
+    color: #6ba3ff;
+}
+
+[data-theme='dark'] .filter-chip:hover {
+    background: rgba(15, 103, 255, 0.25);
 }
 
 .filter-clear-all {
@@ -1060,6 +1076,7 @@ a:hover {
     font-weight: 600;
     cursor: pointer;
     padding: 0.25rem 0.5rem;
+    margin-left: 0.25rem;
     transition: var(--transition);
 }
 
@@ -1117,7 +1134,7 @@ a:hover {
 }
 
 .filter-accordion-content.open {
-    max-height: 600px;
+    max-height: 400px;
     opacity: 1;
     padding-bottom: 1rem;
 }
@@ -1192,22 +1209,55 @@ a:hover {
 }
 
 /* -------------------------------------------------------------------------- */
-/* SHOW MORE LINK                                                               */
+/* SCROLLABLE FILTER CONTAINER                                                  */
 /* -------------------------------------------------------------------------- */
-.show-more-link {
-    background: none;
-    border: none;
-    color: var(--text-accent);
-    font-size: 0.85rem;
+.filter-scrollable-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-input);
+    padding: 0.25rem;
+}
+
+.filter-scrollable-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-scrollable-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.filter-scrollable-container::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+}
+
+.filter-scrollable-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------- */
+/* BACK BUTTON                                                                  */
+/* -------------------------------------------------------------------------- */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
     font-weight: 500;
-    cursor: pointer;
-    padding: 0.4rem 0.5rem;
-    margin-top: 0.25rem;
+    text-decoration: none;
+    padding: 0.4rem 0;
     transition: var(--transition);
 }
 
-.show-more-link:hover {
-    text-decoration: underline;
+.back-button:hover {
+    color: var(--text-accent);
+}
+
+.back-button svg {
+    flex-shrink: 0;
 }
 
 /* -------------------------------------------------------------------------- */

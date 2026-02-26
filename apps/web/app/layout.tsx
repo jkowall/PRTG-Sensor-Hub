@@ -49,8 +49,6 @@ export default function RootLayout({
                                 </Link>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                                     <nav className="nav" style={{ gap: '1.5rem' }}>
-                                        <Link href="/" className="nav-link" style={{ fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-secondary)' }}>Browse</Link>
-                                        <Link href="/submit" className="nav-link" style={{ fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-secondary)' }}>Submit Sensor</Link>
                                         <Link href="/docs" className="nav-link" style={{ fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-secondary)' }}>Documentation</Link>
                                     </nav>
                                     <ThemeToggle />
