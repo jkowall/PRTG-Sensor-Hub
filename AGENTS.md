@@ -33,6 +33,14 @@ scripts/               # Data import scripts
 4. **Never modify `schema.sql` for changes** — create new files in `apps/web/migrations/` with sequential numbering (e.g., `003_description.sql`).
 5. **Pre-commit checklist is mandatory** — see below.
 
+## Worktree Setup
+
+Git worktrees do **not** inherit `node_modules`. After creating or entering a worktree, install dependencies before running any commands:
+
+```bash
+cd apps/web && npm install
+```
+
 ## Pre-Commit Checklist
 
 ```bash
@@ -57,11 +65,12 @@ All commands run from `apps/web/`:
 
 ## Database
 
-### Schema (3 tables)
+### Schema (3 tables + 1 internal)
 
 - **users**: id, email, full_name, github_id, github_username, avatar_url, is_admin, is_blocked, timestamps
 - **sensors**: id, owner_id, slug, display_name, description, category, tags (JSON string), repository_url, docs_url, github_pr_url, is_certified, status (`pending`|`approved`|`certified`|`built-in`|`deprecated`), total_downloads, timestamps
 - **versions**: id, sensor_id, version_str, min_prtg_version, changelog, github_url, commit_sha, download_count, created_at
+- **_migrations** (internal): name (PK), applied_at — tracks which migration SQL files have been applied to production
 
 ### Migrations
 
@@ -69,7 +78,7 @@ All commands run from `apps/web/`:
 2. Test locally: `cd apps/web && npx wrangler d1 execute DB --local --file=migrations/NNN_description.sql`
 3. Commit and push — migrations run automatically on deploy via GitHub Actions
 
-All `.sql` files in `migrations/` are executed in order during deployment. Never modify `schema.sql` directly.
+Migrations are tracked in a `_migrations` table in D1. Only new (unapplied) migrations are executed during deployment. If a migration fails, the deploy step fails. Never modify `schema.sql` directly.
 
 ### Local Database Recovery
 
@@ -182,7 +191,7 @@ Push to `main` triggers the full pipeline (GitHub Actions):
 
 1. Build Next.js with OpenNext (`npm run pages:build`)
 2. Deploy to Cloudflare Pages
-3. Apply all D1 migrations in order
+3. Apply new D1 migrations (tracked via `_migrations` table; already-applied migrations are skipped)
 
 No manual deployment steps. Do not use `wrangler pages deploy` locally.
 

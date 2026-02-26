@@ -72,8 +72,16 @@ export async function GET(request: NextRequest) {
         }
 
         // Validate sort column to prevent injection
-        const allowedSortColumns = ['display_name', 'category', 'total_downloads', 'created_at', 'updated_at', 'status', 'version_count'];
-        const sortCol = allowedSortColumns.includes(sort) ? sort : 'created_at';
+        const allowedSortColumns: Record<string, string> = {
+            'display_name': 's.display_name',
+            'category': 's.category',
+            'total_downloads': 's.total_downloads',
+            'created_at': 's.created_at',
+            'updated_at': 's.updated_at',
+            'status': 's.status',
+            'version_count': 'version_count',
+        };
+        const sortCol = allowedSortColumns[sort] || 's.created_at';
         const sortDir = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
         query += ` ORDER BY ${sortCol} ${sortDir}`;
