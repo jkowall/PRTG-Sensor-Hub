@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-02-26
+
+### Changed
+
+- **3-Column Card Layout**: Sensor cards now display 3 per row on desktop (reduced minimum width from 320px to 280px).
+- **Redesigned Sensor Cards**: Status badge moved to top-right corner with color-coded pills, added category line with folder icon, compact stats row (downloads, rating, date), and tags at bottom.
+- **Responsive Breakpoints**: Cards fall back to 2 columns at ≤900px and 1 column at ≤600px.
+
 ## [2.12.0] - 2026-02-26
 
 ### Added
