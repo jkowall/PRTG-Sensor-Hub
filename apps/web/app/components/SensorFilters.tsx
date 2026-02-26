@@ -7,6 +7,7 @@ export interface Stats {
     categories: { name: string; count: number }[];
     tags: { name: string; count: number }[];
     statuses?: { name: string; count: number }[];
+    vendors?: { name: string; count: number }[];
 }
 
 interface SensorFiltersProps {
@@ -14,9 +15,11 @@ interface SensorFiltersProps {
     selectedCategory: string;
     selectedTags: string[];
     selectedStatuses: string[];
+    selectedVendors: string[];
     onCategoryChange: (category: string) => void;
     onTagToggle: (tag: string) => void;
     onStatusToggle: (status: string) => void;
+    onVendorToggle: (vendor: string) => void;
     loading: boolean;
 }
 
@@ -156,9 +159,11 @@ export default function SensorFilters({
     selectedCategory,
     selectedTags,
     selectedStatuses,
+    selectedVendors,
     onCategoryChange,
     onTagToggle,
     onStatusToggle,
+    onVendorToggle,
     loading,
 }: SensorFiltersProps) {
     if (loading && !stats) {
@@ -236,13 +241,18 @@ export default function SensorFilters({
                 </FilterAccordion>
             )}
 
-            {/* Placeholder accordions for future expansion */}
-            <FilterAccordion title="Vendor" disabled>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', padding: '0 0.5rem' }}>Coming soon</p>
-            </FilterAccordion>
-            <FilterAccordion title="Monitoring focus" disabled>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', padding: '0 0.5rem' }}>Coming soon</p>
-            </FilterAccordion>
+            {/* Vendor */}
+            {(stats.vendors || []).length > 0 && (
+                <FilterAccordion title="Vendor" defaultOpen={false}>
+                    <FilterCheckboxList
+                        items={stats.vendors || []}
+                        selectedItems={selectedVendors}
+                        onToggle={onVendorToggle}
+                        searchPlaceholder="Search vendors"
+                        maxVisible={5}
+                    />
+                </FilterAccordion>
+            )}
         </aside>
     );
 }

@@ -28,6 +28,7 @@ export default function SubmitSensorPage() {
         script_language: 'PowerShell',
         monitored_statistics: '',
         description: '',
+        vendor: '',
     });
 
     // Pre-populate data from GitHub user
@@ -50,7 +51,16 @@ export default function SubmitSensorPage() {
     const [files, setFiles] = useState<FileList | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const updated = { ...formData, [e.target.name]: e.target.value };
+        // Auto-populate vendor from the first word of sensor name
+        if (e.target.name === 'display_name') {
+            const firstWord = e.target.value.trim().split(' ')[0] || '';
+            // Only auto-fill if vendor hasn't been manually edited
+            if (!formData.vendor || formData.vendor === formData.display_name.trim().split(' ')[0]) {
+                updated.vendor = firstWord;
+            }
+        }
+        setFormData(updated);
         if (e.target.name === 'repository_url') {
             setRepoVerification({ status: 'idle' });
         }
@@ -84,6 +94,9 @@ export default function SubmitSensorPage() {
             data.append('category', formData.monitored_system);
             data.append('tags', JSON.stringify([formData.script_language].filter(Boolean)));
             data.append('script_language', formData.script_language);
+            if (formData.vendor) {
+                data.append('vendor', formData.vendor);
+            }
 
             if (submissionType === 'upload' && files) {
                 for (let i = 0; i < files.length; i++) {
@@ -205,6 +218,23 @@ export default function SubmitSensorPage() {
                         className="search-input"
                         placeholder="e.g. Docker Container Monitor"
                     />
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                        Vendor
+                    </label>
+                    <input
+                        type="text"
+                        name="vendor"
+                        value={formData.vendor}
+                        onChange={handleChange}
+                        className="search-input"
+                        placeholder="Auto-detected from sensor name"
+                    />
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        Auto-populated from the sensor name. You can edit it if needed.
+                    </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>

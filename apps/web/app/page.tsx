@@ -37,6 +37,7 @@ export default function Home() {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -78,6 +79,7 @@ export default function Home() {
                 if (selectedCategory !== 'All') params.append('category', selectedCategory);
                 if (selectedTags.length > 0) params.append('tags', selectedTags.join(','));
                 if (selectedStatuses.length > 0) params.append('status', selectedStatuses.join(','));
+                if (selectedVendors.length > 0) params.append('vendor', selectedVendors.join(','));
                 params.append('page', currentPage.toString());
                 params.append('page_size', pageSize.toString());
 
@@ -111,12 +113,12 @@ export default function Home() {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [searchQuery, selectedCategory, selectedTags, selectedStatuses, currentPage]);
+    }, [searchQuery, selectedCategory, selectedTags, selectedStatuses, selectedVendors, currentPage]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedCategory, selectedTags, selectedStatuses]);
+    }, [searchQuery, selectedCategory, selectedTags, selectedStatuses, selectedVendors]);
 
     const handleTagToggle = (tag: string) => {
         setSelectedTags(prev =>
@@ -130,17 +132,25 @@ export default function Home() {
         );
     };
 
+    const handleVendorToggle = (vendor: string) => {
+        setSelectedVendors(prev =>
+            prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
+        );
+    };
+
     const clearAllFilters = () => {
         setSelectedCategory('All');
         setSelectedTags([]);
         setSelectedStatuses([]);
+        setSelectedVendors([]);
         setSearchQuery('');
     };
 
     const hasActiveFilters =
         selectedCategory !== 'All' ||
         selectedTags.length > 0 ||
-        selectedStatuses.length > 0;
+        selectedStatuses.length > 0 ||
+        selectedVendors.length > 0;
 
     const statusLabels: Record<string, string> = {
         approved: 'Approved',
@@ -213,6 +223,11 @@ export default function Home() {
                                     {statusLabels[s] || s} <span className="chip-x">&times;</span>
                                 </button>
                             ))}
+                            {selectedVendors.map(v => (
+                                <button key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
+                                    {v} <span className="chip-x">&times;</span>
+                                </button>
+                            ))}
                             <span className="filter-results-count">
                                 Showing {total} result{total !== 1 ? 's' : ''}
                             </span>
@@ -232,9 +247,11 @@ export default function Home() {
                         selectedCategory={selectedCategory}
                         selectedTags={selectedTags}
                         selectedStatuses={selectedStatuses}
+                        selectedVendors={selectedVendors}
                         onCategoryChange={setSelectedCategory}
                         onTagToggle={handleTagToggle}
                         onStatusToggle={handleStatusToggle}
+                        onVendorToggle={handleVendorToggle}
                         loading={!stats}
                     />
 

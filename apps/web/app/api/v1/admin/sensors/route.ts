@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get('status');
 
         let query = `
-            SELECT s.id, s.slug, s.display_name, s.category, s.description, s.tags, s.total_downloads, s.created_at, s.updated_at, s.is_certified, s.status, s.github_pr_url, s.repository_url, s.docs_url,
+            SELECT s.id, s.slug, s.display_name, s.category, s.description, s.tags, s.vendor, s.total_downloads, s.created_at, s.updated_at, s.is_certified, s.status, s.github_pr_url, s.repository_url, s.docs_url,
             u.email as owner_email, u.full_name as owner_name, u.github_username as owner_github,
             (SELECT COUNT(*) FROM versions v WHERE v.sensor_id = s.id) as version_count
             FROM sensors s
