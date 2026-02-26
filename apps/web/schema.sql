@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS sensors (
     description TEXT,
     category TEXT,
     tags TEXT,
+    vendor TEXT,
     repository_url TEXT,
     docs_url TEXT,
     github_pr_url TEXT,

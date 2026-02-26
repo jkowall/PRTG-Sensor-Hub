@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDescription } from '@/lib/utils';
+import SensorFilters from './components/SensorFilters';
 
 // Types
 interface Sensor {
@@ -17,6 +18,7 @@ interface Sensor {
     is_certified: boolean;
     status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
     docs_url?: string | null;
+    created_at?: string;
 }
 
 interface PaginatedResponse {
@@ -30,20 +32,34 @@ interface PaginatedResponse {
 // API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
+function formatDate(dateStr?: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
 
+const STATUS_LABELS: Record<string, string> = {
+    certified: 'Certified',
+    approved: 'Approved',
+    'built-in': 'Built-in',
+    pending: 'Pending',
+    deprecated: 'Deprecated',
+};
 
 export default function Home() {
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCollection, setSelectedCollection] = useState('All');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [total, setTotal] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const pageSize = 20; // Default page size
+    const pageSize = 20;
 
     // Fetch stats on mount
     useEffect(() => {
@@ -77,6 +93,8 @@ export default function Home() {
                 if (searchQuery) params.append('search', searchQuery);
                 if (selectedCollection !== 'All') params.append('category', selectedCollection);
                 if (selectedTags.length > 0) params.append('tags', selectedTags.join(','));
+                if (selectedStatuses.length > 0) params.append('status', selectedStatuses.join(','));
+                if (selectedVendors.length > 0) params.append('vendor', selectedVendors.join(','));
                 params.append('page', currentPage.toString());
                 params.append('page_size', pageSize.toString());
 
@@ -105,85 +123,146 @@ export default function Home() {
             }
         }
 
-        // Debounce search
         const timer = setTimeout(fetchSensors, 300);
         return () => {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [searchQuery, selectedCollection, selectedTags, currentPage]);
+    }, [searchQuery, selectedCollection, selectedTags, selectedStatuses, selectedVendors, currentPage]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedCollection, selectedTags]);
+    }, [searchQuery, selectedCollection, selectedTags, selectedStatuses, selectedVendors]);
 
     const handleTagToggle = (tag: string) => {
         setSelectedTags(prev =>
-            prev.includes(tag)
-                ? prev.filter(t => t !== tag)
-                : [...prev, tag]
+            prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
         );
+    };
+
+    const handleStatusToggle = (status: string) => {
+        setSelectedStatuses(prev =>
+            prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
+        );
+    };
+
+    const handleVendorToggle = (vendor: string) => {
+        setSelectedVendors(prev =>
+            prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
+        );
+    };
+
+    // Filters only — collection is separate and not included here
+    const clearAllFilters = () => {
+        setSelectedTags([]);
+        setSelectedStatuses([]);
+        setSelectedVendors([]);
+        setSearchQuery('');
+    };
+
+    const hasActiveFilters =
+        selectedTags.length > 0 ||
+        selectedStatuses.length > 0 ||
+        selectedVendors.length > 0;
+
+    const statusLabels: Record<string, string> = {
+        approved: 'Approved',
+        certified: 'Certified',
+        'built-in': 'Built-in',
     };
 
     return (
         <>
-            {/* Hero Section */}
-            <section style={{ padding: '4rem 0 2rem 0', textAlign: 'center' }}>
-                <div className="modern-header-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
-                    <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                        PRTG Sensor Hub
-                    </h1>
-                    <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 3rem' }}>
-                        Discover, download, and share custom sensors for PRTG Network Monitor.
-                        Extend your monitoring capabilities with community-built solutions.
-                    </p>
-
-                    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-                        <input
-                            type="text"
-                            className="modern-search"
-                            style={{ width: '100%' }}
-                            placeholder="Search sensors by name, description, or tags..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+            {/* Compact Page Header */}
+            <section style={{ padding: '2rem 0 0 0' }}>
+                <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
+                    <div className="page-header">
+                        <div>
+                            <h1>Sensors</h1>
+                            <p>Browse community sensors, scripts, and templates for PRTG</p>
+                        </div>
+                        <Link href="/submit" className="btn btn-primary" style={{ flexShrink: 0 }}>
+                            Submit sensor
+                        </Link>
                     </div>
+
+                    {/* Search bar */}
+                    <input
+                        type="text"
+                        className="modern-search"
+                        style={{ width: '100%' }}
+                        placeholder="Search sensors by name, description, or tags..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+
+                    {/* Collection pills — single-select group, separate from filters */}
+                    {stats && (
+                        <div className="collection-pills">
+                            <button
+                                className={`collection-pill${selectedCollection === 'All' ? ' active' : ''}`}
+                                onClick={() => setSelectedCollection('All')}
+                            >
+                                Show all
+                            </button>
+                            {stats.categories.map((cat: { name: string; count: number }) => (
+                                <button
+                                    key={cat.name}
+                                    className={`collection-pill${selectedCollection === cat.name ? ' active' : ''}`}
+                                    onClick={() => setSelectedCollection(cat.name)}
+                                >
+                                    {cat.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Active filter chips — collections are NOT shown here */}
+                    {hasActiveFilters && (
+                        <div className="active-filters-bar">
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>Filters:</span>
+                            {selectedTags.map(tag => (
+                                <button key={tag} className="filter-chip" onClick={() => handleTagToggle(tag)}>
+                                    {tag} <span className="chip-x">&times;</span>
+                                </button>
+                            ))}
+                            {selectedStatuses.map(s => (
+                                <button key={s} className="filter-chip" onClick={() => handleStatusToggle(s)}>
+                                    {statusLabels[s] || s} <span className="chip-x">&times;</span>
+                                </button>
+                            ))}
+                            {selectedVendors.map(v => (
+                                <button key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
+                                    {v} <span className="chip-x">&times;</span>
+                                </button>
+                            ))}
+                            <span className="filter-results-count">
+                                Showing {total} result{total !== 1 ? 's' : ''}
+                            </span>
+                            <button className="filter-clear-all" onClick={clearAllFilters}>
+                                Clear all
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
 
             {/* Sensors Grid with Sidebar */}
-            <section style={{ padding: '3rem 0 5rem 0' }}>
+            <section style={{ padding: '1.5rem 0 5rem 0' }}>
                 <div className="modern-layout" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <SensorFilters
                         stats={stats}
                         selectedTags={selectedTags}
+                        selectedStatuses={selectedStatuses}
+                        selectedVendors={selectedVendors}
                         onTagToggle={handleTagToggle}
+                        onStatusToggle={handleStatusToggle}
+                        onVendorToggle={handleVendorToggle}
                         loading={!stats}
                     />
 
                     <div className="modern-main">
-                        {/* Collection pills — single-select group, separate from filters */}
-                        {stats && (
-                            <div className="collection-pills">
-                                <button
-                                    className={`collection-pill${selectedCollection === 'All' ? ' active' : ''}`}
-                                    onClick={() => setSelectedCollection('All')}
-                                >
-                                    Show all
-                                </button>
-                                {stats.categories.map((cat: { name: string; count: number }) => (
-                                    <button
-                                        key={cat.name}
-                                        className={`collection-pill${selectedCollection === cat.name ? ' active' : ''}`}
-                                        onClick={() => setSelectedCollection(cat.name)}
-                                    >
-                                        {cat.name}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
                         <div style={{ paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <h2 className="modern-results-text" style={{ margin: 0 }}>
                                 {selectedCollection === 'All' ? 'All Sensors' : selectedCollection}
@@ -192,43 +271,6 @@ export default function Home() {
                                 {total} sensor{total !== 1 ? 's' : ''} found
                             </span>
                         </div>
-
-                        {selectedTags.length > 0 && (
-                            <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Filters:</span>
-                                {selectedTags.map(tag => (
-                                    <button
-                                        key={tag}
-                                        onClick={() => handleTagToggle(tag)}
-                                        className="tag"
-                                        style={{
-                                            background: 'var(--accent-primary)',
-                                            color: 'white',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px'
-                                        }}
-                                    >
-                                        {tag} <span>×</span>
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => setSelectedTags([])}
-                                    style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        color: 'var(--accent-secondary)',
-                                        cursor: 'pointer',
-                                        fontSize: '0.9rem',
-                                        textDecoration: 'underline'
-                                    }}
-                                >
-                                    Clear all
-                                </button>
-                            </div>
-                        )}
 
                         {error && (
                             <div style={{
@@ -255,43 +297,50 @@ export default function Home() {
                                         href={`/sensors/${sensor.slug}`}
                                         className="modern-card"
                                     >
-                                        <div style={{ marginBottom: '0.75rem' }}>
-                                            <span className="modern-badge" style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-tertiary)', padding: '0.2rem 0.6rem' }}>
-                                                {sensor.category}
-                                            </span>
-                                            {sensor.status === 'pending' && <span className="modern-badge" style={{ background: '#FFD70022', color: '#DAA520' }}>Pending</span>}
-                                            {sensor.status === 'certified' && <span className="modern-badge" style={{ background: '#14B8A622', color: '#14B8A6' }}>Certified</span>}
-                                            {sensor.status === 'approved' && <span className="modern-badge" style={{ background: '#3B82F622', color: '#3B82F6' }}>Approved</span>}
-                                            {sensor.status === 'built-in' && <span className="modern-badge" style={{ background: '#8B5CF622', color: '#8B5CF6' }}>Built-in</span>}
-                                            {sensor.status === 'deprecated' && <span className="modern-badge" style={{ background: '#EF444422', color: '#EF4444' }}>Deprecated</span>}
-                                            {sensor.is_certified && (
-                                                <span className="modern-badge" style={{ background: 'var(--success)', color: 'white' }}>✓ Certified</span>
+                                        <div className="modern-card-header">
+                                            <h3 className="modern-title-text">{sensor.display_name}</h3>
+                                            {sensor.status && STATUS_LABELS[sensor.status] && (
+                                                <span className={`modern-status-badge modern-status-${sensor.status}`}>
+                                                    {STATUS_LABELS[sensor.status]}
+                                                </span>
                                             )}
                                         </div>
 
-                                        <h3 className="modern-title-text">{sensor.display_name}</h3>
+                                        <div className="modern-card-category">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                                            </svg>
+                                            {sensor.category}
+                                        </div>
 
-                                        <p style={{ color: 'var(--text-tertiary)', fontSize: '0.95rem', lineHeight: '1.5', marginTop: '0.5rem', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                        <p className="modern-card-description">
                                             {formatDescription(sensor.description)}
                                         </p>
 
-                                        <div className="modern-author-text">
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                        <div className="modern-card-footer">
+                                            <div className="modern-card-stats">
+                                                <span className="modern-card-stat">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                                     {sensor.total_downloads.toLocaleString()}
                                                 </span>
-                                                <span style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>
-                                                    ★ {sensor.avg_rating.toFixed(1)}
+                                                <span className="modern-card-stat" style={{ color: 'var(--warning)' }}>
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                                    {sensor.avg_rating.toFixed(1)}
                                                 </span>
+                                                {sensor.created_at && (
+                                                    <span className="modern-card-stat">
+                                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                                        {formatDate(sensor.created_at)}
+                                                    </span>
+                                                )}
                                             </div>
                                             {sensor.tags.length > 0 && (
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
+                                                <div className="modern-card-tags">
                                                     {sensor.tags.slice(0, 3).map(tag => (
-                                                        <span key={tag} style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', background: 'var(--bg-label-hover)', borderRadius: '0.375rem', color: 'var(--text-muted)' }}>{tag}</span>
+                                                        <span key={tag} className="modern-card-tag">{tag}</span>
                                                     ))}
                                                     {sensor.tags.length > 3 && (
-                                                        <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', color: 'var(--text-muted)' }}>+{sensor.tags.length - 3}</span>
+                                                        <span className="modern-card-tag">+{sensor.tags.length - 3}</span>
                                                     )}
                                                 </div>
                                             )}
@@ -313,10 +362,7 @@ export default function Home() {
                                 </button>
 
                                 {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                    .filter(p => {
-                                        // Show first, last, and pages around current
-                                        return p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1;
-                                    })
+                                    .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
                                     .map((p, i, arr) => (
                                         <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
                                             {i > 0 && arr[i - 1] !== p - 1 && (
@@ -354,5 +400,3 @@ export default function Home() {
         </>
     );
 }
-
-import SensorFilters from './components/SensorFilters';

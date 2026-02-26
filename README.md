@@ -126,6 +126,7 @@ npx wrangler deploy
 - **Continuous Deployment (CD)**:
   - Triggers on Pushes to `main`.
   - Automatically builds and deploys the application to **Cloudflare Pages**.
+  - Applies pending D1 migrations (tracked; already-applied migrations are skipped).
 
 ## Features
 
