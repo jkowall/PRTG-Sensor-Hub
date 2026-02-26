@@ -19,7 +19,7 @@ jobs:
             exit 1
           fi
           echo "Fetching verification from: $VERIFICATION_URL"
-          response=$(curl -sS -w "\n%{http_code}" -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL")
+          response=$(curl -sS -w "\n%{http_code}" -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL?check_source=true")
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
           echo "HTTP Status: $http_code"
@@ -36,17 +36,28 @@ jobs:
             const fs=require('fs');
             const data=JSON.parse(fs.readFileSync('verification.json','utf8'));
             console.log('Checked versions:', data.checked_versions);
+            console.log('Imported versions:', data.imported_versions);
+            if(data.checked_source_urls){
+              console.log('Checked source URLs:', data.checked_source_urls);
+            }
             console.log('Total issues:', data.issue_count);
             if(!data||typeof data.issue_count!=='number'){
               console.error('Invalid response structure');
               process.exit(1);
             }
-            const critical = (data.issues||[]).filter(i => 
+            const critical = (data.issues||[]).filter(i =>
               i.issue_code === 'download_missing' || i.issue_code === 'download_error'
             );
-            const warnings = (data.issues||[]).filter(i => 
-              i.issue_code !== 'download_missing' && i.issue_code !== 'download_error'
+            const sourceWarnings = (data.issues||[]).filter(i =>
+              i.issue_code === 'source_url_broken'
             );
+            const warnings = (data.issues||[]).filter(i =>
+              i.issue_code !== 'download_missing' && i.issue_code !== 'download_error' && i.issue_code !== 'source_url_broken'
+            );
+            if(sourceWarnings.length > 0){
+              console.log('⚠ ' + sourceWarnings.length + ' broken source URL(s) for imported sensors:');
+              sourceWarnings.forEach(w => console.log('  - ' + w.display_name + ' (' + w.slug + '): ' + w.issue_summary));
+            }
             if(warnings.length > 0){
               console.log('⚠ ' + warnings.length + ' metadata warning(s):');
               warnings.forEach(w => console.log('  - ' + w.display_name + ': ' + w.issue_summary));

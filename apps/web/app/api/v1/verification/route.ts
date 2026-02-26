@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { D1Database } from '@/lib/db';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
+
 interface VerificationRow {
     sensor_id: string;
     slug: string;
@@ -16,6 +17,21 @@ interface VerificationRow {
 
 function isPullRequestUrl(githubUrl: string) {
     return /\/pull\//.test(githubUrl);
+}
+
+async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        clearTimeout(timeoutId);
+        return { ok: res.ok, status: res.status };
+    } catch (e: any) {
+        if (e.name === 'AbortError') {
+            return { ok: false, error: 'timeout' };
+        }
+        return { ok: false, error: e.message };
+    }
 }
 
 export async function GET(request: NextRequest) {
@@ -41,6 +57,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // check_source=true enables source URL checking for imported sensors (slower)
+    const checkSource = request.nextUrl.searchParams.get('check_source') === 'true';
+
     try {
         const { results } = await env.DB.prepare(`
             SELECT s.id as sensor_id, s.slug, s.display_name, s.category, s.status,
@@ -56,6 +75,9 @@ export async function GET(request: NextRequest) {
         let checkedVersions = 0;
         let importedVersions = 0;
 
+        // Collect imported rows for optional URL checking
+        const importedRows: VerificationRow[] = [];
+
         for (const row of rows) {
             if (!row.version_id) {
                 issues.push({
@@ -67,9 +89,11 @@ export async function GET(request: NextRequest) {
                 });
                 continue;
             }
-            // Skip imported legacy sensors - they use reference URLs, not downloadable repos
             if (row.commit_sha === 'imported') {
                 importedVersions++;
+                if (checkSource && row.github_url) {
+                    importedRows.push(row);
+                }
                 continue;
             }
             checkedVersions++;
@@ -114,17 +138,54 @@ export async function GET(request: NextRequest) {
             }
         }
 
+        // Check source URLs for imported sensors in parallel (deduplicated by URL)
+        let checkedSourceUrls = 0;
+        if (checkSource && importedRows.length > 0) {
+            const seen = new Set<string>();
+            const toCheck = importedRows.filter(row => {
+                if (!row.github_url || seen.has(row.github_url)) return false;
+                seen.add(row.github_url);
+                return true;
+            });
+
+            const urlResults = await Promise.allSettled(
+                toCheck.map(async (row) => {
+                    const result = await checkUrl(row.github_url!);
+                    return { row, result };
+                })
+            );
+
+            for (const settled of urlResults) {
+                if (settled.status === 'rejected') continue;
+                const { row, result } = settled.value;
+                checkedSourceUrls++;
+                if (!result.ok) {
+                    issues.push({
+                        sensor_id: row.sensor_id, slug: row.slug,
+                        display_name: row.display_name, category: row.category,
+                        status: row.status, version_id: row.version_id, version_str: row.version_str,
+                        github_url: row.github_url, commit_sha: row.commit_sha,
+                        issue_code: 'source_url_broken',
+                        issue_summary: result.error
+                            ? `Source URL unreachable: ${result.error}`
+                            : `Source URL returns HTTP ${result.status}`
+                    });
+                }
+            }
+        }
+
         return NextResponse.json({
             checked_versions: checkedVersions,
             imported_versions: importedVersions,
+            checked_source_urls: checkedSourceUrls,
             issue_count: issues.length,
             issues
         });
     } catch (error: any) {
         console.error('Verification error:', error);
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Verification failed',
-            details: error.message 
+            details: error.message
         }, { status: 500 });
     }
 }
