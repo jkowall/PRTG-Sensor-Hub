@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0] - 2026-02-28
+
+### Changed
+
+- **Active Filter Chips in Sidebar**: Moved active filter chips from the top of the page into the left sidebar, showing selected filters with individual remove buttons and a "Clear all" option.
+- **Sensor Type Filter**: Replaced single-select collection pills with a multi-select "Sensor type" accordion in the sidebar, allowing filtering by multiple categories at once.
+- **Multi-Category API Support**: Sensors API now supports comma-separated category values for multi-select filtering.
+
+### Removed
+
+- Collection pills row from the top of the home page (replaced by sidebar Sensor type accordion).
+
 ## [2.14.0] - 2026-02-27
 
 ### Changed
