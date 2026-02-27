@@ -12,12 +12,15 @@ export interface Stats {
 
 interface SensorFiltersProps {
     stats: Stats | null;
+    selectedCategories: string[];
     selectedTags: string[];
     selectedStatuses: string[];
     selectedVendors: string[];
+    onCategoryToggle: (category: string) => void;
     onTagToggle: (tag: string) => void;
     onStatusToggle: (status: string) => void;
     onVendorToggle: (vendor: string) => void;
+    onClearAll: () => void;
     loading: boolean;
 }
 
@@ -139,12 +142,15 @@ function FilterScrollableList({
 
 export default function SensorFilters({
     stats,
+    selectedCategories,
     selectedTags,
     selectedStatuses,
     selectedVendors,
+    onCategoryToggle,
     onTagToggle,
     onStatusToggle,
     onVendorToggle,
+    onClearAll,
     loading,
 }: SensorFiltersProps) {
     if (loading && !stats) {
@@ -164,9 +170,65 @@ export default function SensorFilters({
         label: STATUS_LABELS[s.name] || s.name,
     }));
 
+    const hasActiveFilters =
+        selectedCategories.length > 0 ||
+        selectedTags.length > 0 ||
+        selectedStatuses.length > 0 ||
+        selectedVendors.length > 0;
+
+    const closeIcon = (
+        <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    );
+
     return (
         <aside className="modern-sidebar">
             <h3 className="sidebar-title">Filters</h3>
+
+            {/* Active filter chips */}
+            {hasActiveFilters && (
+                <div className="active-filters-bar">
+                    <span className="active-filters-label">Active filters</span>
+                    <span className="active-filters-divider" />
+                    {selectedCategories.map(cat => (
+                        <button key={cat} className="filter-chip" onClick={() => onCategoryToggle(cat)}>
+                            {cat}
+                            {closeIcon}
+                        </button>
+                    ))}
+                    {selectedTags.map(tag => (
+                        <button key={tag} className="filter-chip" onClick={() => onTagToggle(tag)}>
+                            {tag}
+                            {closeIcon}
+                        </button>
+                    ))}
+                    {selectedStatuses.map(s => (
+                        <button key={s} className="filter-chip" onClick={() => onStatusToggle(s)}>
+                            {STATUS_LABELS[s] || s}
+                            {closeIcon}
+                        </button>
+                    ))}
+                    {selectedVendors.map(v => (
+                        <button key={v} className="filter-chip" onClick={() => onVendorToggle(v)}>
+                            {v}
+                            {closeIcon}
+                        </button>
+                    ))}
+                    <button className="filter-clear-all" onClick={onClearAll}>
+                        Clear all
+                    </button>
+                </div>
+            )}
+
+            {/* Sensor type (category) */}
+            {stats.categories.length > 0 && (
+                <FilterAccordion title="Sensor type" defaultOpen>
+                    <FilterScrollableList
+                        items={stats.categories}
+                        selectedItems={selectedCategories}
+                        onToggle={onCategoryToggle}
+                    />
+                </FilterAccordion>
+            )}
 
             {/* Vendor */}
             {(stats.vendors || []).length > 0 && (

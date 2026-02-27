@@ -49,7 +49,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function Home() {
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCollection, setSelectedCollection] = useState('All');
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
@@ -91,7 +91,7 @@ export default function Home() {
             try {
                 const params = new URLSearchParams();
                 if (searchQuery) params.append('search', searchQuery);
-                if (selectedCollection !== 'All') params.append('category', selectedCollection);
+                if (selectedCategories.length > 0) params.append('category', selectedCategories.join(','));
                 if (selectedTags.length > 0) params.append('tags', selectedTags.join(','));
                 if (selectedStatuses.length > 0) params.append('status', selectedStatuses.join(','));
                 if (selectedVendors.length > 0) params.append('vendor', selectedVendors.join(','));
@@ -128,12 +128,18 @@ export default function Home() {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [searchQuery, selectedCollection, selectedTags, selectedStatuses, selectedVendors, currentPage]);
+    }, [searchQuery, selectedCategories, selectedTags, selectedStatuses, selectedVendors, currentPage]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedCollection, selectedTags, selectedStatuses, selectedVendors]);
+    }, [searchQuery, selectedCategories, selectedTags, selectedStatuses, selectedVendors]);
+
+    const handleCategoryToggle = (category: string) => {
+        setSelectedCategories(prev =>
+            prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+        );
+    };
 
     const handleTagToggle = (tag: string) => {
         setSelectedTags(prev =>
@@ -153,23 +159,12 @@ export default function Home() {
         );
     };
 
-    // Filters only — collection is separate and not included here
     const clearAllFilters = () => {
+        setSelectedCategories([]);
         setSelectedTags([]);
         setSelectedStatuses([]);
         setSelectedVendors([]);
         setSearchQuery('');
-    };
-
-    const hasActiveFilters =
-        selectedTags.length > 0 ||
-        selectedStatuses.length > 0 ||
-        selectedVendors.length > 0;
-
-    const statusLabels: Record<string, string> = {
-        approved: 'Approved',
-        certified: 'Certified',
-        'built-in': 'Built-in',
     };
 
     return (
@@ -197,55 +192,6 @@ export default function Home() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
 
-                    {/* Collection pills — single-select group, separate from filters */}
-                    {stats && (
-                        <div className="collection-pills">
-                            <button
-                                className={`collection-pill${selectedCollection === 'All' ? ' active' : ''}`}
-                                onClick={() => setSelectedCollection('All')}
-                            >
-                                Show all
-                            </button>
-                            {stats.categories.map((cat: { name: string; count: number }) => (
-                                <button
-                                    key={cat.name}
-                                    className={`collection-pill${selectedCollection === cat.name ? ' active' : ''}`}
-                                    onClick={() => setSelectedCollection(cat.name)}
-                                >
-                                    {cat.name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Active filter chips — collections are NOT shown here */}
-                    {hasActiveFilters && (
-                        <div className="active-filters-bar">
-                            <span className="active-filters-label">Active filters</span>
-                            <span className="active-filters-divider" />
-                            {selectedTags.map(tag => (
-                                <button key={tag} className="filter-chip" onClick={() => handleTagToggle(tag)}>
-                                    {tag}
-                                    <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            ))}
-                            {selectedStatuses.map(s => (
-                                <button key={s} className="filter-chip" onClick={() => handleStatusToggle(s)}>
-                                    {statusLabels[s] || s}
-                                    <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            ))}
-                            {selectedVendors.map(v => (
-                                <button key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
-                                    {v}
-                                    <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            ))}
-                            <button className="filter-clear-all" onClick={clearAllFilters}>
-                                Clear all
-                            </button>
-                        </div>
-                    )}
                 </div>
             </section>
 
@@ -254,12 +200,15 @@ export default function Home() {
                 <div className="modern-layout" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <SensorFilters
                         stats={stats}
+                        selectedCategories={selectedCategories}
                         selectedTags={selectedTags}
                         selectedStatuses={selectedStatuses}
                         selectedVendors={selectedVendors}
+                        onCategoryToggle={handleCategoryToggle}
                         onTagToggle={handleTagToggle}
                         onStatusToggle={handleStatusToggle}
                         onVendorToggle={handleVendorToggle}
+                        onClearAll={clearAllFilters}
                         loading={!stats}
                     />
 

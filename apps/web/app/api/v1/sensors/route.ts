@@ -81,8 +81,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (category && category !== 'All') {
-        whereClauses.push('category = ?');
-        params.push(category);
+        const categories = category.split(',').map(c => c.trim()).filter(Boolean);
+        if (categories.length === 1) {
+            whereClauses.push('category = ?');
+            params.push(categories[0]);
+        } else if (categories.length > 1) {
+            whereClauses.push(`category IN (${categories.map(() => '?').join(',')})`);
+            params.push(...categories);
+        }
     }
 
     // Support for status filter (public: only allowed statuses)
