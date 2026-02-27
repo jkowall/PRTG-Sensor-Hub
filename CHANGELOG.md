@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2026-02-27
+
+### Changed
+
+- **Simplified Navigation**: Removed redundant "Browse" and "Submit Sensor" tabs from the header. Sensor list is now the default page; Submit Sensor is accessible via the button in the content area.
+- **Back Navigation**: Added back arrow button to Submit Sensor and Documentation pages for easy return to the sensor list.
+- **Filter Panel Redesign**: Replaced "Show more" pattern with search + scrollable containers (200px max-height) for all filter categories. Reordered filters to: What to monitor, Vendor, Monitoring focus, Script language, Status.
+- **Monitoring Focus Filter**: Added new "Monitoring focus" filter section showing non-language tags for filtering by monitored metrics.
+- **Scope Selectors**: Category pills (Show all, Native PRTG Sensors, etc.) now act as independent scope selectors — not affected by "Clear all" and not shown as active filter chips.
+- **Active Filter Chips**: Updated chip styling with blue background (#e4efff), SVG close icons, and vertical divider between label and chips.
+
 ## [2.13.0] - 2026-02-26
 
 ### Changed

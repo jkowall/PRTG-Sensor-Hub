@@ -179,6 +179,12 @@ export default function SubmitSensorPage() {
 
     return (
         <div className="container" style={{ padding: '40px 24px', maxWidth: '700px' }}>
+            <Link href="/" className="back-button" style={{ marginBottom: '1.5rem' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+                </svg>
+                Back
+            </Link>
             <h1 style={{ marginBottom: '16px' }}>Submit your sensor</h1>
 
             <p style={{ marginBottom: '16px' }}>

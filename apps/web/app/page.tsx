@@ -221,25 +221,26 @@ export default function Home() {
                     {/* Active filter chips — collections are NOT shown here */}
                     {hasActiveFilters && (
                         <div className="active-filters-bar">
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>Filters:</span>
+                            <span className="active-filters-label">Active filters</span>
+                            <span className="active-filters-divider" />
                             {selectedTags.map(tag => (
                                 <button key={tag} className="filter-chip" onClick={() => handleTagToggle(tag)}>
-                                    {tag} <span className="chip-x">&times;</span>
+                                    {tag}
+                                    <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                 </button>
                             ))}
                             {selectedStatuses.map(s => (
                                 <button key={s} className="filter-chip" onClick={() => handleStatusToggle(s)}>
-                                    {statusLabels[s] || s} <span className="chip-x">&times;</span>
+                                    {statusLabels[s] || s}
+                                    <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                 </button>
                             ))}
                             {selectedVendors.map(v => (
                                 <button key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
-                                    {v} <span className="chip-x">&times;</span>
+                                    {v}
+                                    <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                 </button>
                             ))}
-                            <span className="filter-results-count">
-                                Showing {total} result{total !== 1 ? 's' : ''}
-                            </span>
                             <button className="filter-clear-all" onClick={clearAllFilters}>
                                 Clear all
                             </button>
@@ -263,12 +264,9 @@ export default function Home() {
                     />
 
                     <div className="modern-main">
-                        <div style={{ paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <h2 className="modern-results-text" style={{ margin: 0 }}>
-                                {selectedCollection === 'All' ? 'All Sensors' : selectedCollection}
-                            </h2>
-                            <span style={{ color: 'var(--text-muted)', fontWeight: '500' }}>
-                                {total} sensor{total !== 1 ? 's' : ''} found
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500' }}>
+                                Showing {total} result{total !== 1 ? 's' : ''}
                             </span>
                         </div>
 

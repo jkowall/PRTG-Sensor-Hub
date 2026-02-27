@@ -77,75 +77,60 @@ function FilterAccordion({
     );
 }
 
-/* ── Filterable checkbox list ─────────────────────────────────────────────── */
+/* ── Scrollable checkbox list with search ────────────────────────────────── */
 
-function FilterCheckboxList({
+function FilterScrollableList({
     items,
     selectedItems,
     onToggle,
     searchPlaceholder,
-    maxVisible = 5,
 }: {
-    items: { name: string; count: number }[];
+    items: { name: string; count: number; label?: string }[];
     selectedItems: string[];
     onToggle: (name: string) => void;
     searchPlaceholder?: string;
-    maxVisible?: number;
 }) {
     const [search, setSearch] = useState('');
-    const [showAll, setShowAll] = useState(false);
 
     const filtered = useMemo(() => {
         if (!search) return items;
         const q = search.toLowerCase();
-        return items.filter(i => i.name.toLowerCase().includes(q));
+        return items.filter(i => (i.label || i.name).toLowerCase().includes(q));
     }, [items, search]);
 
-    const visible = showAll ? filtered : filtered.slice(0, maxVisible);
-    const hiddenCount = filtered.length - maxVisible;
+    const needsScroll = items.length > 6;
 
     return (
         <>
-            {searchPlaceholder && items.length > maxVisible && (
+            {searchPlaceholder && (
                 <input
                     type="text"
                     className="filter-search-input"
                     placeholder={searchPlaceholder}
                     value={search}
-                    onChange={e => { setSearch(e.target.value); setShowAll(true); }}
+                    onChange={e => setSearch(e.target.value)}
                 />
             )}
-            {visible.map(item => (
-                <label key={item.name} className="filter-checkbox-item">
-                    <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.name)}
-                        onChange={() => onToggle(item.name)}
-                    />
-                    <span className={`filter-item-name${selectedItems.includes(item.name) ? ' selected' : ''}`}>
-                        {item.name}
-                    </span>
-                    <span className="filter-item-count">{item.count}</span>
-                </label>
-            ))}
-            {!showAll && !search && hiddenCount > 0 && (
-                <button
-                    type="button"
-                    className="show-more-link"
-                    onClick={() => setShowAll(true)}
-                >
-                    Show {hiddenCount} more
-                </button>
-            )}
-            {showAll && !search && hiddenCount > 0 && (
-                <button
-                    type="button"
-                    className="show-more-link"
-                    onClick={() => setShowAll(false)}
-                >
-                    Show less
-                </button>
-            )}
+            <div className={needsScroll ? 'filter-scrollable-container' : undefined}>
+                {filtered.map(item => (
+                    <label key={item.name} className="filter-checkbox-item">
+                        <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.name)}
+                            onChange={() => onToggle(item.name)}
+                        />
+                        <span className={`filter-item-name${selectedItems.includes(item.name) ? ' selected' : ''}`}>
+                            {item.label || item.name}
+                        </span>
+                        <span className="filter-item-count">{item.count}</span>
+                    </label>
+                ))}
+                {filtered.length === 0 && (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', padding: '0.5rem' }}>
+                        No matches
+                    </p>
+                )}
+            </div>
         </>
     );
 }
@@ -168,8 +153,9 @@ export default function SensorFilters({
 
     if (!stats) return null;
 
-    // Split tags into languages vs general
+    // Split tags into languages vs monitoring focus
     const languageTags = stats.tags.filter(t => LANGUAGE_TAGS.has(t.name));
+    const monitoringFocusTags = stats.tags.filter(t => !LANGUAGE_TAGS.has(t.name));
 
     // Status items
     const statusItems = (stats.statuses || []).map(s => ({
@@ -182,47 +168,49 @@ export default function SensorFilters({
         <aside className="modern-sidebar">
             <h3 className="sidebar-title">Filters</h3>
 
-            {/* Script language (derived from tags) */}
-            {languageTags.length > 0 && (
-                <FilterAccordion title="Script language" defaultOpen>
-                    <FilterCheckboxList
-                        items={languageTags}
-                        selectedItems={selectedTags}
-                        onToggle={onTagToggle}
-                        searchPlaceholder="Search languages"
-                        maxVisible={5}
+            {/* Vendor */}
+            {(stats.vendors || []).length > 0 && (
+                <FilterAccordion title="Vendor" defaultOpen>
+                    <FilterScrollableList
+                        items={stats.vendors || []}
+                        selectedItems={selectedVendors}
+                        onToggle={onVendorToggle}
+                        searchPlaceholder="Search..."
                     />
                 </FilterAccordion>
             )}
 
-            {/* Source & Quality (status) */}
-            {statusItems.length > 0 && (
-                <FilterAccordion title="Source & Quality" defaultOpen={false}>
-                    {statusItems.map(item => (
-                        <label key={item.name} className="filter-checkbox-item">
-                            <input
-                                type="checkbox"
-                                checked={selectedStatuses.includes(item.name)}
-                                onChange={() => onStatusToggle(item.name)}
-                            />
-                            <span className={`filter-item-name${selectedStatuses.includes(item.name) ? ' selected' : ''}`}>
-                                {item.label}
-                            </span>
-                            <span className="filter-item-count">{item.count}</span>
-                        </label>
-                    ))}
+            {/* Monitoring focus (non-language tags) */}
+            {monitoringFocusTags.length > 0 && (
+                <FilterAccordion title="Monitoring focus" defaultOpen={false}>
+                    <FilterScrollableList
+                        items={monitoringFocusTags}
+                        selectedItems={selectedTags}
+                        onToggle={onTagToggle}
+                        searchPlaceholder="Search..."
+                    />
                 </FilterAccordion>
             )}
 
-            {/* Vendor */}
-            {(stats.vendors || []).length > 0 && (
-                <FilterAccordion title="Vendor" defaultOpen={false}>
-                    <FilterCheckboxList
-                        items={stats.vendors || []}
-                        selectedItems={selectedVendors}
-                        onToggle={onVendorToggle}
-                        searchPlaceholder="Search vendors"
-                        maxVisible={5}
+            {/* Script language (derived from tags) */}
+            {languageTags.length > 0 && (
+                <FilterAccordion title="Script language" defaultOpen={false}>
+                    <FilterScrollableList
+                        items={languageTags}
+                        selectedItems={selectedTags}
+                        onToggle={onTagToggle}
+                        searchPlaceholder="Search..."
+                    />
+                </FilterAccordion>
+            )}
+
+            {/* Status */}
+            {statusItems.length > 0 && (
+                <FilterAccordion title="Status" defaultOpen={false}>
+                    <FilterScrollableList
+                        items={statusItems}
+                        selectedItems={selectedStatuses}
+                        onToggle={onStatusToggle}
                     />
                 </FilterAccordion>
             )}
