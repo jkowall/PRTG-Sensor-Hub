@@ -130,10 +130,13 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
 
     return (
         <div className="container" style={{ padding: '40px 24px' }}>
-            {/* Breadcrumb */}
-            <nav style={{ marginBottom: '24px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                <Link href="/">Home</Link> / <Link href={`/?category=${sensor.category}`}>{sensor.category}</Link> / {sensor.display_name}
-            </nav>
+            {/* Back Navigation */}
+            <Link href="/" className="back-button" style={{ marginBottom: '24px', display: 'inline-flex' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Back to all sensors
+            </Link>
 
             {/* Header */}
             <div style={{
@@ -144,9 +147,10 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                 marginBottom: '40px'
             }}>
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                        <h1 style={{ fontSize: '2.5rem', fontWeight: '700' }}>{sensor.display_name}</h1>
-                        <span className="sensor-category">{sensor.category}</span>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '8px' }}>{sensor.display_name}</h1>
+
+                    {/* Status badges */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                         {sensor.is_certified && (
                             <span className="badge badge-certified" style={{ padding: '4px 12px', fontSize: '0.9rem' }}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
@@ -189,10 +193,37 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                         )}
                     </div>
 
-                    <div style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                        <span style={{ marginRight: '20px' }}>⬇️ {sensor.total_downloads.toLocaleString()} downloads</span>
-                        <span style={{ marginRight: '20px', color: 'var(--warning)' }}>⭐ {sensor.avg_rating.toFixed(1)}</span>
-                        <span>Updated {new Date(sensor.updated_at).toLocaleDateString()}</span>
+                    {/* Category */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        {sensor.category}
+                    </div>
+
+                    {/* Stats */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '16px' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            {sensor.total_downloads.toLocaleString()} downloads
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--warning)' }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            {sensor.avg_rating.toFixed(1)} rating
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Last updated {new Date(sensor.updated_at).toLocaleDateString()}
+                        </span>
                     </div>
 
                     <div className="sensor-tags">
@@ -210,10 +241,13 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                     padding: '24px',
                     minWidth: '280px'
                 }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '16px', color: 'var(--text-primary)' }}>
+                        Get this sensor
+                    </h3>
                     {sensor.versions.length > 0 ? (
                         <>
-                            <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>
                                     Version
                                 </label>
                                 <select
@@ -237,11 +271,20 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                 </select>
                             </div>
 
-                            <div style={{ marginBottom: '16px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                <div>Min PRTG: {currentVersion?.min_prtg_version}</div>
-                                {currentVersion?.security_check_passed && (
-                                    <div style={{ color: 'var(--success)', marginTop: '4px' }}>✓ Security check passed</div>
-                                )}
+                            <div style={{
+                                marginBottom: '16px',
+                                fontSize: '0.85rem',
+                                color: 'var(--text-muted)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                            }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                Requires PRTG version 23.1.82 or later
                             </div>
 
                             {currentVersion?.commit_sha === 'imported' && sensor.status !== 'pending' && sensor.status !== 'built-in' && sensor.status !== 'deprecated' ? (
@@ -252,7 +295,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                     className="btn btn-primary"
                                     style={{ width: '100%', marginBottom: '12px', display: 'block', textAlign: 'center' }}
                                 >
-                                    🔗 View Source
+                                    View Source
                                 </a>
                             ) : (
                                 <button
@@ -264,7 +307,16 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                     className={`btn btn-primary ${(sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'btn-disabled' : ''}`}
                                     style={{ width: '100%', marginBottom: '12px', opacity: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 0.5 : 1, cursor: (sensor.status === 'pending' || sensor.status === 'built-in' || sensor.status === 'deprecated') ? 'not-allowed' : 'pointer' }}
                                 >
-                                    {sensor.status === 'pending' ? '🔒 Review Pending' : sensor.status === 'built-in' ? '📦 Built into PRTG' : sensor.status === 'deprecated' ? '⚠️ Deprecated' : '⬇️ Download Source (Zip)'}
+                                    {sensor.status === 'pending' ? 'Review Pending' : sensor.status === 'built-in' ? 'Built into PRTG' : sensor.status === 'deprecated' ? 'Deprecated' : (
+                                        <>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            Download Source (ZIP)
+                                        </>
+                                    )}
                                 </button>
                             )}
                             {sensor.status === 'pending' && (
@@ -324,12 +376,9 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
             </div>
 
             {/* Description / README */}
-            <section style={{ marginBottom: '40px' }}>
+            <section style={{ marginBottom: '0' }}>
                 <h2 style={{ fontSize: '1.5rem', marginBottom: '16px' }}>About</h2>
                 <div style={{
-                    background: 'var(--bg-card)',
-                    padding: '32px',
-                    borderRadius: 'var(--border-radius)',
                     color: 'var(--text-secondary)',
                     lineHeight: '1.7',
                     overflowWrap: 'break-word',
@@ -374,24 +423,24 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                 </div>
             </section>
 
+            {/* Divider */}
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border-subtle)', margin: '40px 0' }} />
+
             {/* Version History */}
             {sensor.versions.length > 0 && (
                 <section>
                     <h2 style={{ fontSize: '1.5rem', marginBottom: '16px' }}>Version History</h2>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         {sensor.versions.map(version => (
                             <div
                                 key={version.id}
                                 style={{
-                                    background: 'var(--bg-card)',
-                                    border: version.version_str === selectedVersion ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
-                                    borderRadius: 'var(--border-radius)',
-                                    padding: '20px'
+                                    padding: '12px 0',
                                 }}
                             >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>v{version.version_str}</span>
+                                        <span style={{ fontWeight: '600', fontSize: '1.05rem' }}>Version {version.version_str}</span>
                                         {version.verified && (
                                             <span style={{
                                                 background: 'var(--success)',
