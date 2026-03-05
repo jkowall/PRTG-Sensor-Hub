@@ -22,7 +22,7 @@
         "react-markdown": "^10.1.0"
     },
     "devDependencies": {
-        "@opennextjs/cloudflare": "^1.16.4",
+        "@opennextjs/cloudflare": "^1.17.1",
         "@testing-library/dom": "^10.0.0",
         "@testing-library/jest-dom": "^6.5.0",
         "@testing-library/react": "^16.0.0",
