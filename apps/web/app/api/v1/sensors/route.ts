@@ -41,9 +41,9 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('Authorization');
     let authenticatedUser = null;
     let isAdmin = false;
-    const secret = env.NEXTAUTH_SECRET || 'fallback-secret';
+    const secret = env.NEXTAUTH_SECRET;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (secret && authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
         try {
             authenticatedUser = await verifyJWT(token, secret);
@@ -197,7 +197,10 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
-    const secret = env.NEXTAUTH_SECRET || 'fallback-secret';
+    if (!env.NEXTAUTH_SECRET) {
+        return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
+    const secret = env.NEXTAUTH_SECRET;
 
     try {
         const payload = await verifyJWT(token, secret);
@@ -209,6 +212,14 @@ export async function POST(request: NextRequest) {
         const userCheck = await env.DB.prepare('SELECT is_blocked FROM users WHERE id = ?').bind(payload.sub).first();
         if ((userCheck as any)?.is_blocked) {
             return NextResponse.json({ error: 'Your account has been blocked.' }, { status: 403 });
+        }
+
+        // Rate limit: max 10 submissions per user per 24 hours
+        const recentCount = await env.DB.prepare(
+            "SELECT COUNT(*) as count FROM sensors WHERE owner_id = ? AND created_at > datetime('now', '-1 day')"
+        ).bind(payload.sub).first();
+        if ((recentCount as any)?.count >= 10) {
+            return NextResponse.json({ error: 'Rate limit exceeded. Maximum 10 submissions per day.' }, { status: 429 });
         }
 
         // Handle Multipart Form Data
@@ -235,6 +246,13 @@ export async function POST(request: NextRequest) {
         }
 
         const slug = slugify(displayName);
+
+        if (!slug) {
+            return NextResponse.json({ error: 'Display name must contain at least one alphanumeric character' }, { status: 400 });
+        }
+        if (slug.length > 100) {
+            return NextResponse.json({ error: 'Display name is too long (slug exceeds 100 characters)' }, { status: 400 });
+        }
 
         // Check if slug exists
         const existing = await env.DB.prepare('SELECT id FROM sensors WHERE slug = ?').bind(slug).first();

@@ -5,6 +5,6 @@
     "start": "npm run start --prefix apps/web"
   },
   "devDependencies": {
-    "wrangler": "^4.77.0"
+    "wrangler": "^4.64.0"
   }
 }
