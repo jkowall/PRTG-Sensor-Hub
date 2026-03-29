@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
-    const secret = (env as any).NEXTAUTH_SECRET || 'fallback-secret';
+    if (!env.NEXTAUTH_SECRET) {
+        return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
+    const secret = env.NEXTAUTH_SECRET;
 
     try {
         const payload = await verifyJWT(token, secret);

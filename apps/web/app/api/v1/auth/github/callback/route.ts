@@ -103,7 +103,10 @@ export async function GET(request: NextRequest) {
         }
 
         // 4. Create JWT
-        const token = await createJWT({ sub: userId, iat: Math.floor(Date.now() / 1000) }, (env as any).NEXTAUTH_SECRET || 'fallback-secret');
+        if (!env.NEXTAUTH_SECRET) {
+            return NextResponse.redirect(`${request.nextUrl.origin}/auth/callback?error=server_misconfigured`);
+        }
+        const token = await createJWT({ sub: userId, iat: Math.floor(Date.now() / 1000) }, env.NEXTAUTH_SECRET);
 
         // 5. Redirect back to frontend
         return NextResponse.redirect(`${request.nextUrl.origin}/auth/callback?token=${token}`);
