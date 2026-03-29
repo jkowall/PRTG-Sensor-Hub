@@ -43,7 +43,10 @@ export async function GET(request: NextRequest) {
     let isAdmin = false;
     const secret = env.NEXTAUTH_SECRET;
 
-    if (secret && authHeader && authHeader.startsWith('Bearer ')) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        if (!secret) {
+            return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+        }
         const token = authHeader.split(' ')[1];
         try {
             authenticatedUser = await verifyJWT(token, secret);

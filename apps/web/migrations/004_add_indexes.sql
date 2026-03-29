@@ -1,5 +1,5 @@
 -- Add indexes on frequently queried columns for better performance
-CREATE INDEX IF NOT EXISTS idx_sensors_slug ON sensors(slug);
+-- Note: sensors.slug already has an implicit index from the UNIQUE constraint
 CREATE INDEX IF NOT EXISTS idx_sensors_status ON sensors(status);
 CREATE INDEX IF NOT EXISTS idx_sensors_owner_id ON sensors(owner_id);
 CREATE INDEX IF NOT EXISTS idx_sensors_category ON sensors(category);
