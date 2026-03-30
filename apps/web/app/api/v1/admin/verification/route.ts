@@ -47,6 +47,14 @@ async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; er
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
         clearTimeout(timeoutId);
+        // Retry with GET if HEAD is rejected (many sites block HEAD requests)
+        if (!res.ok && (res.status === 403 || res.status === 405)) {
+            const controller2 = new AbortController();
+            const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
+            const res2 = await fetch(url, { method: 'GET', signal: controller2.signal, redirect: 'follow' });
+            clearTimeout(timeoutId2);
+            return { ok: res2.ok, status: res2.status };
+        }
         return { ok: res.ok, status: res.status };
     } catch (e: any) {
         if (e.name === 'AbortError') return { ok: false, error: 'timeout' };
@@ -216,8 +224,8 @@ export async function GET(request: NextRequest) {
         let checkedUpstream = 0;
         let updatesAvailable = 0;
         {
-            const upstreamChecks: { row: VerificationRow; owner: string; repo: string }[] = [];
-            const seen = new Set<string>();
+            // Build candidate set using the newest version per repo (by version_id)
+            const newestPerRepo = new Map<string, { row: VerificationRow; owner: string; repo: string }>();
             for (const row of rows) {
                 if (!row.github_url || !row.commit_sha) continue;
                 if (row.commit_sha === 'imported' || row.commit_sha === 'pending') continue;
@@ -225,10 +233,13 @@ export async function GET(request: NextRequest) {
                 const parsed = parseGitHubRepo(row.github_url);
                 if (!parsed) continue;
                 const key = `${parsed.owner}/${parsed.repo}`;
-                if (seen.has(key)) continue;
-                seen.add(key);
-                upstreamChecks.push({ row, ...parsed });
+                const existing = newestPerRepo.get(key);
+                // Keep the row with the latest version_id (newer versions inserted later have larger IDs/timestamps)
+                if (!existing || row.version_id > existing.row.version_id) {
+                    newestPerRepo.set(key, { row, ...parsed });
+                }
             }
+            const upstreamChecks = Array.from(newestPerRepo.values());
 
             await mapWithConcurrency(upstreamChecks, 5, async (check) => {
                 const result = await getLatestCommitSha(check.owner, check.repo);
