@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Sensor Detail Page**: Added prominent "Source" link with GitHub icon in the header stats row, linking directly to the sensor's source repository.
+- **External Link Verification**: Weekly verification workflow now checks all external link submissions for broken URLs, surfacing issues in admin dashboard and GitHub Actions reports.
+- **Upstream Update Detection**: Verification checks GitHub-hosted sensors for newer upstream commits, displaying "Update Available" badges in the admin Verification tab.
+
+### Changed
+
+- **Verification Schedule**: Changed scheduled verification workflow from daily to weekly (Mondays at 6 AM UTC).
 
 ## [2.16.0] - 2026-03-05
 

@@ -2,7 +2,7 @@ name: Verify Sensor Downloads
 
 on:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 6 * * 1"
   workflow_dispatch: {}
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
             exit 1
           fi
           echo "Fetching verification from: $VERIFICATION_URL"
-          response=$(curl -sS -w "\n%{http_code}" -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL?check_source=true")
+          response=$(curl -sS -w "\n%{http_code}" -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL?check_source=true&check_external_links=true&check_updates=true")
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
           echo "HTTP Status: $http_code"
@@ -40,6 +40,13 @@ jobs:
             if(data.checked_source_urls){
               console.log('Checked source URLs:', data.checked_source_urls);
             }
+            if(data.checked_external_links){
+              console.log('Checked external links:', data.checked_external_links);
+            }
+            if(data.checked_upstream){
+              console.log('Checked upstream repos:', data.checked_upstream);
+              if(data.updates_available) console.log('Updates available:', data.updates_available);
+            }
             console.log('Total issues:', data.issue_count);
             if(!data||typeof data.issue_count!=='number'){
               console.error('Invalid response structure');
@@ -51,12 +58,26 @@ jobs:
             const sourceWarnings = (data.issues||[]).filter(i =>
               i.issue_code === 'source_url_broken'
             );
+            const externalLinkWarnings = (data.issues||[]).filter(i =>
+              i.issue_code === 'external_link_broken'
+            );
+            const upstreamUpdates = (data.issues||[]).filter(i =>
+              i.issue_code === 'upstream_update_available'
+            );
             const warnings = (data.issues||[]).filter(i =>
-              i.issue_code !== 'download_missing' && i.issue_code !== 'download_error' && i.issue_code !== 'source_url_broken'
+              i.issue_code !== 'download_missing' && i.issue_code !== 'download_error' && i.issue_code !== 'source_url_broken' && i.issue_code !== 'external_link_broken' && i.issue_code !== 'upstream_update_available'
             );
             if(sourceWarnings.length > 0){
               console.log('⚠ ' + sourceWarnings.length + ' broken source URL(s) for imported sensors:');
               sourceWarnings.forEach(w => console.log('  - ' + w.display_name + ' (' + w.slug + '): ' + w.issue_summary));
+            }
+            if(externalLinkWarnings.length > 0){
+              console.log('⚠ ' + externalLinkWarnings.length + ' broken external link(s):');
+              externalLinkWarnings.forEach(w => console.log('  - ' + w.display_name + ' (' + w.slug + '): ' + w.issue_summary));
+            }
+            if(upstreamUpdates.length > 0){
+              console.log('ℹ ' + upstreamUpdates.length + ' sensor(s) with upstream updates available:');
+              upstreamUpdates.forEach(u => console.log('  - ' + u.display_name + ' (' + u.slug + '): ' + u.issue_summary));
             }
             if(warnings.length > 0){
               console.log('⚠ ' + warnings.length + ' metadata warning(s):');
