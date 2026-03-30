@@ -13,7 +13,6 @@ interface VerificationRow {
     version_str: string;
     github_url: string | null;
     commit_sha: string | null;
-    version_created_at: string | null;
 }
 
 interface ExternalLinkRow {
@@ -42,58 +41,34 @@ function parseGitHubRepo(url: string): { owner: string; repo: string } | null {
     return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
 }
 
-async function fetchWithTimeout(url: string, method: string, headers: Record<string, string> = {}): Promise<{ ok: boolean; status: number }> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    try {
-        const res = await fetch(url, { method, headers, signal: controller.signal, redirect: 'follow' });
-        return { ok: res.ok, status: res.status };
-    } finally {
-        clearTimeout(timeoutId);
-    }
-}
-
 async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
-    const headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; PRTG-Sensor-Hub-Verification/1.0)',
-    };
-    // Try HEAD first
-    let headFailed = false;
     try {
-        const result = await fetchWithTimeout(url, 'HEAD', headers);
-        if (result.ok) return result;
-        headFailed = true;
-    } catch {
-        headFailed = true;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        clearTimeout(timeoutId);
+        return { ok: res.ok, status: res.status };
+    } catch (e: any) {
+        if (e.name === 'AbortError') return { ok: false, error: 'timeout' };
+        return { ok: false, error: e.message };
     }
-    // HEAD returned non-2xx or threw — retry with GET
-    if (headFailed) {
-        try {
-            return await fetchWithTimeout(url, 'GET', headers);
-        } catch (e: any) {
-            if (e.name === 'AbortError') return { ok: false, error: 'timeout' };
-            return { ok: false, error: e.message };
-        }
-    }
-    return { ok: false, error: 'unknown' };
 }
 
 async function getLatestCommitSha(owner: string, repo: string): Promise<{ sha: string } | { error: string }> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=1`, {
             signal: controller.signal,
             headers: { 'User-Agent': 'PRTG-Sensor-Hub-Verification', 'Accept': 'application/vnd.github.v3+json' }
         });
+        clearTimeout(timeoutId);
         if (!res.ok) return { error: `HTTP ${res.status}` };
         const data = await res.json();
         if (!Array.isArray(data) || data.length === 0) return { error: 'No commits found' };
         return { sha: data[0].sha };
     } catch (e: any) {
         return { error: e.name === 'AbortError' ? 'timeout' : e.message };
-    } finally {
-        clearTimeout(timeoutId);
     }
 }
 
@@ -139,8 +114,7 @@ export async function GET(request: NextRequest) {
 
         const { results } = await env.DB.prepare(`
             SELECT s.id as sensor_id, s.slug, s.display_name, s.category, s.status,
-                   v.id as version_id, v.version_str, v.github_url, v.commit_sha,
-                   v.created_at as version_created_at
+                   v.id as version_id, v.version_str, v.github_url, v.commit_sha
             FROM sensors s
             LEFT JOIN versions v ON v.sensor_id = s.id
             WHERE s.status NOT IN ('built-in', 'deprecated')
@@ -192,10 +166,9 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        // Check external link URLs (non-GitHub repository_url values) — opt-in via query param
-        const checkExternalLinks = request.nextUrl.searchParams.get('check_external_links') !== 'false';
+        // Check external link URLs (non-GitHub repository_url values)
         let checkedExternalLinks = 0;
-        if (checkExternalLinks) {
+        {
             const { results: extRows } = await env.DB.prepare(`
                 SELECT s.id as sensor_id, s.slug, s.display_name, s.category, s.status, s.repository_url
                 FROM sensors s
@@ -213,8 +186,16 @@ export async function GET(request: NextRequest) {
                 return true;
             });
 
-            await mapWithConcurrency(toCheckExt, 5, async (row) => {
-                const result = await checkUrl(row.repository_url);
+            const extResults = await Promise.allSettled(
+                toCheckExt.map(async (row) => {
+                    const result = await checkUrl(row.repository_url);
+                    return { row, result };
+                })
+            );
+
+            for (const settled of extResults) {
+                if (settled.status === 'rejected') continue;
+                const { row, result } = settled.value;
                 checkedExternalLinks++;
                 if (!result.ok) {
                     issues.push({
@@ -228,16 +209,15 @@ export async function GET(request: NextRequest) {
                             : `External link returns HTTP ${result.status}`
                     });
                 }
-            });
+            }
         }
 
-        // Check for upstream updates on GitHub-hosted sensors — opt-in via query param
-        const checkUpdates = request.nextUrl.searchParams.get('check_updates') !== 'false';
+        // Check for upstream updates on GitHub-hosted sensors
         let checkedUpstream = 0;
         let updatesAvailable = 0;
-        if (checkUpdates) {
-            // Build candidate set using the newest version per repo (by version_id)
-            const newestPerRepo = new Map<string, { row: VerificationRow; owner: string; repo: string }>();
+        {
+            const upstreamChecks: { row: VerificationRow; owner: string; repo: string }[] = [];
+            const seen = new Set<string>();
             for (const row of rows) {
                 if (!row.github_url || !row.commit_sha) continue;
                 if (row.commit_sha === 'imported' || row.commit_sha === 'pending') continue;
@@ -245,13 +225,10 @@ export async function GET(request: NextRequest) {
                 const parsed = parseGitHubRepo(row.github_url);
                 if (!parsed) continue;
                 const key = `${parsed.owner}/${parsed.repo}`;
-                const existing = newestPerRepo.get(key);
-                // Keep the row with the most recently created version
-                if (!existing || (row.version_created_at || '') > (existing.row.version_created_at || '')) {
-                    newestPerRepo.set(key, { row, ...parsed });
-                }
+                if (seen.has(key)) continue;
+                seen.add(key);
+                upstreamChecks.push({ row, ...parsed });
             }
-            const upstreamChecks = Array.from(newestPerRepo.values());
 
             await mapWithConcurrency(upstreamChecks, 5, async (check) => {
                 const result = await getLatestCommitSha(check.owner, check.repo);
