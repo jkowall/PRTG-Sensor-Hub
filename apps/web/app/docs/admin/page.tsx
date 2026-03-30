@@ -119,7 +119,7 @@ export default function AdminDocsPage() {
                     </p>
                     <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
                         <li>The database record is removed.</li>
-                        <li>Associated files in R2 storage are deleted.</li>
+                        <li>Associated files in the GitHub sensors repository are deleted.</li>
                         <li>Any associated GitHub PRs created by the hub are closed.</li>
                     </ul>
                 </div>
