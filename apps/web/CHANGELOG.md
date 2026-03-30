@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.17.0 (2026-03-30)
+
+### Features
+
+- Add "External Link" submission type allowing users to submit sensors via any URL (blog, GitLab, company site, etc.)
+
 ## 2.16.1 (2026-03-29)
 
 ### Security
