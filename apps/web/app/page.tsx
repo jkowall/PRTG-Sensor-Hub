@@ -17,6 +17,7 @@ interface Sensor {
     tags: string[];
     is_certified: boolean;
     status: 'pending' | 'approved' | 'certified' | 'built-in' | 'deprecated';
+    repository_url?: string | null;
     docs_url?: string | null;
     created_at?: string;
 }
