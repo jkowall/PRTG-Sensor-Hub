@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.0] - 2026-03-30
+
+### Added
+
+- **Paessler Auto-Sync**: Monthly automated scrape of Paessler's Sensor Hub that detects newly added sensors and creates them as pending for admin approval. Includes a new `/api/v1/sync/paessler` endpoint, a GitHub Actions cron workflow, dry-run support, and an "Auto-synced" badge in the admin dashboard.
+
 ## [2.16.0] - 2026-03-05
 
 ### Changed
