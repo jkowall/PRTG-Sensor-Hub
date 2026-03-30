@@ -263,7 +263,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### v2.1.0 Added
 
-- **Cloudflare Integration**: Support for deploying the stack to Cloudflare Workers, Pages, D1, and R2.
+- **Cloudflare Integration**: Support for deploying the stack to Cloudflare Workers, Pages, and D1.
 - **Hybrid Database Layer**: Re-architected `apps/api` to support both Async (PostgreSQL) and Sync (Cloudflare D1 / Local SQLite) engines.
 - **Local SQLite Mode**: Added parity mode for developing with D1-compatible code locally using SQLite.
 

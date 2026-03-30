@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 
 // API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+const SENSORS_REPO_URL = process.env.NEXT_PUBLIC_SENSORS_REPO_URL || 'https://github.com/jkowall/PRTG-Sensor-Hub-Sensors';
 
 // Types
 interface Version {
@@ -363,7 +364,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
 
                     {sensor.status !== 'built-in' && (
                         <a
-                            href={sensor.repository_url || `https://github.com/jkowall/PRTG-Sensor-Hub-Sensors/tree/main/sensors/${sensor.category}/${sensor.slug}`}
+                            href={sensor.repository_url || `${SENSORS_REPO_URL}/tree/main/sensors/${sensor.category}/${sensor.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="btn btn-outline"

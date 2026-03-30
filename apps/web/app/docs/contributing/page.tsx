@@ -3,6 +3,8 @@
 
 import Link from 'next/link';
 
+const SENSORS_REPO_URL = process.env.NEXT_PUBLIC_SENSORS_REPO_URL || 'https://github.com/jkowall/PRTG-Sensor-Hub-Sensors';
+
 export default function ContributingPage() {
     return (
         <div className="container" style={{ padding: '40px 24px', maxWidth: '800px' }}>
@@ -35,7 +37,7 @@ export default function ContributingPage() {
                     border: '1px solid var(--border-color)'
                 }}>
                     <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-                        Official sensors are hosted in the <a href="https://github.com/jkowall/PRTG-Sensor-Hub-Sensors" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)' }}>PRTG-Sensor-Hub-Sensors</a> repository.
+                        Official sensors are hosted in the <a href={SENSORS_REPO_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)' }}>PRTG-Sensor-Hub-Sensors</a> repository.
                         To update an existing sensor:
                     </p>
                     <ol style={{ paddingLeft: '20px', lineHeight: '1.6' }}>
