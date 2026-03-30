@@ -88,7 +88,7 @@ export default function AdminPage() {
     const [verificationIssues, setVerificationIssues] = useState<VerificationIssue[]>([]);
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [verificationError, setVerificationError] = useState<string | null>(null);
-    const [verificationSummary, setVerificationSummary] = useState<{ checked_versions: number; issue_count: number } | null>(null);
+    const [verificationSummary, setVerificationSummary] = useState<{ checked_versions: number; issue_count: number; checked_external_links?: number; checked_upstream?: number; updates_available?: number } | null>(null);
     const [dispatchLoading, setDispatchLoading] = useState(false);
     const [dispatchMessage, setDispatchMessage] = useState<string | null>(null);
 
@@ -212,7 +212,10 @@ export default function AdminPage() {
                 setVerificationIssues(issues);
                 setVerificationSummary({
                     checked_versions: data.checked_versions || 0,
-                    issue_count: issues.length
+                    issue_count: issues.length,
+                    checked_external_links: data.checked_external_links || 0,
+                    checked_upstream: data.checked_upstream || 0,
+                    updates_available: data.updates_available || 0,
                 });
             } else {
                 const data = await res.json();
@@ -781,7 +784,9 @@ export default function AdminPage() {
                             <h2 style={{ margin: 0 }}>Verification Issues</h2>
                             <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>
                                 {verificationSummary
-                                    ? `${verificationSummary.issue_count} issues across ${verificationSummary.checked_versions} versions checked`
+                                    ? `${verificationSummary.issue_count} issues across ${verificationSummary.checked_versions} versions checked` +
+                                      (verificationSummary.checked_external_links ? `, ${verificationSummary.checked_external_links} external links checked` : '') +
+                                      (verificationSummary.updates_available ? `, ${verificationSummary.updates_available} upstream updates available` : '')
                                     : 'Run verification to find missing downloads'}
                             </div>
                             {dispatchMessage && (
@@ -835,7 +840,15 @@ export default function AdminPage() {
                                     </td>
                                     <td style={{ padding: '16px' }}>{issue.version_str}</td>
                                     <td style={{ padding: '16px' }}>
-                                        <div style={{ fontWeight: '600' }}>{issue.issue_summary}</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {issue.issue_code === 'upstream_update_available' && (
+                                                <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>UPDATE AVAILABLE</span>
+                                            )}
+                                            {issue.issue_code === 'external_link_broken' && (
+                                                <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>BROKEN LINK</span>
+                                            )}
+                                            <span style={{ fontWeight: '600' }}>{issue.issue_summary}</span>
+                                        </div>
                                         {issue.issue_detail && (
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{issue.issue_detail}</div>
                                         )}
