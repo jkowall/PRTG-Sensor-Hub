@@ -239,6 +239,7 @@ export async function POST(request: NextRequest) {
         // Handle multiple files
         const files = formData.getAll('file') as File[];
         const repositoryUrl = formData.get('repository_url') as string;
+        const submissionType = (formData.get('submission_type') as string) || '';
 
         if (!displayName || !category) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -284,7 +285,7 @@ export async function POST(request: NextRequest) {
             }));
         }
         // Scenario B: Import from GitHub
-        else if (repositoryUrl) {
+        else if (repositoryUrl && submissionType !== 'external') {
             if (!env.GITHUB_BOT_TOKEN) {
                 return NextResponse.json({ error: 'Server misconfigured: Missing GITHUB_BOT_TOKEN' }, { status: 500 });
             }
@@ -439,6 +440,26 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: `GitHub Import Failed: ${importError.message}` }, { status: 400 });
             }
         }
+        // Scenario C: External Link
+        else if (repositoryUrl && submissionType === 'external') {
+            try {
+                const parsed = new URL(repositoryUrl);
+                if (!['http:', 'https:'].includes(parsed.protocol)) {
+                    return NextResponse.json({ error: 'Only HTTP and HTTPS URLs are supported' }, { status: 400 });
+                }
+            } catch {
+                return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+            }
+
+            const readmeContent = Buffer.from(
+                `# ${displayName}\n\n${description}\n\n## External Link\n\n${repositoryUrl}`
+            ).toString('base64');
+            gitHubFiles.push({
+                path: `sensors/${category}/${slug}/README.md`,
+                content: readmeContent,
+                encoding: 'base64'
+            });
+        }
 
         // Logic: Generate README if missing
         const hasReadme = gitHubFiles.some(f => f.path.toLowerCase().endsWith('readme.md'));
@@ -466,7 +487,7 @@ export async function POST(request: NextRequest) {
                     branchName,
                     `Add sensor: ${displayName}`,
                     `New Sensor Submission: ${displayName}`,
-                    `Submission for **${displayName}** by user ${payload.sub}.\n\nResults imported from ${repositoryUrl || 'upload'}.\n\n${description}`
+                    `Submission for **${displayName}** by user ${payload.sub}.\n\n${submissionType === 'external' ? `External link: ${repositoryUrl}` : `Results imported from ${repositoryUrl || 'upload'}`}.\n\n${description}`
                 );
                 prUrl = pr.html_url;
             } catch (ghError: any) {

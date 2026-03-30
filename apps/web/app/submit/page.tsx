@@ -15,7 +15,7 @@ export default function SubmitSensorPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [submissionType, setSubmissionType] = useState<'upload' | 'link'>('upload');
+    const [submissionType, setSubmissionType] = useState<'upload' | 'link' | 'external'>('upload');
     const [repoVerification, setRepoVerification] = useState<{ status: 'idle' | 'checking' | 'ok' | 'error'; message?: string }>({ status: 'idle' });
 
     const [formData, setFormData] = useState({
@@ -87,6 +87,20 @@ export default function SubmitSensorPage() {
             if (submissionType === 'link' && repoVerification.status !== 'ok') {
                 throw new Error('Please verify the repository link before submitting.');
             }
+            if (submissionType === 'external' && !formData.repository_url) {
+                throw new Error('Please provide a URL.');
+            }
+            if (submissionType === 'external') {
+                try {
+                    const parsed = new URL(formData.repository_url);
+                    if (!['http:', 'https:'].includes(parsed.protocol)) {
+                        throw new Error('Only HTTP and HTTPS URLs are supported.');
+                    }
+                } catch (urlErr: any) {
+                    if (urlErr.message.includes('HTTP')) throw urlErr;
+                    throw new Error('Please enter a valid URL.');
+                }
+            }
 
             const data = new FormData();
             data.append('display_name', formData.display_name);
@@ -97,6 +111,8 @@ export default function SubmitSensorPage() {
             if (formData.vendor) {
                 data.append('vendor', formData.vendor);
             }
+
+            data.append('submission_type', submissionType);
 
             if (submissionType === 'upload' && files) {
                 for (let i = 0; i < files.length; i++) {
@@ -189,7 +205,7 @@ export default function SubmitSensorPage() {
 
             <p style={{ marginBottom: '16px' }}>
                 Do you have a PRTG related sensor you want to contribute? Perfect!
-                Please upload your files or import them directly from your GitHub repository.
+                Please upload your files, import them from GitHub, or provide a link to an external source.
             </p>
 
             <p style={{ marginBottom: '32px' }}>
@@ -316,6 +332,19 @@ export default function SubmitSensorPage() {
                             Import from GitHub
                             <span style={{ fontSize: '0.7em', color: 'var(--text-muted)', marginLeft: '4px' }}>(Beta)</span>
                         </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="submissionType"
+                                checked={submissionType === 'external'}
+                                onChange={() => {
+                                    setSubmissionType('external');
+                                    setRepoVerification({ status: 'idle' });
+                                }}
+                            />
+                            External Link
+                            <span style={{ fontSize: '0.7em', color: 'var(--text-muted)', marginLeft: '4px' }}>(any URL)</span>
+                        </label>
                     </div>
                 </div>
 
@@ -343,7 +372,7 @@ export default function SubmitSensorPage() {
                             )}
                         </div>
                     </div>
-                ) : (
+                ) : submissionType === 'link' ? (
                     <div style={{ marginBottom: '20px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                             Repository URL<span style={{ color: 'var(--error)' }}>*</span>
@@ -378,6 +407,26 @@ export default function SubmitSensorPage() {
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             <p>We will import files (scripts, images, README) from this repository and create a Pull Request in the Hub.</p>
                             <p>This creates a <strong>snapshot</strong> of your sensor. Future updates will require a new import.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                            External URL<span style={{ color: 'var(--error)' }}>*</span>
+                        </label>
+                        <input
+                            type="url"
+                            name="repository_url"
+                            value={formData.repository_url}
+                            onChange={handleChange}
+                            required
+                            className="search-input"
+                            placeholder="https://example.com/my-sensor"
+                            style={{ marginBottom: '8px' }}
+                        />
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            <p>Provide any URL where this sensor can be found (blog post, GitLab, company site, etc.).</p>
+                            <p>A Pull Request with a README linking to your sensor will be created for admin review.</p>
                         </div>
                     </div>
                 )}
