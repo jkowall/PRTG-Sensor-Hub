@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Paessler Auto-Sync**: Monthly automated scrape of Paessler's Sensor Hub that detects newly added sensors and creates them as pending for admin approval. Includes a new `/api/v1/sync/paessler` endpoint, a GitHub Actions cron workflow, dry-run support, and an "Auto-synced" badge in the admin dashboard.
+- **Sensor Detail Page**: Added prominent "Source" link with GitHub icon in the header stats row, linking directly to the sensor's source repository.
 
 ## [2.16.0] - 2026-03-05
 
