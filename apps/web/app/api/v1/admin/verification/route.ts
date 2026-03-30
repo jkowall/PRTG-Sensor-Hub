@@ -15,6 +15,15 @@ interface VerificationRow {
     commit_sha: string | null;
 }
 
+interface ExternalLinkRow {
+    sensor_id: string;
+    slug: string;
+    display_name: string;
+    category: string;
+    status: string;
+    repository_url: string;
+}
+
 const DOWNLOAD_CHECK_CONCURRENCY = 8;
 
 function buildDownloadUrl(githubUrl: string, commitSha: string) {
@@ -24,6 +33,43 @@ function buildDownloadUrl(githubUrl: string, commitSha: string) {
 
 function isPullRequestUrl(githubUrl: string) {
     return /\/pull\//.test(githubUrl);
+}
+
+function parseGitHubRepo(url: string): { owner: string; repo: string } | null {
+    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (!match) return null;
+    return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
+}
+
+async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        clearTimeout(timeoutId);
+        return { ok: res.ok, status: res.status };
+    } catch (e: any) {
+        if (e.name === 'AbortError') return { ok: false, error: 'timeout' };
+        return { ok: false, error: e.message };
+    }
+}
+
+async function getLatestCommitSha(owner: string, repo: string): Promise<{ sha: string } | { error: string }> {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=1`, {
+            signal: controller.signal,
+            headers: { 'User-Agent': 'PRTG-Sensor-Hub-Verification', 'Accept': 'application/vnd.github.v3+json' }
+        });
+        clearTimeout(timeoutId);
+        if (!res.ok) return { error: `HTTP ${res.status}` };
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) return { error: 'No commits found' };
+        return { sha: data[0].sha };
+    } catch (e: any) {
+        return { error: e.name === 'AbortError' ? 'timeout' : e.message };
+    }
 }
 
 async function mapWithConcurrency<T, R>(items: T[], limit: number, handler: (item: T) => Promise<R>) {
@@ -120,7 +166,88 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        return NextResponse.json({ checked_versions: downloadChecks.length, imported_versions: importedVersions, issue_count: issues.length, issues });
+        // Check external link URLs (non-GitHub repository_url values)
+        let checkedExternalLinks = 0;
+        {
+            const { results: extRows } = await env.DB.prepare(`
+                SELECT s.id as sensor_id, s.slug, s.display_name, s.category, s.status, s.repository_url
+                FROM sensors s
+                WHERE s.repository_url IS NOT NULL
+                  AND s.repository_url != ''
+                  AND s.repository_url NOT LIKE '%github.com%'
+                  AND s.status NOT IN ('built-in', 'deprecated')
+            `).all();
+
+            const extSensors = extRows as ExternalLinkRow[];
+            const seenUrls = new Set<string>();
+            const toCheckExt = extSensors.filter(row => {
+                if (seenUrls.has(row.repository_url)) return false;
+                seenUrls.add(row.repository_url);
+                return true;
+            });
+
+            const extResults = await Promise.allSettled(
+                toCheckExt.map(async (row) => {
+                    const result = await checkUrl(row.repository_url);
+                    return { row, result };
+                })
+            );
+
+            for (const settled of extResults) {
+                if (settled.status === 'rejected') continue;
+                const { row, result } = settled.value;
+                checkedExternalLinks++;
+                if (!result.ok) {
+                    issues.push({
+                        sensor_id: row.sensor_id, slug: row.slug,
+                        display_name: row.display_name, category: row.category,
+                        status: row.status, version_id: '', version_str: '',
+                        github_url: row.repository_url, commit_sha: null,
+                        issue_code: 'external_link_broken',
+                        issue_summary: result.error
+                            ? `External link unreachable: ${result.error}`
+                            : `External link returns HTTP ${result.status}`
+                    });
+                }
+            }
+        }
+
+        // Check for upstream updates on GitHub-hosted sensors
+        let checkedUpstream = 0;
+        let updatesAvailable = 0;
+        {
+            const upstreamChecks: { row: VerificationRow; owner: string; repo: string }[] = [];
+            const seen = new Set<string>();
+            for (const row of rows) {
+                if (!row.github_url || !row.commit_sha) continue;
+                if (row.commit_sha === 'imported' || row.commit_sha === 'pending') continue;
+                if (isPullRequestUrl(row.github_url)) continue;
+                const parsed = parseGitHubRepo(row.github_url);
+                if (!parsed) continue;
+                const key = `${parsed.owner}/${parsed.repo}`;
+                if (seen.has(key)) continue;
+                seen.add(key);
+                upstreamChecks.push({ row, ...parsed });
+            }
+
+            await mapWithConcurrency(upstreamChecks, 5, async (check) => {
+                const result = await getLatestCommitSha(check.owner, check.repo);
+                checkedUpstream++;
+                if ('sha' in result && result.sha !== check.row.commit_sha) {
+                    updatesAvailable++;
+                    issues.push({
+                        sensor_id: check.row.sensor_id, slug: check.row.slug,
+                        display_name: check.row.display_name, category: check.row.category,
+                        status: check.row.status, version_id: check.row.version_id, version_str: check.row.version_str,
+                        github_url: check.row.github_url, commit_sha: check.row.commit_sha,
+                        issue_code: 'upstream_update_available',
+                        issue_summary: `Upstream has newer commits (current: ${check.row.commit_sha?.substring(0, 7)}, latest: ${result.sha.substring(0, 7)})`
+                    });
+                }
+            });
+        }
+
+        return NextResponse.json({ checked_versions: downloadChecks.length, imported_versions: importedVersions, checked_external_links: checkedExternalLinks, checked_upstream: checkedUpstream, updates_available: updatesAvailable, issue_count: issues.length, issues });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
