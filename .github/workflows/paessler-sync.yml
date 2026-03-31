@@ -21,7 +21,7 @@ jobs:
         if: ${{ secrets.PAESSLER_COOKIES != '' }}
         env:
           PAESSLER_COOKIES: ${{ secrets.PAESSLER_COOKIES }}
-        run: echo "$PAESSLER_COOKIES" > scripts/cookies.txt
+        run: printf '%s' "$PAESSLER_COOKIES" > scripts/cookies.txt
 
       - name: Scrape Paessler Sensor Hub
         run: node scripts/scrape_paessler.js

@@ -27,11 +27,18 @@ function generateUUID(): string {
 }
 
 function slugify(name: string): string {
-    return name
+    const normalized = name
+        .trim()
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+    const base = normalized
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '')
         .slice(0, 100);
+
+    return base.length > 0 ? base : generateUUID();
 }
 
 function resolveSlug(base: string, existingSlugs: Set<string>): string {
@@ -91,22 +98,34 @@ export async function POST(request: NextRequest) {
             existingSlugs.add(r.slug);
         }
 
-        // Filter to only new sensors
+        // Filter to only new sensors, deduplicating within the payload
+        const seenInPayload = new Set<string>();
         const newSensors = scraped.filter(s => {
             if (!s.display_name || !s.category) return false;
-            return !existingKeys.has(`${s.display_name}|${s.category}`);
+            const key = `${s.display_name}|${s.category}`;
+            if (existingKeys.has(key) || seenInPayload.has(key)) return false;
+            seenInPayload.add(key);
+            return true;
         });
 
         if (dryRun) {
+            const dryRunSlugs = new Set(existingSlugs);
+            const inserted = newSensors.map(s => {
+                const baseSlug = slugify(s.display_name);
+                const slug = resolveSlug(baseSlug, dryRunSlugs);
+                dryRunSlugs.add(slug);
+                return {
+                    display_name: s.display_name,
+                    slug,
+                    category: s.category,
+                };
+            });
+
             return NextResponse.json({
                 total_scraped: scraped.length,
                 already_exist: scraped.length - newSensors.length,
                 new_sensors: newSensors.length,
-                inserted: newSensors.map(s => ({
-                    display_name: s.display_name,
-                    slug: slugify(s.display_name),
-                    category: s.category,
-                })),
+                inserted,
                 dry_run: true,
             });
         }
