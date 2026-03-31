@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.5] - 2026-03-31
+
+### Fixed
+
+- **Admin Verification Table**: Added scroll containment (max-height 70vh) with sticky column headers so the table no longer forces full-page scrolling with many issues.
+
 ## [2.18.4] - 2026-03-31
 
 ### Changed

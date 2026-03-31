@@ -759,7 +759,7 @@ export default function AdminPage() {
 
             {/* Verification Tab */}
             {activeTab === 'verification' && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflowX: 'auto' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)' }}>
                     <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                         <div>
                             <h2 style={{ margin: 0 }}>Verification Issues</h2>
@@ -792,8 +792,9 @@ export default function AdminPage() {
                         </div>
                     )}
 
+                    <div style={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'auto' }}>
                     <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse' }}>
-                        <thead>
+                        <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg-card)' }}>
                             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
                                 <th style={{ padding: '16px', textAlign: 'left', whiteSpace: 'nowrap' }}>Sensor</th>
                                 <th style={{ padding: '16px', textAlign: 'left', whiteSpace: 'nowrap' }}>Version</th>
@@ -879,6 +880,7 @@ export default function AdminPage() {
                             )}
                         </tbody>
                     </table>
+                    </div>
                 </div>
             )}
             {/* Edit Sensor Modal */}
