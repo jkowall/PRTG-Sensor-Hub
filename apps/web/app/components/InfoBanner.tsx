@@ -8,7 +8,12 @@ export function InfoBanner() {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        if (!localStorage.getItem(STORAGE_KEY)) {
+        try {
+            if (!localStorage.getItem(STORAGE_KEY)) {
+                setVisible(true);
+            }
+        } catch {
+            // Storage unavailable (privacy mode, etc.) — show banner
             setVisible(true);
         }
     }, []);
@@ -16,7 +21,11 @@ export function InfoBanner() {
     if (!visible) return null;
 
     const dismiss = () => {
-        localStorage.setItem(STORAGE_KEY, '1');
+        try {
+            localStorage.setItem(STORAGE_KEY, '1');
+        } catch {
+            // Storage unavailable — banner hides for this session only
+        }
         setVisible(false);
     };
 

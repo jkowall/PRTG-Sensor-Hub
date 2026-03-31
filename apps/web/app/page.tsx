@@ -210,7 +210,7 @@ export default function Home() {
 
                     {/* Search bar */}
                     <div className="search-wrapper">
-                        <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
                             <circle cx="11" cy="11" r="8"/>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
@@ -228,6 +228,7 @@ export default function Home() {
                     {categoryTabs.length > 0 && (
                         <div className="category-tabs">
                             <button
+                                type="button"
                                 className={`category-tab ${selectedCategories.length === 0 ? 'active' : ''}`}
                                 onClick={() => handleTabClick(null)}
                             >
@@ -235,6 +236,7 @@ export default function Home() {
                             </button>
                             {categoryTabs.map((cat: { name: string; count: number }) => (
                                 <button
+                                    type="button"
                                     key={cat.name}
                                     className={`category-tab ${selectedCategories.length === 1 && selectedCategories[0] === cat.name ? 'active' : ''}`}
                                     onClick={() => handleTabClick(cat.name)}
@@ -271,25 +273,25 @@ export default function Home() {
                             {hasActiveFilters && (
                                 <>
                                     {selectedCategories.map(cat => (
-                                        <button key={cat} className="filter-chip" onClick={() => handleCategoryToggle(cat)}>
+                                        <button type="button" key={cat} className="filter-chip" onClick={() => handleCategoryToggle(cat)}>
                                             {cat}
                                             {closeIcon}
                                         </button>
                                     ))}
                                     {selectedTags.map(tag => (
-                                        <button key={tag} className="filter-chip" onClick={() => handleTagToggle(tag)}>
+                                        <button type="button" key={tag} className="filter-chip" onClick={() => handleTagToggle(tag)}>
                                             {tag}
                                             {closeIcon}
                                         </button>
                                     ))}
                                     {selectedStatuses.map(s => (
-                                        <button key={s} className="filter-chip" onClick={() => handleStatusToggle(s)}>
+                                        <button type="button" key={s} className="filter-chip" onClick={() => handleStatusToggle(s)}>
                                             {STATUS_LABELS[s] || s}
                                             {closeIcon}
                                         </button>
                                     ))}
                                     {selectedVendors.map(v => (
-                                        <button key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
+                                        <button type="button" key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
                                             {v}
                                             {closeIcon}
                                         </button>
@@ -300,7 +302,7 @@ export default function Home() {
                                 Showing {total} result{total !== 1 ? 's' : ''}
                             </span>
                             {hasActiveFilters && (
-                                <button className="filter-clear-all" onClick={clearAllFilters}>
+                                <button type="button" className="filter-clear-all" onClick={clearAllFilters}>
                                     Clear all
                                 </button>
                             )}
