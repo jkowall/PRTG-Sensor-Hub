@@ -70,7 +70,11 @@ export default function RootLayout({
                                 <p style={{ marginBottom: '0.5rem', fontWeight: '500', color: 'var(--text-secondary)' }}>PRTG Sensor Hub v{pkg.version} — Open source sensor registry for PRTG Network Monitor</p>
                                 <p>
                                     Created by <a href="https://github.com/jkowall" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-accent)' }}>jkowall</a> |
-                                    View on <a href="https://github.com/jkowall/PRTG-Sensor-Hub" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-accent)' }}>GitHub</a>
+                                    View on <a href="https://github.com/jkowall/PRTG-Sensor-Hub" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-accent)' }}>GitHub</a> |
+                                    <a href="https://github.com/jkowall/PRTG-Sensor-Hub/blob/main/ROADMAP.md" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-accent)' }}>Roadmap</a>
+                                </p>
+                                <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '600px' }}>
+                                    Community-contributed sensors are provided as-is. The maintainers of PRTG Sensor Hub are not responsible for third-party code. Always review sensors before installing them in your environment.
                                 </p>
                             </div>
                         </footer>
