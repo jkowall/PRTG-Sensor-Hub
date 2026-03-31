@@ -90,8 +90,7 @@ export default function AdminPage() {
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [verificationError, setVerificationError] = useState<string | null>(null);
     const [verificationSummary, setVerificationSummary] = useState<{ checked_versions: number; issue_count: number; checked_external_links?: number; checked_upstream?: number; updates_available?: number } | null>(null);
-    const [dispatchLoading, setDispatchLoading] = useState(false);
-    const [dispatchMessage, setDispatchMessage] = useState<string | null>(null);
+
 
     const statusOptions = ['pending', 'approved', 'certified', 'built-in', 'deprecated'];
     const categoryOptions = Array.from(
@@ -227,28 +226,6 @@ export default function AdminPage() {
             setVerificationError('Failed to run verification');
         } finally {
             setVerificationLoading(false);
-        }
-    };
-
-    const dispatchVerificationWorkflow = async () => {
-        setDispatchLoading(true);
-        setDispatchMessage(null);
-        try {
-            const res = await fetch(`${API_URL}/admin/verification/dispatch`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setDispatchMessage('Verification workflow queued in GitHub Actions.');
-            } else {
-                setDispatchMessage(data.error || 'Failed to dispatch workflow.');
-            }
-        } catch (err) {
-            console.error('Failed to dispatch verification workflow:', err);
-            setDispatchMessage('Failed to dispatch workflow.');
-        } finally {
-            setDispatchLoading(false);
         }
     };
 
@@ -793,11 +770,9 @@ export default function AdminPage() {
                                       (verificationSummary.updates_available ? `, ${verificationSummary.updates_available} upstream updates available` : '')
                                     : 'Run verification to find missing downloads'}
                             </div>
-                            {dispatchMessage && (
-                                <div style={{ marginTop: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                    {dispatchMessage}
-                                </div>
-                            )}
+                            <div style={{ marginTop: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                Verification also runs automatically every Monday at 6:00 AM UTC via GitHub Actions.
+                            </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <button
@@ -807,14 +782,6 @@ export default function AdminPage() {
                                 disabled={verificationLoading}
                             >
                                 {verificationLoading ? 'Running...' : 'Run Verification'}
-                            </button>
-                            <button
-                                onClick={dispatchVerificationWorkflow}
-                                className="btn btn-primary"
-                                style={{ padding: '10px 16px' }}
-                                disabled={dispatchLoading}
-                            >
-                                {dispatchLoading ? 'Dispatching...' : 'Run GitHub Action'}
                             </button>
                         </div>
                     </div>
