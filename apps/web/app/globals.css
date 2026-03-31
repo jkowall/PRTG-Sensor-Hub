@@ -392,6 +392,33 @@ a:hover {
     color: var(--accent-primary);
 }
 
+/* Category Pills (admin tab buttons) */
+.category-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.category-pill:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background: var(--bg-badge);
+}
+
+.category-pill.active {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
 /* Loading State */
 .loading {
     display: flex;
