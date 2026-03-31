@@ -37,6 +37,8 @@ const STATUS_LABELS: Record<string, string> = {
     'built-in': 'Built-in',
 };
 
+const INITIAL_SHOW = 5;
+
 /* ── Accordion sub-component ──────────────────────────────────────────────── */
 
 function FilterAccordion({
@@ -80,7 +82,7 @@ function FilterAccordion({
     );
 }
 
-/* ── Scrollable checkbox list with search ────────────────────────────────── */
+/* ── Flat checkbox list with search and "show more" ────────────────────── */
 
 function FilterScrollableList({
     items,
@@ -94,6 +96,7 @@ function FilterScrollableList({
     searchPlaceholder?: string;
 }) {
     const [search, setSearch] = useState('');
+    const [expanded, setExpanded] = useState(false);
 
     const filtered = useMemo(() => {
         if (!search) return items;
@@ -101,7 +104,13 @@ function FilterScrollableList({
         return items.filter(i => (i.label || i.name).toLowerCase().includes(q));
     }, [items, search]);
 
-    const needsScroll = items.length > 6;
+    // Always show selected items first, then fill remaining slots
+    const selected = filtered.filter(i => selectedItems.includes(i.name));
+    const unselected = filtered.filter(i => !selectedItems.includes(i.name));
+    const visibleItems = expanded
+        ? [...selected, ...unselected]
+        : [...selected, ...unselected.slice(0, Math.max(0, INITIAL_SHOW - selected.length))];
+    const hiddenCount = filtered.length - visibleItems.length;
 
     return (
         <>
@@ -114,8 +123,8 @@ function FilterScrollableList({
                     onChange={e => setSearch(e.target.value)}
                 />
             )}
-            <div className={needsScroll ? 'filter-scrollable-container' : undefined}>
-                {filtered.map(item => (
+            <div>
+                {visibleItems.map(item => (
                     <label key={item.name} className="filter-checkbox-item">
                         <input
                             type="checkbox"
@@ -134,6 +143,16 @@ function FilterScrollableList({
                     </p>
                 )}
             </div>
+            {hiddenCount > 0 && !expanded && (
+                <button className="filter-show-more" onClick={() => setExpanded(true)}>
+                    Show {hiddenCount} more
+                </button>
+            )}
+            {expanded && filtered.length > INITIAL_SHOW && (
+                <button className="filter-show-more" onClick={() => setExpanded(false)}>
+                    Show less
+                </button>
+            )}
         </>
     );
 }
@@ -170,62 +189,18 @@ export default function SensorFilters({
         label: STATUS_LABELS[s.name] || s.name,
     }));
 
-    const hasActiveFilters =
-        selectedCategories.length > 0 ||
-        selectedTags.length > 0 ||
-        selectedStatuses.length > 0 ||
-        selectedVendors.length > 0;
-
-    const closeIcon = (
-        <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    );
-
     return (
         <aside className="modern-sidebar">
             <h3 className="sidebar-title">Filters</h3>
 
-            {/* Active filter chips */}
-            {hasActiveFilters && (
-                <div className="active-filters-bar">
-                    <span className="active-filters-label">Active filters</span>
-                    <span className="active-filters-divider" />
-                    {selectedCategories.map(cat => (
-                        <button key={cat} className="filter-chip" onClick={() => onCategoryToggle(cat)}>
-                            {cat}
-                            {closeIcon}
-                        </button>
-                    ))}
-                    {selectedTags.map(tag => (
-                        <button key={tag} className="filter-chip" onClick={() => onTagToggle(tag)}>
-                            {tag}
-                            {closeIcon}
-                        </button>
-                    ))}
-                    {selectedStatuses.map(s => (
-                        <button key={s} className="filter-chip" onClick={() => onStatusToggle(s)}>
-                            {STATUS_LABELS[s] || s}
-                            {closeIcon}
-                        </button>
-                    ))}
-                    {selectedVendors.map(v => (
-                        <button key={v} className="filter-chip" onClick={() => onVendorToggle(v)}>
-                            {v}
-                            {closeIcon}
-                        </button>
-                    ))}
-                    <button className="filter-clear-all" onClick={onClearAll}>
-                        Clear all
-                    </button>
-                </div>
-            )}
-
             {/* Sensor type (category) */}
             {stats.categories.length > 0 && (
-                <FilterAccordion title="Sensor type" defaultOpen>
+                <FilterAccordion title="What to monitor" defaultOpen>
                     <FilterScrollableList
                         items={stats.categories}
                         selectedItems={selectedCategories}
                         onToggle={onCategoryToggle}
+                        searchPlaceholder="Search filter"
                     />
                 </FilterAccordion>
             )}
@@ -268,7 +243,7 @@ export default function SensorFilters({
 
             {/* Status */}
             {statusItems.length > 0 && (
-                <FilterAccordion title="Status" defaultOpen={false}>
+                <FilterAccordion title="Source & Quality" defaultOpen={false}>
                     <FilterScrollableList
                         items={statusItems}
                         selectedItems={selectedStatuses}

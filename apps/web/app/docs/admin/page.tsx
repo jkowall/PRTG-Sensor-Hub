@@ -37,7 +37,7 @@ export default function AdminDocsPage() {
             </div>
 
             <section style={{ marginBottom: '50px' }}>
-                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-secondary)', display: 'inline-block' }}>Sensor Submission & Import</h2>
+                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-primary)', display: 'inline-block' }}>Sensor Submission & Import</h2>
 
                 <div style={{ marginBottom: '30px' }}>
                     <h3 style={{ fontSize: '1.4rem', marginBottom: '10px' }}>Single File Import</h3>
@@ -61,7 +61,7 @@ export default function AdminDocsPage() {
             </section>
 
             <section style={{ marginBottom: '50px' }}>
-                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-secondary)', display: 'inline-block' }}>Code Review on GitHub</h2>
+                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-primary)', display: 'inline-block' }}>Code Review on GitHub</h2>
                 <p style={{ marginBottom: '15px', lineHeight: '1.6' }}>
                     The Sensor Hub is deeply integrated with GitHub. All submissions automatically create a Pull Request (PR) in the backend repository.
                     As an admin, your primary code review workflow happens on GitHub:
@@ -79,7 +79,7 @@ export default function AdminDocsPage() {
             </section>
 
             <section style={{ marginBottom: '50px' }}>
-                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-secondary)', display: 'inline-block' }}>Moderation Workflow</h2>
+                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-primary)', display: 'inline-block' }}>Moderation Workflow</h2>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                     <div style={{ padding: '20px', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-secondary)' }}>
@@ -102,7 +102,7 @@ export default function AdminDocsPage() {
             </section>
 
             <section style={{ marginBottom: '50px' }}>
-                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-secondary)', display: 'inline-block' }}>Platform Management</h2>
+                <h2 style={{ fontSize: '1.8rem', marginBottom: '20px', borderBottom: '2px solid var(--accent-primary)', display: 'inline-block' }}>Platform Management</h2>
 
                 <div style={{ marginBottom: '20px' }}>
                     <h3 style={{ fontSize: '1.4rem', marginBottom: '10px' }}>Editing Sensors</h3>

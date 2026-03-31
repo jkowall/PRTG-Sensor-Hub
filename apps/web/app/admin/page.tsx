@@ -456,7 +456,7 @@ export default function AdminPage() {
                         <div style={{ color: 'var(--text-secondary)' }}>Total Users</div>
                     </div>
                     <div className="sensor-card">
-                        <div style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--accent-secondary)' }}>
+                        <div style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--accent-primary)' }}>
                             {stats.total_sensors}
                         </div>
                         <div style={{ color: 'var(--text-secondary)' }}>Total Sensors</div>
@@ -675,7 +675,7 @@ export default function AdminPage() {
                                             <span className="badge badge-pending">Pending</span>
                                         )}
                                         {(s.owner_id === 'paessler-sync' || s.owner_id === 'admin-migration') && (
-                                            <span className="badge" style={{ marginLeft: '6px', background: 'var(--accent-secondary)', color: '#fff', fontSize: '0.7rem' }}>Auto-synced</span>
+                                            <span className="badge" style={{ marginLeft: '6px', background: 'var(--accent-primary)', color: '#fff', fontSize: '0.7rem' }}>Auto-synced</span>
                                         )}
                                     </td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.version_count}</td>
@@ -918,7 +918,7 @@ export default function AdminPage() {
                             marginBottom: '8px',
                             fontSize: '1.8rem',
                             fontWeight: '800',
-                            background: 'var(--accent-gradient)',
+                            background: 'var(--accent-primary)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             backgroundClip: 'text'
