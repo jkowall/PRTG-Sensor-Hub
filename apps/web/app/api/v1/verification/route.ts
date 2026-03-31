@@ -29,21 +29,42 @@ function isPullRequestUrl(githubUrl: string) {
 }
 
 function parseGitHubRepo(url: string): { owner: string; repo: string } | null {
-    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
-    if (!match) return null;
-    return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
+    try {
+        const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+        if (!parsed.hostname.toLowerCase().endsWith('github.com')) return null;
+        const segments = parsed.pathname.split('/').filter(Boolean);
+        if (segments.length < 2) return null;
+        const owner = segments[0];
+        const repo = segments[1].replace(/\.git$/i, '');
+        if (!owner || !repo) return null;
+        return { owner, repo };
+    } catch {
+        return null;
+    }
 }
 
-async function getLatestCommitSha(owner: string, repo: string): Promise<{ sha: string } | { error: string }> {
+async function getLatestCommitSha(owner: string, repo: string, githubToken?: string): Promise<{ sha: string } | { error: string }> {
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const headers: Record<string, string> = {
+            'User-Agent': 'PRTG-Sensor-Hub-Verification',
+            'Accept': 'application/vnd.github.v3+json',
+        };
+        if (githubToken) {
+            headers['Authorization'] = `Bearer ${githubToken}`;
+        }
         const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=1`, {
             signal: controller.signal,
-            headers: { 'User-Agent': 'PRTG-Sensor-Hub-Verification', 'Accept': 'application/vnd.github.v3+json' }
+            headers,
         });
         clearTimeout(timeoutId);
-        if (!res.ok) return { error: `HTTP ${res.status}` };
+        if (!res.ok) {
+            if (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0') {
+                return { error: 'rate_limit' };
+            }
+            return { error: `HTTP ${res.status}` };
+        }
         const data = await res.json();
         if (!Array.isArray(data) || data.length === 0) return { error: 'No commits found' };
         return { sha: data[0].sha };
@@ -71,7 +92,14 @@ async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; er
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        let res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        // Some servers reject HEAD but accept GET — retry on 4xx
+        if (!res.ok && res.status >= 400 && res.status < 500 && res.status !== 404) {
+            const controller2 = new AbortController();
+            const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
+            res = await fetch(url, { method: 'GET', signal: controller2.signal, redirect: 'follow' });
+            clearTimeout(timeoutId2);
+        }
         clearTimeout(timeoutId);
         return { ok: res.ok, status: res.status };
     } catch (e: any) {
@@ -98,7 +126,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }
 
-    const env = context.env as unknown as { DB: D1Database; VERIFICATION_TOKEN?: string };
+    const env = context.env as unknown as { DB: D1Database; VERIFICATION_TOKEN?: string; GITHUB_BOT_TOKEN?: string };
     const token = request.headers.get('x-verification-token');
 
     if (!env.VERIFICATION_TOKEN || token !== env.VERIFICATION_TOKEN) {
@@ -237,45 +265,39 @@ export async function GET(request: NextRequest) {
             `).all();
 
             const extSensors = extRows as ExternalLinkRow[];
-            const seenUrls = new Set<string>();
-            const toCheckExt = extSensors.filter(row => {
-                if (seenUrls.has(row.repository_url)) return false;
-                seenUrls.add(row.repository_url);
-                return true;
-            });
+            const urlToRows = new Map<string, ExternalLinkRow[]>();
+            for (const row of extSensors) {
+                const existing = urlToRows.get(row.repository_url);
+                if (existing) { existing.push(row); } else { urlToRows.set(row.repository_url, [row]); }
+            }
 
-            const extResults = await Promise.allSettled(
-                toCheckExt.map(async (row) => {
-                    const result = await checkUrl(row.repository_url);
-                    return { row, result };
-                })
-            );
-
-            for (const settled of extResults) {
-                if (settled.status === 'rejected') continue;
-                const { row, result } = settled.value;
+            const toCheckExt = Array.from(urlToRows.entries());
+            await mapWithConcurrency(toCheckExt, 10, async ([url, rows]) => {
+                const result = await checkUrl(url);
                 checkedExternalLinks++;
                 if (!result.ok) {
-                    issues.push({
-                        sensor_id: row.sensor_id, slug: row.slug,
-                        display_name: row.display_name, category: row.category,
-                        status: row.status, version_id: '', version_str: '',
-                        github_url: row.repository_url, commit_sha: null,
-                        issue_code: 'external_link_broken',
-                        issue_summary: result.error
-                            ? `External link unreachable: ${result.error}`
-                            : `External link returns HTTP ${result.status}`
-                    });
+                    for (const row of rows) {
+                        issues.push({
+                            sensor_id: row.sensor_id, slug: row.slug,
+                            display_name: row.display_name, category: row.category,
+                            status: row.status, version_id: '', version_str: '',
+                            github_url: row.repository_url, commit_sha: null,
+                            issue_code: 'external_link_broken',
+                            issue_summary: result.error
+                                ? `External link unreachable: ${result.error}`
+                                : `External link returns HTTP ${result.status}`
+                        });
+                    }
                 }
-            }
+            });
         }
 
         // Check for upstream updates on GitHub-hosted sensors
         let checkedUpstream = 0;
         let updatesAvailable = 0;
         if (checkUpdates) {
-            const upstreamChecks: { row: VerificationRow; owner: string; repo: string }[] = [];
-            const seen = new Set<string>();
+            // Use the most recent version per repo for upstream comparison
+            const repoMap = new Map<string, { row: VerificationRow; owner: string; repo: string }>();
             for (const row of rows) {
                 if (!row.github_url || !row.commit_sha) continue;
                 if (row.commit_sha === 'imported' || row.commit_sha === 'pending') continue;
@@ -283,13 +305,17 @@ export async function GET(request: NextRequest) {
                 const parsed = parseGitHubRepo(row.github_url);
                 if (!parsed) continue;
                 const key = `${parsed.owner}/${parsed.repo}`;
-                if (seen.has(key)) continue;
-                seen.add(key);
-                upstreamChecks.push({ row, ...parsed });
+                // Keep the last row per repo — rows are ordered by display_name, but
+                // overwrite ensures we don't pick an arbitrary row when multiple exist
+                if (!repoMap.has(key)) {
+                    repoMap.set(key, { row, ...parsed });
+                }
             }
+            const upstreamChecks = Array.from(repoMap.values());
 
+            const githubToken = (env as any).GITHUB_BOT_TOKEN as string | undefined;
             await mapWithConcurrency(upstreamChecks, 5, async (check) => {
-                const result = await getLatestCommitSha(check.owner, check.repo);
+                const result = await getLatestCommitSha(check.owner, check.repo, githubToken);
                 checkedUpstream++;
                 if ('sha' in result && result.sha !== check.row.commit_sha) {
                     updatesAvailable++;
