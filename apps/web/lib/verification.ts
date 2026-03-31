@@ -35,11 +35,74 @@ function buildDownloadUrl(githubUrl: string, commitSha: string) {
     return `${cleanUrl}/archive/${commitSha}.zip`;
 }
 
-function isPullRequestUrl(githubUrl: string) {
+export function isPullRequestUrl(githubUrl: string) {
     return /\/pull\//.test(githubUrl);
 }
 
-async function mapWithConcurrency<T, R>(items: T[], limit: number, handler: (item: T) => Promise<R>) {
+export function parseGitHubRepo(url: string): { owner: string; repo: string } | null {
+    try {
+        const parsed = new URL(url);
+        const hostname = parsed.hostname.toLowerCase();
+        if (hostname !== 'github.com' && hostname !== 'www.github.com') return null;
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        if (parts.length < 2) return null;
+        return { owner: parts[0], repo: parts[1].replace(/\.git$/, '') };
+    } catch {
+        return null;
+    }
+}
+
+export async function getLatestCommitSha(owner: string, repo: string, token?: string): Promise<{ sha: string } | { error: string }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    try {
+        const headers: Record<string, string> = {
+            'User-Agent': 'PRTG-Sensor-Hub-Verification',
+            'Accept': 'application/vnd.github.v3+json'
+        };
+        if (token) headers['Authorization'] = `token ${token}`;
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=1`, {
+            signal: controller.signal,
+            headers
+        });
+        if (!res.ok) {
+            const isRateLimit = res.status === 403 || res.status === 429;
+            return { error: isRateLimit ? 'rate_limit' : `HTTP ${res.status}` };
+        }
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) return { error: 'No commits found' };
+        return { sha: data[0].sha };
+    } catch (e: any) {
+        return { error: e.name === 'AbortError' ? 'timeout' : e.message };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+export async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    try {
+        let res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        if (!res.ok && res.status >= 400 && res.status < 500 && res.status !== 404) {
+            const controller2 = new AbortController();
+            const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
+            try {
+                res = await fetch(url, { method: 'GET', signal: controller2.signal, redirect: 'follow' });
+            } finally {
+                clearTimeout(timeoutId2);
+            }
+        }
+        return { ok: res.ok, status: res.status };
+    } catch (e: any) {
+        if (e.name === 'AbortError') return { ok: false, error: 'timeout' };
+        return { ok: false, error: e.message };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+export async function mapWithConcurrency<T, R>(items: T[], limit: number, handler: (item: T) => Promise<R>) {
     const results: R[] = [];
     let index = 0;
 

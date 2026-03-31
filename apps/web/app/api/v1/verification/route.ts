@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { D1Database } from '@/lib/db';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { isPullRequestUrl, parseGitHubRepo, getLatestCommitSha, checkUrl, mapWithConcurrency } from '@/lib/verification';
 
 
 interface VerificationRow {
@@ -24,64 +25,6 @@ interface ExternalLinkRow {
     repository_url: string;
 }
 
-function isPullRequestUrl(githubUrl: string) {
-    return /\/pull\//.test(githubUrl);
-}
-
-function parseGitHubRepo(url: string): { owner: string; repo: string } | null {
-    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
-    if (!match) return null;
-    return { owner: match[1], repo: match[2].replace(/\.git$/, '') };
-}
-
-async function getLatestCommitSha(owner: string, repo: string): Promise<{ sha: string } | { error: string }> {
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=1`, {
-            signal: controller.signal,
-            headers: { 'User-Agent': 'PRTG-Sensor-Hub-Verification', 'Accept': 'application/vnd.github.v3+json' }
-        });
-        clearTimeout(timeoutId);
-        if (!res.ok) return { error: `HTTP ${res.status}` };
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) return { error: 'No commits found' };
-        return { sha: data[0].sha };
-    } catch (e: any) {
-        return { error: e.name === 'AbortError' ? 'timeout' : e.message };
-    }
-}
-
-async function mapWithConcurrency<T, R>(items: T[], limit: number, handler: (item: T) => Promise<R>) {
-    const results: R[] = [];
-    let index = 0;
-    async function worker() {
-        while (index < items.length) {
-            const currentIndex = index;
-            index += 1;
-            results[currentIndex] = await handler(items[currentIndex]);
-        }
-    }
-    const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
-    await Promise.all(workers);
-    return results;
-}
-
-async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
-        clearTimeout(timeoutId);
-        return { ok: res.ok, status: res.status };
-    } catch (e: any) {
-        if (e.name === 'AbortError') {
-            return { ok: false, error: 'timeout' };
-        }
-        return { ok: false, error: e.message };
-    }
-}
-
 export async function GET(request: NextRequest) {
     let context;
     try {
@@ -98,7 +41,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Cloudflare context not found' }, { status: 500 });
     }
 
-    const env = context.env as unknown as { DB: D1Database; VERIFICATION_TOKEN?: string };
+    const env = context.env as unknown as { DB: D1Database; VERIFICATION_TOKEN?: string; GITHUB_BOT_TOKEN?: string };
     const token = request.headers.get('x-verification-token');
 
     if (!env.VERIFICATION_TOKEN || token !== env.VERIFICATION_TOKEN) {
@@ -198,16 +141,8 @@ export async function GET(request: NextRequest) {
                 return true;
             });
 
-            const urlResults = await Promise.allSettled(
-                toCheck.map(async (row) => {
-                    const result = await checkUrl(row.github_url!);
-                    return { row, result };
-                })
-            );
-
-            for (const settled of urlResults) {
-                if (settled.status === 'rejected') continue;
-                const { row, result } = settled.value;
+            await mapWithConcurrency(toCheck, 5, async (row) => {
+                const result = await checkUrl(row.github_url!);
                 checkedSourceUrls++;
                 if (!result.ok) {
                     issues.push({
@@ -221,7 +156,7 @@ export async function GET(request: NextRequest) {
                             : `Source URL returns HTTP ${result.status}`
                     });
                 }
-            }
+            });
         }
 
         // Check external link URLs (non-GitHub repository_url values)
@@ -237,43 +172,38 @@ export async function GET(request: NextRequest) {
             `).all();
 
             const extSensors = extRows as ExternalLinkRow[];
-            const seenUrls = new Set<string>();
-            const toCheckExt = extSensors.filter(row => {
-                if (seenUrls.has(row.repository_url)) return false;
-                seenUrls.add(row.repository_url);
-                return true;
-            });
+            const urlToRows = new Map<string, ExternalLinkRow[]>();
+            for (const row of extSensors) {
+                const existing = urlToRows.get(row.repository_url);
+                if (existing) { existing.push(row); } else { urlToRows.set(row.repository_url, [row]); }
+            }
 
-            const extResults = await Promise.allSettled(
-                toCheckExt.map(async (row) => {
-                    const result = await checkUrl(row.repository_url);
-                    return { row, result };
-                })
-            );
-
-            for (const settled of extResults) {
-                if (settled.status === 'rejected') continue;
-                const { row, result } = settled.value;
+            await mapWithConcurrency(Array.from(urlToRows.entries()), 5, async ([url, rows]) => {
+                const result = await checkUrl(url);
                 checkedExternalLinks++;
                 if (!result.ok) {
-                    issues.push({
-                        sensor_id: row.sensor_id, slug: row.slug,
-                        display_name: row.display_name, category: row.category,
-                        status: row.status, version_id: '', version_str: '',
-                        github_url: row.repository_url, commit_sha: null,
-                        issue_code: 'external_link_broken',
-                        issue_summary: result.error
-                            ? `External link unreachable: ${result.error}`
-                            : `External link returns HTTP ${result.status}`
-                    });
+                    for (const row of rows) {
+                        issues.push({
+                            sensor_id: row.sensor_id, slug: row.slug,
+                            display_name: row.display_name, category: row.category,
+                            status: row.status, version_id: '', version_str: '',
+                            github_url: row.repository_url, commit_sha: null,
+                            issue_code: 'external_link_broken',
+                            issue_summary: result.error
+                                ? `External link unreachable: ${result.error}`
+                                : `External link returns HTTP ${result.status}`
+                        });
+                    }
                 }
-            }
+            });
         }
 
         // Check for upstream updates on GitHub-hosted sensors
         let checkedUpstream = 0;
         let updatesAvailable = 0;
+        let failedUpstreamChecks = 0;
         if (checkUpdates) {
+            // Deduplicate by repo — keep the first row per owner/repo (ordered by display_name)
             const upstreamChecks: { row: VerificationRow; owner: string; repo: string }[] = [];
             const seen = new Set<string>();
             for (const row of rows) {
@@ -289,9 +219,11 @@ export async function GET(request: NextRequest) {
             }
 
             await mapWithConcurrency(upstreamChecks, 5, async (check) => {
-                const result = await getLatestCommitSha(check.owner, check.repo);
+                const result = await getLatestCommitSha(check.owner, check.repo, env.GITHUB_BOT_TOKEN);
                 checkedUpstream++;
-                if ('sha' in result && result.sha !== check.row.commit_sha) {
+                if ('error' in result) {
+                    failedUpstreamChecks++;
+                } else if (result.sha !== check.row.commit_sha) {
                     updatesAvailable++;
                     issues.push({
                         sensor_id: check.row.sensor_id, slug: check.row.slug,
@@ -311,6 +243,7 @@ export async function GET(request: NextRequest) {
             checked_source_urls: checkedSourceUrls,
             checked_external_links: checkedExternalLinks,
             checked_upstream: checkedUpstream,
+            failed_upstream_checks: failedUpstreamChecks,
             updates_available: updatesAvailable,
             issue_count: issues.length,
             issues

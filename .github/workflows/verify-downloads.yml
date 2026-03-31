@@ -18,7 +18,12 @@ jobs:
             exit 1
           fi
           echo "Fetching verification from: $VERIFICATION_URL"
-          response=$(curl -sS -w "\n%{http_code}" -H "x-verification-token: $VERIFICATION_TOKEN" "$VERIFICATION_URL?check_source=true&check_external_links=true&check_updates=true")
+          case "$VERIFICATION_URL" in
+            *\?*) query_sep="&" ;;
+            *) query_sep="?" ;;
+          esac
+          full_url="${VERIFICATION_URL}${query_sep}check_source=true&check_external_links=true&check_updates=true"
+          response=$(curl -sS -w "\n%{http_code}" -H "x-verification-token: $VERIFICATION_TOKEN" "$full_url")
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
           echo "HTTP Status: $http_code"
@@ -44,6 +49,7 @@ jobs:
             }
             if(data.checked_upstream){
               console.log('Checked upstream repos:', data.checked_upstream);
+              if(data.failed_upstream_checks) console.log('Failed upstream checks:', data.failed_upstream_checks);
               if(data.updates_available) console.log('Updates available:', data.updates_available);
             }
             console.log('Total issues:', data.issue_count);

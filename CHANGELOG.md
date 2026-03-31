@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.6] - 2026-03-31
+
+### Fixed
+
+- **Verification**: Extracted shared helper functions (`parseGitHubRepo`, `checkUrl`, `getLatestCommitSha`, `mapWithConcurrency`) into `lib/verification.ts` to eliminate duplication between public and admin routes.
+- **Verification**: `parseGitHubRepo` now uses `new URL()` with exact hostname matching instead of regex, preventing `evilgithub.com` from being treated as GitHub.
+- **Verification**: `getLatestCommitSha` and `checkUrl` now use `try/finally` for `clearTimeout`, fixing timer leaks on fetch errors.
+- **Verification**: `checkUrl` falls back from HEAD to GET on 4xx responses (except 404), matching the fix from v2.18.2.
+- **Verification**: `getLatestCommitSha` authenticates with `GITHUB_BOT_TOKEN` when available to avoid unauthenticated rate limits, and returns distinct `rate_limit` errors.
+- **Verification**: Added `failed_upstream_checks` counter to response so operators can distinguish "no updates" from "unable to check".
+- **Verification**: External link dedup now groups sensors by URL so all affected sensors get reported when a shared URL is down.
+- **Workflow**: Fixed query param concatenation to handle `VERIFICATION_URL` that already contains a query string.
+
 ## [2.18.5] - 2026-03-31
 
 ### Fixed
