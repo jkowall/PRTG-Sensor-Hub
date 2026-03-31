@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.0] - 2026-03-31
+
+### Changed
+
+- **UI Restyle**: Full visual overhaul to match the new PRTG design language — flat cards, solid blue accent, minimal shadows, rectangular search bar, green "Approved" badges, and cleaner typography throughout all pages.
+- **Header**: Simplified logo (no gradients), added help icon linking to documentation.
+- **Sidebar Filters**: Flat layout without card container, "Show X more" truncation for long filter lists.
+- **Home Page**: Added search icon in search bar, category tab pills for quick filtering, active filter chips moved to main content area above grid.
+- **Badges**: "Approved" status badges are now green instead of amber across card grid and detail page.
+
+### Added
+
+- **Info Banner**: Dismissible "About PRTG Sensor Hub" banner below header (persists dismiss via localStorage).
+- **Category Tabs**: Functional tab pills on the home page for quick category filtering.
+
 ## [2.18.6] - 2026-03-31
 
 ### Fixed

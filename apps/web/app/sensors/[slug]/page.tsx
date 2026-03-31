@@ -148,7 +148,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                 marginBottom: '40px'
             }}>
                 <div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '8px' }}>{sensor.display_name}</h1>
+                    <h1 style={{ fontSize: '2rem', fontWeight: '600', marginBottom: '8px' }}>{sensor.display_name}</h1>
 
                     {/* Status badges */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
@@ -425,7 +425,7 @@ export default function SensorDetailPage({ params }: { params: Promise<{ slug: s
                                 },
                                 a: ({ node, ...props }) => <a style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }} {...props} target="_blank" rel="noopener noreferrer" />,
                                 img: ({ node, ...props }) => <img style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '16px', marginBottom: '16px' }} {...props} alt={props.alt || ''} />,
-                                blockquote: ({ node, ...props }) => <blockquote style={{ borderLeft: '4px solid var(--accent-secondary)', paddingLeft: '16px', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '16px' }} {...props} />,
+                                blockquote: ({ node, ...props }) => <blockquote style={{ borderLeft: '4px solid var(--accent-primary)', paddingLeft: '16px', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '16px' }} {...props} />,
                             }}
                         >
                             {readme}

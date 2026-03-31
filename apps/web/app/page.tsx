@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { formatDescription } from '@/lib/utils';
 import SensorFilters from './components/SensorFilters';
@@ -168,15 +168,40 @@ export default function Home() {
         setSearchQuery('');
     };
 
+    const categoryTabs = useMemo(() => {
+        if (!stats?.categories) return [];
+        return stats.categories.slice(0, 6);
+    }, [stats]);
+
+    const handleTabClick = (categoryName: string | null) => {
+        if (categoryName === null) {
+            setSelectedCategories([]);
+        } else {
+            setSelectedCategories(prev =>
+                prev.length === 1 && prev[0] === categoryName ? [] : [categoryName]
+            );
+        }
+    };
+
+    const hasActiveFilters =
+        selectedCategories.length > 0 ||
+        selectedTags.length > 0 ||
+        selectedStatuses.length > 0 ||
+        selectedVendors.length > 0;
+
+    const closeIcon = (
+        <svg className="chip-close" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    );
+
     return (
         <>
             {/* Compact Page Header */}
-            <section style={{ padding: '2rem 0 0 0' }}>
+            <section style={{ padding: '1.5rem 0 0 0' }}>
                 <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <div className="page-header">
                         <div>
-                            <h1>PRTG Sensor Hub</h1>
-                            <p>Discover, download, and share community-built sensors, scripts, and templates for PRTG Network Monitor</p>
+                            <h1>Sensors</h1>
+                            <p>Browse community sensors, scripts, and templates for PRTG</p>
                         </div>
                         <Link href="/submit" className="btn btn-primary" style={{ flexShrink: 0 }}>
                             Submit sensor
@@ -184,20 +209,47 @@ export default function Home() {
                     </div>
 
                     {/* Search bar */}
-                    <input
-                        type="text"
-                        className="modern-search"
-                        style={{ width: '100%' }}
-                        placeholder="Search sensors by name, description, or tags..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                    <div className="search-wrapper">
+                        <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input
+                            type="text"
+                            className="modern-search"
+                            style={{ width: '100%' }}
+                            placeholder="Search sensors by name, description, or tags..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Category tab pills */}
+                    {categoryTabs.length > 0 && (
+                        <div className="category-tabs">
+                            <button
+                                className={`category-tab ${selectedCategories.length === 0 ? 'active' : ''}`}
+                                onClick={() => handleTabClick(null)}
+                            >
+                                Show all
+                            </button>
+                            {categoryTabs.map((cat: { name: string; count: number }) => (
+                                <button
+                                    key={cat.name}
+                                    className={`category-tab ${selectedCategories.length === 1 && selectedCategories[0] === cat.name ? 'active' : ''}`}
+                                    onClick={() => handleTabClick(cat.name)}
+                                >
+                                    {cat.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                 </div>
             </section>
 
             {/* Sensors Grid with Sidebar */}
-            <section style={{ padding: '1.5rem 0 5rem 0' }}>
+            <section style={{ padding: '1rem 0 5rem 0' }}>
                 <div className="modern-layout" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <SensorFilters
                         stats={stats}
@@ -214,10 +266,44 @@ export default function Home() {
                     />
 
                     <div className="modern-main">
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500' }}>
+                        {/* Active filter chips + result count */}
+                        <div className="active-filters-bar">
+                            {hasActiveFilters && (
+                                <>
+                                    {selectedCategories.map(cat => (
+                                        <button key={cat} className="filter-chip" onClick={() => handleCategoryToggle(cat)}>
+                                            {cat}
+                                            {closeIcon}
+                                        </button>
+                                    ))}
+                                    {selectedTags.map(tag => (
+                                        <button key={tag} className="filter-chip" onClick={() => handleTagToggle(tag)}>
+                                            {tag}
+                                            {closeIcon}
+                                        </button>
+                                    ))}
+                                    {selectedStatuses.map(s => (
+                                        <button key={s} className="filter-chip" onClick={() => handleStatusToggle(s)}>
+                                            {STATUS_LABELS[s] || s}
+                                            {closeIcon}
+                                        </button>
+                                    ))}
+                                    {selectedVendors.map(v => (
+                                        <button key={v} className="filter-chip" onClick={() => handleVendorToggle(v)}>
+                                            {v}
+                                            {closeIcon}
+                                        </button>
+                                    ))}
+                                </>
+                            )}
+                            <span className="active-filters-label" style={{ marginLeft: hasActiveFilters ? 'auto' : '0' }}>
                                 Showing {total} result{total !== 1 ? 's' : ''}
                             </span>
+                            {hasActiveFilters && (
+                                <button className="filter-clear-all" onClick={clearAllFilters}>
+                                    Clear all
+                                </button>
+                            )}
                         </div>
 
                         {error && (
@@ -267,13 +353,13 @@ export default function Home() {
 
                                         <div className="modern-card-footer">
                                             <div className="modern-card-stats">
-                                                <span className="modern-card-stat">
-                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                                    {sensor.total_downloads.toLocaleString()}
-                                                </span>
                                                 <span className="modern-card-stat" style={{ color: 'var(--warning)' }}>
                                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                                                     {sensor.avg_rating.toFixed(1)}
+                                                </span>
+                                                <span className="modern-card-stat">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                    {sensor.total_downloads.toLocaleString()}
                                                 </span>
                                                 {sensor.created_at && (
                                                     <span className="modern-card-stat">
