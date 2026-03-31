@@ -175,8 +175,8 @@ export default function Home() {
                 <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 2rem' }}>
                     <div className="page-header">
                         <div>
-                            <h1>Sensors</h1>
-                            <p>Browse community sensors, scripts, and templates for PRTG</p>
+                            <h1>PRTG Sensor Hub</h1>
+                            <p>Discover, download, and share community-built sensors, scripts, and templates for PRTG Network Monitor</p>
                         </div>
                         <Link href="/submit" className="btn btn-primary" style={{ flexShrink: 0 }}>
                             Submit sensor
