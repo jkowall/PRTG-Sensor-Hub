@@ -67,27 +67,40 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, handler: (ite
     return results;
 }
 
-async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+async function fetchWithTimeout(url: string, method: string, headers: Record<string, string>): Promise<{ ok: boolean; status: number }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
-        clearTimeout(timeoutId);
-        // Retry with GET if HEAD is rejected (many sites block HEAD requests)
-        if (!res.ok && (res.status === 403 || res.status === 405)) {
-            const controller2 = new AbortController();
-            const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
-            const res2 = await fetch(url, { method: 'GET', signal: controller2.signal, redirect: 'follow' });
-            clearTimeout(timeoutId2);
-            return { ok: res2.ok, status: res2.status };
-        }
+        const res = await fetch(url, { method, headers, signal: controller.signal, redirect: 'follow' });
         return { ok: res.ok, status: res.status };
-    } catch (e: any) {
-        if (e.name === 'AbortError') {
-            return { ok: false, error: 'timeout' };
-        }
-        return { ok: false, error: e.message };
+    } finally {
+        clearTimeout(timeoutId);
     }
+}
+
+async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+    const headers = {
+        'User-Agent': 'Mozilla/5.0 (compatible; PRTG-Sensor-Hub-Verification/1.0)',
+    };
+    // Try HEAD first
+    let headFailed = false;
+    try {
+        const result = await fetchWithTimeout(url, 'HEAD', headers);
+        if (result.ok) return result;
+        headFailed = true;
+    } catch {
+        headFailed = true;
+    }
+    // HEAD returned non-2xx or threw — retry with GET
+    if (headFailed) {
+        try {
+            return await fetchWithTimeout(url, 'GET', headers);
+        } catch (e: any) {
+            if (e.name === 'AbortError') return { ok: false, error: 'timeout' };
+            return { ok: false, error: e.message };
+        }
+    }
+    return { ok: false, error: 'unknown' };
 }
 
 export async function GET(request: NextRequest) {
