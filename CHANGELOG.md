@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.3] - 2026-03-30
+
+### Fixed
+
+- **Admin Dashboard**: Added missing `category-pill` CSS class so tab buttons (Stats, Users, Sensors, Verification) render with proper pill styling instead of unstyled browser defaults.
+- **Admin Tables**: Fixed table overflow causing "Actions" column to be clipped off-screen by switching containers from `overflow: hidden` to `overflow-x: auto`.
+- **Verification**: Fixed timer leak in `getLatestCommitSha` by using `try/finally` for `clearTimeout`. Applied same `fetchWithTimeout` pattern to admin verification route's `checkUrl`.
+- **Verification**: Replaced unbounded `Promise.allSettled` with `mapWithConcurrency(5)` for external link checks in both verification routes.
+- **Admin Verification**: Gated external link and upstream checks behind `check_external_links` and `check_updates` query params to reduce default request latency.
+
 ## [2.18.2] - 2026-03-30
 
 ### Fixed

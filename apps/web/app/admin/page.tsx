@@ -501,7 +501,7 @@ export default function AdminPage() {
 
             {/* Users Tab */}
             {activeTab === 'users' && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
@@ -556,7 +556,7 @@ export default function AdminPage() {
 
             {/* Sensors Tab */}
             {activeTab === 'sensors' && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflowX: 'auto' }}>
                     <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <div style={{ flex: 1, minWidth: '200px' }}>
                             <input
@@ -782,7 +782,7 @@ export default function AdminPage() {
 
             {/* Verification Tab */}
             {activeTab === 'verification' && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--border-radius)', overflowX: 'auto' }}>
                     <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                         <div>
                             <h2 style={{ margin: 0 }}>Verification Issues</h2>
@@ -825,14 +825,14 @@ export default function AdminPage() {
                         </div>
                     )}
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                <th style={{ padding: '16px', textAlign: 'left' }}>Sensor</th>
-                                <th style={{ padding: '16px', textAlign: 'left' }}>Version</th>
+                                <th style={{ padding: '16px', textAlign: 'left', whiteSpace: 'nowrap' }}>Sensor</th>
+                                <th style={{ padding: '16px', textAlign: 'left', whiteSpace: 'nowrap' }}>Version</th>
                                 <th style={{ padding: '16px', textAlign: 'left' }}>Issue</th>
-                                <th style={{ padding: '16px', textAlign: 'left' }}>Download</th>
-                                <th style={{ padding: '16px', textAlign: 'right' }}>Actions</th>
+                                <th style={{ padding: '16px', textAlign: 'left', whiteSpace: 'nowrap' }}>Download</th>
+                                <th style={{ padding: '16px', textAlign: 'right', whiteSpace: 'nowrap' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -866,7 +866,7 @@ export default function AdminPage() {
                                             <span style={{ color: 'var(--text-muted)' }}>N/A</span>
                                         )}
                                     </td>
-                                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                                    <td style={{ padding: '16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                             <button
                                                 onClick={() => openEditForSensor(issue)}
