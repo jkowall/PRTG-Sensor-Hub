@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.4] - 2026-03-31
+
+### Fixed
+
+- **Admin Verification**: Fixed "Too many subrequests" Cloudflare Worker error by gating external link and upstream checks behind `check_external_links` and `check_updates` query params — default "Run Verification" now only checks downloads.
+- **Admin Verification**: Added colored issue type badges (DOWNLOAD FAILED, BROKEN LINK, MISSING DATA, PENDING, PR URL, SOURCE BROKEN, UPDATE AVAILABLE) and a legend so verification issues are clearly identifiable at a glance.
+
 ## [2.18.3] - 2026-03-30
 
 ### Fixed

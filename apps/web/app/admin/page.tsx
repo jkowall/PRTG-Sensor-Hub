@@ -773,6 +773,13 @@ export default function AdminPage() {
                             <div style={{ marginTop: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                 Verification also runs automatically every Monday at 6:00 AM UTC via GitHub Actions.
                             </div>
+                            <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600' }}>DOWNLOAD FAILED</span>
+                                <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600' }}>BROKEN LINK</span>
+                                <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600' }}>MISSING DATA</span>
+                                <span style={{ background: 'rgba(156, 163, 175, 0.2)', color: '#9ca3af', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600' }}>PENDING</span>
+                                <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600' }}>UPDATE AVAILABLE</span>
+                            </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <button
@@ -811,12 +818,27 @@ export default function AdminPage() {
                                     </td>
                                     <td style={{ padding: '16px' }}>{issue.version_str}</td>
                                     <td style={{ padding: '16px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            {issue.issue_code === 'upstream_update_available' && (
-                                                <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>UPDATE AVAILABLE</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                            {(issue.issue_code === 'download_missing' || issue.issue_code === 'download_error') && (
+                                                <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>DOWNLOAD FAILED</span>
                                             )}
                                             {issue.issue_code === 'external_link_broken' && (
                                                 <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>BROKEN LINK</span>
+                                            )}
+                                            {issue.issue_code === 'upstream_update_available' && (
+                                                <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>UPDATE AVAILABLE</span>
+                                            )}
+                                            {(issue.issue_code === 'missing_version' || issue.issue_code === 'missing_github_url' || issue.issue_code === 'missing_commit_sha') && (
+                                                <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>MISSING DATA</span>
+                                            )}
+                                            {issue.issue_code === 'pending_commit_sha' && (
+                                                <span style={{ background: 'rgba(156, 163, 175, 0.2)', color: '#9ca3af', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>PENDING</span>
+                                            )}
+                                            {issue.issue_code === 'github_url_is_pr' && (
+                                                <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>PR URL</span>
+                                            )}
+                                            {issue.issue_code === 'source_url_broken' && (
+                                                <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '600', whiteSpace: 'nowrap' }}>SOURCE BROKEN</span>
                                             )}
                                             <span style={{ fontWeight: '600' }}>{issue.issue_summary}</span>
                                         </div>
