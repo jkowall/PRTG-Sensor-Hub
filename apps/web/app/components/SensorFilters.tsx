@@ -144,12 +144,12 @@ function FilterScrollableList({
                 )}
             </div>
             {hiddenCount > 0 && !expanded && (
-                <button className="filter-show-more" onClick={() => setExpanded(true)}>
+                <button type="button" className="filter-show-more" onClick={() => setExpanded(true)}>
                     Show {hiddenCount} more
                 </button>
             )}
             {expanded && filtered.length > INITIAL_SHOW && (
-                <button className="filter-show-more" onClick={() => setExpanded(false)}>
+                <button type="button" className="filter-show-more" onClick={() => setExpanded(false)}>
                     Show less
                 </button>
             )}

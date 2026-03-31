@@ -486,7 +486,7 @@ a:hover {
 .badge-approved {
     background: var(--approved-green-bg);
     color: var(--approved-green);
-    border: 1px solid rgba(22, 163, 74, 0.25);
+    border: 1px solid color-mix(in srgb, var(--approved-green) 25%, transparent);
 }
 
 .badge-built-in {
@@ -850,7 +850,7 @@ a:hover {
 .modern-status-approved {
     background: var(--approved-green-bg);
     color: var(--approved-green);
-    border: 1px solid rgba(22, 163, 74, 0.25);
+    border: 1px solid color-mix(in srgb, var(--approved-green) 25%, transparent);
 }
 
 .modern-status-built-in {
