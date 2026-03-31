@@ -25,6 +25,7 @@ interface User {
 
 interface Sensor {
     id: string;
+    owner_id?: string | null;
     slug: string;
     display_name: string;
     category: string;
@@ -695,6 +696,9 @@ export default function AdminPage() {
                                             <span className="badge badge-deprecated">Deprecated</span>
                                         ) : (
                                             <span className="badge badge-pending">Pending</span>
+                                        )}
+                                        {(s.owner_id === 'paessler-sync' || s.owner_id === 'admin-migration') && (
+                                            <span className="badge" style={{ marginLeft: '6px', background: 'var(--accent-secondary)', color: '#fff', fontSize: '0.7rem' }}>Auto-synced</span>
                                         )}
                                     </td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>{s.version_count}</td>

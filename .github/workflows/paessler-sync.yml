@@ -1,0 +1,75 @@
+name: Paessler Sensor Hub Sync
+
+on:
+  schedule:
+    - cron: "0 8 1 * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Write cookies file (if configured)
+        if: ${{ secrets.PAESSLER_COOKIES != '' }}
+        env:
+          PAESSLER_COOKIES: ${{ secrets.PAESSLER_COOKIES }}
+        run: printf '%s' "$PAESSLER_COOKIES" > scripts/cookies.txt
+
+      - name: Scrape Paessler Sensor Hub
+        run: node scripts/scrape_paessler.js
+
+      - name: Sync new sensors
+        env:
+          SYNC_URL: ${{ secrets.SYNC_URL }}
+          VERIFICATION_TOKEN: ${{ secrets.VERIFICATION_TOKEN }}
+        run: |
+          if [ -z "$SYNC_URL" ] || [ -z "$VERIFICATION_TOKEN" ]; then
+            echo "Missing SYNC_URL or VERIFICATION_TOKEN secret"
+            exit 1
+          fi
+
+          if [ ! -f scripts/paessler_import.json ]; then
+            echo "Scraper did not produce paessler_import.json"
+            exit 1
+          fi
+
+          scraped_count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('scripts/paessler_import.json','utf8')).length)")
+          echo "Scraped $scraped_count sensors from Paessler"
+
+          echo "Posting to sync endpoint: $SYNC_URL"
+          response=$(curl -sS -w "\n%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-verification-token: $VERIFICATION_TOKEN" \
+            -d @scripts/paessler_import.json \
+            "$SYNC_URL")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+
+          if [ "$http_code" != "200" ]; then
+            echo "Sync endpoint returned HTTP $http_code"
+            exit 1
+          fi
+
+          node -e "
+            const data = JSON.parse(process.argv[1]);
+            console.log('Total scraped:', data.total_scraped);
+            console.log('Already exist:', data.already_exist);
+            console.log('New sensors added:', data.new_sensors);
+            if (data.new_sensors > 0) {
+              console.log('New sensors:');
+              data.inserted.forEach(s => console.log('  -', s.display_name, '(' + s.category + ')'));
+            }
+          " "$body"
