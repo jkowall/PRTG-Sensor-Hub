@@ -68,25 +68,33 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, handler: (ite
 }
 
 async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+    const headers = {
+        'User-Agent': 'Mozilla/5.0 (compatible; PRTG-Sensor-Hub-Verification/1.0)',
+    };
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const res = await fetch(url, { method: 'HEAD', signal: controller.signal, redirect: 'follow' });
+        const res = await fetch(url, { method: 'HEAD', headers, signal: controller.signal, redirect: 'follow' });
         clearTimeout(timeoutId);
-        // Retry with GET if HEAD is rejected (many sites block HEAD requests)
-        if (!res.ok && (res.status === 403 || res.status === 405)) {
+        if (res.ok) return { ok: true, status: res.status };
+        // HEAD failed with non-2xx — retry with GET (some servers reject HEAD)
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
+        const res2 = await fetch(url, { method: 'GET', headers, signal: controller2.signal, redirect: 'follow' });
+        clearTimeout(timeoutId2);
+        return { ok: res2.ok, status: res2.status };
+    } catch (e: any) {
+        // HEAD threw (timeout/network) — retry with GET
+        try {
             const controller2 = new AbortController();
             const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
-            const res2 = await fetch(url, { method: 'GET', signal: controller2.signal, redirect: 'follow' });
+            const res2 = await fetch(url, { method: 'GET', headers, signal: controller2.signal, redirect: 'follow' });
             clearTimeout(timeoutId2);
             return { ok: res2.ok, status: res2.status };
+        } catch (e2: any) {
+            if (e2.name === 'AbortError') return { ok: false, error: 'timeout' };
+            return { ok: false, error: e2.message };
         }
-        return { ok: res.ok, status: res.status };
-    } catch (e: any) {
-        if (e.name === 'AbortError') {
-            return { ok: false, error: 'timeout' };
-        }
-        return { ok: false, error: e.message };
     }
 }
 
