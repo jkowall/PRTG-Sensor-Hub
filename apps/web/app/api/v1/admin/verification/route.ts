@@ -121,6 +121,9 @@ export async function GET(request: NextRequest) {
             ORDER BY s.display_name ASC
         `).all();
 
+        const checkExternalLinks = request.nextUrl.searchParams.get('check_external_links') === 'true';
+        const checkUpdates = request.nextUrl.searchParams.get('check_updates') === 'true';
+
         const rows = results as VerificationRow[];
         const issues: any[] = [];
         const downloadChecks: { row: VerificationRow; downloadUrl: string }[] = [];
@@ -168,7 +171,7 @@ export async function GET(request: NextRequest) {
 
         // Check external link URLs (non-GitHub repository_url values)
         let checkedExternalLinks = 0;
-        {
+        if (checkExternalLinks) {
             const { results: extRows } = await env.DB.prepare(`
                 SELECT s.id as sensor_id, s.slug, s.display_name, s.category, s.status, s.repository_url
                 FROM sensors s
@@ -215,7 +218,7 @@ export async function GET(request: NextRequest) {
         // Check for upstream updates on GitHub-hosted sensors
         let checkedUpstream = 0;
         let updatesAvailable = 0;
-        {
+        if (checkUpdates) {
             const upstreamChecks: { row: VerificationRow; owner: string; repo: string }[] = [];
             const seen = new Set<string>();
             for (const row of rows) {
